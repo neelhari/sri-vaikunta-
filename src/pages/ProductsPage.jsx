@@ -13,7 +13,6 @@ export default function ProductsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
-  const [maxPrice, setMaxPrice] = useState(2500);
 
   const setSelectedCategory = (catId) => {
     if (catId === 'all') {
@@ -42,10 +41,6 @@ export default function ProductsPage() {
         const matchSub = (product.subcategory || '').toLowerCase().includes(query);
         if (!matchName && !matchCat && !matchSub) return false;
       }
-      // Price filter
-      if (product.price > maxPrice) {
-        return false;
-      }
       return true;
     }).sort((a, b) => {
       if (sortBy === 'price-low') return a.price - b.price;
@@ -53,7 +48,7 @@ export default function ProductsPage() {
       if (sortBy === 'rating') return b.rating - a.rating;
       return 0; // default featured
     });
-  }, [selectedCategory, searchQuery, sortBy, maxPrice]);
+  }, [products, selectedCategory, searchQuery, sortBy]);
 
   const activeCategoryName = categoryList.find(c => c.id === selectedCategory)?.name;
 

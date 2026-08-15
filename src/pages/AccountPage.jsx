@@ -134,10 +134,10 @@ export default function AccountPage() {
           </div>
 
           <button
-            onClick={() => openLoginModal()}
+            onClick={() => navigate('/login?redirect=/account')}
             className="bg-[#6B1518] hover:bg-[#4B0F11] text-white px-8 py-3.5 rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-transform hover:scale-105 active:scale-95 shrink-0"
           >
-            LOGIN / SIGNUP
+            LOGIN
           </button>
         </div>
       )}

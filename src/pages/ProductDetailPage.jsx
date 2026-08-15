@@ -106,7 +106,7 @@ export default function ProductDetailPage() {
   const handleBuyNow = () => {
     addToCart(product, quantity, selectedSize);
     if (!isAuthenticated) {
-      openLoginModal('/checkout');
+      navigate('/login?redirect=/checkout');
     } else {
       navigate('/checkout');
     }

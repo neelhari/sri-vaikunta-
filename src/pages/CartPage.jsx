@@ -301,7 +301,7 @@ export default function CartPage() {
                 <button
                   onClick={() => {
                     if (!isAuthenticated) {
-                      openLoginModal('/checkout');
+                      navigate('/login?redirect=/checkout');
                     } else {
                       navigate('/checkout');
                     }

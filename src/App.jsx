@@ -17,7 +17,6 @@ import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 import CartDrawer from './components/CartDrawer';
 import WishlistDrawer from './components/WishlistDrawer';
 import SearchModal from './components/SearchModal';
-import LoginModal from './components/LoginModal';
 import Toast from './components/Toast';
 
 import HomePage from './pages/HomePage';
@@ -144,7 +143,6 @@ function AppContent() {
       {/* Global Interactive Modals & Drawers for Storefront */}
       {!isAdminRoute && (
         <>
-          <LoginModal />
           <CartDrawer />
           <WishlistDrawer />
           <SearchModal />
