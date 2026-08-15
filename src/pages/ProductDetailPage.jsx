@@ -448,8 +448,13 @@ export default function ProductDetailPage() {
         )}
       </div>
 
-      {/* Sticky Mobile Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-3 sm:hidden shadow-lg flex items-center gap-3">
+      {/* Sticky Mobile Bottom Bar — sits just above the persistent MobileBottomNav
+          (which is also fixed bottom-0 at the same z-index), not on top of it.
+          Offset accounts for the nav's own safe-area-inset-bottom padding too. */}
+      <div
+        className="fixed left-0 right-0 z-40 bg-white border-t border-gray-200 p-3 sm:hidden shadow-lg flex items-center gap-3"
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
+      >
         <button
           onClick={handleAddToCart}
           className="flex-1 bg-white text-[#6B1518] border-2 border-[#6B1518] py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"
