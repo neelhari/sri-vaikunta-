@@ -26,9 +26,9 @@ export default function OurStoryPage() {
         <div className="lg:col-span-6 relative">
           <div className="relative aspect-[4/5] sm:aspect-4/3 rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#FAF8F5]">
             <img
-              src="/products/generic-product.png"
+              src="/products/saree-placeholder.png"
               alt={`${BRAND.name} Heritage`}
-              className="w-full h-full object-contain p-2"
+              className="w-full h-full object-cover"
             />
           </div>
           {/* Floating Owner Card */}

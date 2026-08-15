@@ -140,8 +140,18 @@ export default function ContactPage() {
         {/* Left Side: Business Info */}
         <div className="lg:col-span-5 bg-[#6B1518] text-white p-8 sm:p-10 rounded-3xl space-y-8 flex flex-col justify-between shadow-xl">
           <div className="space-y-6">
-            <div className="bg-white p-2.5 rounded-xl inline-block shadow-md border border-[#D3923A]/30">
-              <img src="/logo-wide.png" alt={BRAND.name} className="h-20 sm:h-24 w-auto object-contain" />
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-[#FAF5EE] ring-2 ring-[#D3923A]/60 shadow-md flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+                <img src="/logo-icon.png" alt={BRAND.name} className="h-full w-full object-contain" />
+              </div>
+              <div>
+                <div className="font-serif font-bold text-2xl text-white tracking-wide">
+                  {BRAND.name}
+                </div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-[#D3923A] font-semibold">
+                  {BRAND.tagline}
+                </div>
+              </div>
             </div>
 
             <p className="text-gray-200 text-xs sm:text-sm leading-relaxed">
