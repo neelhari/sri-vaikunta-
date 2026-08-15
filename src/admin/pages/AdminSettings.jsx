@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, Save, CheckCircle2, ShieldCheck, MapPin, Phone, Mail, DollarSign } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
 
@@ -6,10 +6,26 @@ export default function AdminSettings() {
   const { settings, updateSettings } = useStoreData();
   const [formData, setFormData] = useState({ ...settings });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  // `settings` loads asynchronously from Supabase after this component's
+  // first render, so the form must resync once the real values arrive.
+  useEffect(() => {
+    setFormData({ ...settings });
+  }, [settings]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateSettings(formData);
+    setSaving(true);
+    setError('');
+    const result = await updateSettings(formData);
+    setSaving(false);
+
+    if (!result.success) {
+      setError(result.message || 'Could not save settings.');
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -25,6 +41,12 @@ export default function AdminSettings() {
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl flex items-center gap-2 text-xs font-bold animate-fadeIn">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>Store configuration saved successfully! All storefront pages reflect the updated settings.</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs font-bold animate-fadeIn">
+          {error}
         </div>
       )}
 
@@ -130,10 +152,11 @@ export default function AdminSettings() {
         <div className="pt-4 flex justify-end">
           <button
             type="submit"
-            className="bg-[#6B1518] hover:bg-[#4B0F11] text-white px-8 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition-all"
+            disabled={saving}
+            className="bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white px-8 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition-all"
           >
             <Save className="w-4 h-4" />
-            <span>Save Store Configuration</span>
+            <span>{saving ? 'Saving...' : 'Save Store Configuration'}</span>
           </button>
         </div>
       </form>

@@ -10,22 +10,38 @@ export default function AdminCoupons() {
   const [discountValue, setDiscountValue] = useState('');
   const [minOrder, setMinOrder] = useState('');
 
-  const handleCreate = (e) => {
-    e.preventDefault();
-    if (!code || !discountValue) return;
+  const [saving, setSaving] = useState(false);
 
-    addCoupon({
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!code || !discountValue || saving) return;
+
+    setSaving(true);
+    const result = await addCoupon({
       code: code.toUpperCase().trim(),
       type,
       discountValue: Number(discountValue),
       minOrder: Number(minOrder) || 0,
       active: true,
     });
+    setSaving(false);
+
+    if (!result.success) {
+      window.alert(`Could not save coupon: ${result.message || 'Unknown error'}`);
+      return;
+    }
 
     setCode('');
     setDiscountValue('');
     setMinOrder('');
     setIsModalOpen(false);
+  };
+
+  const handleDelete = async (id) => {
+    const result = await deleteCoupon(id);
+    if (!result.success) {
+      window.alert(`Could not delete coupon: ${result.message || 'Unknown error'}`);
+    }
   };
 
   return (
@@ -53,7 +69,10 @@ export default function AdminCoupons() {
                 {c.code}
               </span>
               <button
-                onClick={() => updateCoupon(c.id, { active: !c.active })}
+                onClick={async () => {
+                  const result = await updateCoupon(c.id, { active: !c.active });
+                  if (!result.success) window.alert(`Could not update coupon: ${result.message || 'Unknown error'}`);
+                }}
                 className={`text-[10px] font-extrabold px-3 py-1 rounded-full ${
                   c.active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
                 }`}
@@ -74,7 +93,7 @@ export default function AdminCoupons() {
             <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
               <span className="text-gray-400 text-[10px]">Storefront Checkout Ready</span>
               <button
-                onClick={() => deleteCoupon(c.id)}
+                onClick={() => handleDelete(c.id)}
                 className="text-red-600 hover:text-red-800 font-bold flex items-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -146,8 +165,8 @@ export default function AdminCoupons() {
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 rounded-xl border border-gray-300 font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="bg-[#6B1518] text-white px-5 py-2.5 rounded-xl font-bold">
-                  Save Coupon
+                <button type="submit" disabled={saving} className="bg-[#6B1518] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-bold">
+                  {saving ? 'Saving...' : 'Save Coupon'}
                 </button>
               </div>
             </form>

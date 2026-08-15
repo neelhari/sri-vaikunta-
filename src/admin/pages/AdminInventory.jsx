@@ -12,14 +12,16 @@ export default function AdminInventory() {
       (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const handleStockChange = (p, delta) => {
+  const handleStockChange = async (p, delta) => {
     const newStock = Math.max(0, (p.stock || 10) + delta);
-    updateProduct(p.id, { stock: newStock });
+    const result = await updateProduct(p.id, { stock: newStock });
+    if (!result.success) window.alert(`Could not update stock: ${result.message || 'Unknown error'}`);
   };
 
-  const handleSetStock = (p, newStock) => {
+  const handleSetStock = async (p, newStock) => {
     const validStock = Math.max(0, Number(newStock) || 0);
-    updateProduct(p.id, { stock: validStock });
+    const result = await updateProduct(p.id, { stock: validStock });
+    if (!result.success) window.alert(`Could not update stock: ${result.message || 'Unknown error'}`);
   };
 
   return (

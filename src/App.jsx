@@ -49,6 +49,7 @@ import AdminOrders from './admin/pages/AdminOrders';
 import AdminCustomers from './admin/pages/AdminCustomers';
 import AdminCoupons from './admin/pages/AdminCoupons';
 import AdminBanners from './admin/pages/AdminBanners';
+import AdminMessages from './admin/pages/AdminMessages';
 import AdminSettings from './admin/pages/AdminSettings';
 
 function ScrollAndAosReset() {
@@ -130,6 +131,7 @@ function AppContent() {
               <Route path="customers" element={<AdminCustomers />} />
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="banners" element={<AdminBanners />} />
+              <Route path="messages" element={<AdminMessages />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="*" element={<AdminDashboard />} />
             </Route>

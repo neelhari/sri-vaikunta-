@@ -2,22 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, ShoppingBag } from 'lucide-react';
 import { useUI } from '../context/UIContext';
-import { products } from '../data/products';
+import { useStoreData } from '../context/StoreDataContext';
 
 export default function SearchModal() {
   const navigate = useNavigate();
   const { isSearchOpen, setIsSearchOpen } = useUI();
+  const { products } = useStoreData();
   const [query, setQuery] = useState('');
 
   if (!isSearchOpen) return null;
 
-  const filtered = query.trim() === ''
+  const q = query.trim().toLowerCase();
+  const filtered = q === ''
     ? []
     : products.filter(p =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.category.toLowerCase().includes(query.toLowerCase()) ||
-        p.subcategory.toLowerCase().includes(query.toLowerCase()) ||
-        p.description.toLowerCase().includes(query.toLowerCase())
+        p.name.toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.subcategory || '').toLowerCase().includes(q) ||
+        (p.description || '').toLowerCase().includes(q)
       );
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   ShoppingBag,
@@ -16,9 +16,13 @@ import { useStoreData } from '../../context/StoreDataContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
-  const { products, orders, customers } = useStoreData();
+  const { products, orders, refreshOrders } = useStoreData();
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('30');
+
+  useEffect(() => {
+    refreshOrders();
+  }, [refreshOrders]);
 
   // Compute REAL metrics from StoreDataContext
   const totalSales = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);

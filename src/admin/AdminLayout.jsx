@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Search, Bell, ShieldCheck, UserCheck, CheckCircle2, Lock } from 'lucide-react';
+import { Menu, X, Search, Bell, ShieldCheck, UserCheck, CheckCircle2, Lock, LogOut } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import { BRAND } from '../config/brand';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -10,6 +11,13 @@ export default function AdminLayout() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAdminAuth();
+
+  const handleSignOut = async () => {
+    if (!window.confirm('Sign out of the admin panel?')) return;
+    await signOut();
+    navigate('/admin/login', { replace: true });
+  };
 
   // Get view title based on current path
   const getPageTitle = () => {
@@ -22,6 +30,7 @@ export default function AdminLayout() {
     if (path.includes('/customers')) return 'Customer Directory & Order Metrics';
     if (path.includes('/coupons')) return 'Coupons & Discount Promotions';
     if (path.includes('/banners')) return 'Homepage Banners & Hero Slider CMS';
+    if (path.includes('/messages')) return 'Customer Contact Messages';
     if (path.includes('/settings')) return 'Store Configuration & Tax / GST Settings';
     return 'Admin Panel';
   };
@@ -111,13 +120,20 @@ export default function AdminLayout() {
 
             {/* Admin Profile */}
             <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
-              <div className="w-8 h-8 rounded-full bg-[#6B1518] text-[#D3923A] font-serif font-bold text-xs flex items-center justify-center shadow-xs">
-                AV
+              <div className="w-8 h-8 rounded-full bg-[#6B1518] text-[#D3923A] font-serif font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
+                {user?.email?.slice(0, 2)?.toUpperCase() || 'AV'}
               </div>
-              <div className="hidden sm:block text-left">
-                <span className="block text-xs font-bold text-gray-900 leading-none">{BRAND.ownerName}</span>
-                <span className="text-[10px] text-gray-500 font-medium">Super Admin</span>
+              <div className="hidden sm:block text-left min-w-0">
+                <span className="block text-xs font-bold text-gray-900 leading-none truncate max-w-[140px]">{user?.email || BRAND.ownerName}</span>
+                <span className="text-[10px] text-gray-500 font-medium">Store Admin</span>
               </div>
+              <button
+                onClick={handleSignOut}
+                title="Sign Out"
+                className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-[#6B1518] transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </header>

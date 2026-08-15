@@ -38,8 +38,8 @@ export default function ProductsPage() {
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase();
         const matchName = product.name.toLowerCase().includes(query);
-        const matchCat = product.category.toLowerCase().includes(query);
-        const matchSub = product.subcategory.toLowerCase().includes(query);
+        const matchCat = (product.category || '').toLowerCase().includes(query);
+        const matchSub = (product.subcategory || '').toLowerCase().includes(query);
         if (!matchName && !matchCat && !matchSub) return false;
       }
       // Price filter

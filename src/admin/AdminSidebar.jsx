@@ -13,7 +13,8 @@ import {
   Settings,
   Sparkles,
   ArrowLeft,
-  Store
+  Store,
+  MessageSquare
 } from 'lucide-react';
 import { BRAND } from '../config/brand';
 
@@ -43,6 +44,7 @@ export default function AdminSidebar({ onClose }) {
       items: [
         { label: 'Coupons', icon: Tag, path: '/admin/coupons' },
         { label: 'Hero Banners', icon: ImageIcon, path: '/admin/banners' },
+        { label: 'Messages', icon: MessageSquare, path: '/admin/messages' },
       ],
     },
     {

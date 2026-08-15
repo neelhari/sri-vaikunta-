@@ -76,7 +76,10 @@ export default function AdminBanners() {
             <div className="relative aspect-[2.1/1] bg-gray-100">
               <img src={b.image} alt={b.title} className="w-full h-full object-cover" />
               <button
-                onClick={() => updateBanner(b.id, { active: !b.active })}
+                onClick={async () => {
+                  const result = await updateBanner(b.id, { active: !b.active });
+                  if (!result.success) window.alert(`Could not update banner: ${result.message || 'Unknown error'}`);
+                }}
                 className={`absolute top-3 right-3 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-xs ${
                   b.active ? 'bg-emerald-600 text-white' : 'bg-gray-800 text-gray-300'
                 }`}
@@ -91,7 +94,7 @@ export default function AdminBanners() {
                 <p className="text-[11px] text-gray-500 font-mono mt-0.5">Target: {b.link}</p>
               </div>
               <button
-                onClick={() => deleteBanner(b.id)}
+                onClick={() => handleDelete(b.id)}
                 className="p-2 rounded-xl text-red-600 hover:bg-red-50 border border-red-100"
                 title="Delete Banner"
               >
@@ -145,14 +148,18 @@ export default function AdminBanners() {
                   />
                   {uploading && <span className="text-[10px] text-amber-600 font-bold">Uploading...</span>}
                 </div>
+                {uploadError && <p className="text-[11px] text-red-600 font-semibold mt-1">{uploadError}</p>}
+                {image && (
+                  <img src={image} alt="Banner preview" className="mt-2 w-full aspect-[2.1/1] object-cover rounded-xl border border-gray-200" />
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 rounded-xl border border-gray-300 font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="bg-[#6B1518] text-white px-5 py-2.5 rounded-xl font-bold">
-                  Publish Banner
+                <button type="submit" disabled={saving || uploading || !image} className="bg-[#6B1518] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-bold">
+                  {saving ? 'Saving...' : 'Publish Banner'}
                 </button>
               </div>
             </form>
