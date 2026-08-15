@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, ArrowRight, ChevronRight, Layers, Scissors, ShoppingBag, Heart } from 'lucide-react';
-import { categories } from '../data/categories';
+import { useStoreData } from '../context/StoreDataContext';
 import { BRAND } from '../config/brand';
 
 // Lotus motif SVG matching Indian traditional luxury branding (Image 2 & Image 3 reference)
@@ -32,17 +32,15 @@ function CategoryPillIcon({ catId }) {
     );
   }
   if (catId === 'fabrics') {
-    return <Layers className="w-4 h-4 text-[#6B1518] shrink-0" />;
+    return <Scissors className="w-4 h-4 text-[#D3923A] shrink-0" />;
   }
-  if (catId === 'blouse-pieces') {
-    return <Scissors className="w-4 h-4 text-[#6B1518] shrink-0" />;
-  }
-  return <Sparkles className="w-4 h-4 text-[#D3923A] shrink-0" />;
+  return <Layers className="w-4 h-4 text-[#D3923A] shrink-0" />;
 }
 
 export default function CategoriesPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { categories } = useStoreData();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || 'sarees';
   const [activeCategory, setActiveCategory] = useState(initialCategory);
 

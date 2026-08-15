@@ -2,22 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, ShieldCheck, Truck, Tag, Heart, Award, CheckCircle2, ShoppingBag, Star, TrendingUp } from 'lucide-react';
 import { InstagramIcon } from '../components/BrandIcons';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
+import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
 import CategoryTile from '../components/CategoryTile';
 import { BRAND } from '../config/brand';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  // TODO: replace with real Aalaya Vastra photography. These two are the only
-  // slides from the reference kit that match this store's actual catalog
-  // (sarees, dresses) — the other 6 (jewellery/shirts/t-shirts/hair
-  // accessories/photoframes/fancy items) were dropped since AV doesn't sell those.
-  const sliderImages = [
-    '/slider/image.png',
-    '/slider/image copy 2.png',
-  ];
+  const { products, categories, banners } = useStoreData();
+
+  const activeBanners = banners.filter((b) => b.active);
+  const sliderImages = activeBanners.length > 0
+    ? activeBanners.map((b) => b.image)
+    : ['/slider/image.png', '/slider/image copy 2.png'];
+
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -25,11 +23,11 @@ export default function HomePage() {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 4500);
     return () => clearInterval(slideInterval);
-  }, []);
+  }, [sliderImages.length]);
 
   const featuredProducts = products.filter(p => p.isFeatured || p.isNew).slice(0, 4);
   const bestSellers = products.filter(p => p.rating >= 4.5 && !p.isNew).slice(0, 4);
-  const trendingProducts = [...products].sort((a, b) => b.reviewsCount - a.reviewsCount).slice(0, 4);
+  const trendingProducts = [...products].sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0)).slice(0, 4);
 
   const instagramPosts = [
     { id: 1, image: "/products/generic-product.png" },

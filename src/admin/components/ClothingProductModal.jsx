@@ -1,0 +1,436 @@
+import React, { useState, useEffect } from 'react';
+import { X, Upload, Plus, Trash2, Check, Video, AlertCircle } from 'lucide-react';
+import { uploadToCloudinary } from '../../lib/cloudinary';
+
+export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    category: 'sarees',
+    price: '',
+    oldPrice: '',
+    costPrice: '',
+    stock: 10,
+    fabric: 'Pure Cotton',
+    material: 'Zari Weave',
+    occasion: 'Festive Wear',
+    careInstructions: 'Dry Clean Only',
+    sizes: ['S', 'M', 'L', 'XL'],
+    description: '',
+    videoUrl: '',
+    images: [],
+  });
+
+  const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+
+  useEffect(() => {
+    if (initialProduct) {
+      setFormData({
+        name: initialProduct.name || '',
+        sku: initialProduct.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+        category: initialProduct.category || 'sarees',
+        price: initialProduct.price || '',
+        oldPrice: initialProduct.oldPrice || '',
+        costPrice: initialProduct.costPrice || '',
+        stock: initialProduct.stock || 10,
+        fabric: initialProduct.fabric || 'Pure Cotton',
+        material: initialProduct.material || 'Handloom',
+        occasion: initialProduct.occasion || 'Festive Wear',
+        careInstructions: initialProduct.careInstructions || 'Dry Clean Only',
+        sizes: initialProduct.sizes || ['S', 'M', 'L', 'XL'],
+        description: initialProduct.description || '',
+        videoUrl: initialProduct.videoUrl || '',
+        images: initialProduct.images || (initialProduct.image ? [initialProduct.image] : []),
+      });
+    } else {
+      setFormData({
+        name: '',
+        sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+        category: 'sarees',
+        price: '',
+        oldPrice: '',
+        costPrice: '',
+        stock: 10,
+        fabric: 'Mulchanderi / Pure Cotton',
+        material: 'Handloom Zari Work',
+        occasion: 'Festive & Wedding Wear',
+        careInstructions: 'Dry Clean Only',
+        sizes: ['S', 'M', 'L', 'XL'],
+        description: '',
+        videoUrl: '',
+        images: ['/products/saree-placeholder.png'],
+      });
+    }
+  }, [initialProduct, isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    setUploading(true);
+
+    const uploadedUrls = [];
+    for (const file of files) {
+      const res = await uploadToCloudinary(file);
+      if (res && res.secure_url) {
+        uploadedUrls.push(res.secure_url);
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setFormData((prev) => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
+    }
+    setUploading(false);
+  };
+
+  const handleRemoveImage = (idx) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const toggleSize = (size) => {
+    setFormData((prev) => {
+      const exists = prev.sizes.includes(size);
+      const newSizes = exists ? prev.sizes.filter((s) => s !== size) : [...prev.sizes, size];
+      return { ...prev, sizes: newSizes };
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.price) return;
+
+    const discountStr =
+      formData.oldPrice && Number(formData.oldPrice) > Number(formData.price)
+        ? `${Math.round(((Number(formData.oldPrice) - Number(formData.price)) / Number(formData.oldPrice)) * 100)}% OFF`
+        : null;
+
+    const payload = {
+      ...formData,
+      price: Number(formData.price),
+      oldPrice: formData.oldPrice ? Number(formData.oldPrice) : null,
+      discount: discountStr,
+      image: formData.images[0] || '/products/saree-placeholder.png',
+    };
+
+    onSave(payload);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Modal Header */}
+        <div className="bg-[#6B1518] text-white px-6 py-4 flex items-center justify-between">
+          <div>
+            <h3 className="font-serif text-lg font-bold">
+              {initialProduct ? 'Edit Clothing Product' : 'Add New Clothing Product'}
+            </h3>
+            <p className="text-[11px] text-gray-300">
+              Aalaya Vastra Clothing CMS • Live Storefront Synchronization
+            </p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 bg-gray-50 px-6 gap-6 text-xs font-bold">
+          <button
+            onClick={() => setActiveTab('basic')}
+            className={`py-3 border-b-2 transition-colors ${
+              activeTab === 'basic' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
+            }`}
+          >
+            1. Basic & Pricing
+          </button>
+          <button
+            onClick={() => setActiveTab('attributes')}
+            className={`py-3 border-b-2 transition-colors ${
+              activeTab === 'attributes' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
+            }`}
+          >
+            2. Clothing Specs & Sizes
+          </button>
+          <button
+            onClick={() => setActiveTab('media')}
+            className={`py-3 border-b-2 transition-colors ${
+              activeTab === 'media' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
+            }`}
+          >
+            3. Images & Video Link
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-6 text-xs">
+          {activeTab === 'basic' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Product Title *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Mulchanderi 3 Piece Dress With Embroidery"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">SKU Code</label>
+                  <input
+                    type="text"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Category *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
+                  >
+                    <option value="sarees">Sarees</option>
+                    <option value="dresses">Dresses</option>
+                    <option value="fabrics">Fabrics</option>
+                    <option value="blouses">Blouse Pieces</option>
+                    <option value="new-arrivals">New Arrivals</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Stock Quantity *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#FAF8F5] p-4 rounded-2xl border border-gray-100">
+                <div>
+                  <label className="block font-bold text-gray-900 mb-1">Selling Price (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="2499"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none font-bold text-sm bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Original MRP (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="3499"
+                    value={formData.oldPrice}
+                    onChange={(e) => setFormData({ ...formData, oldPrice: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Cost Price (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="1500"
+                    value={formData.costPrice}
+                    onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">Product Description</label>
+                <textarea
+                  rows={3}
+                  placeholder="Enter detailed fabric specifications, embroidery style, length, and drape guidance..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'attributes' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Fabric Type</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Pure Cotton, Mulchanderi, Banarasi Silk"
+                    value={formData.fabric}
+                    onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Material / Weave</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Zari Embroidery, Handloom Weave"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Occasion</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Festive, Wedding, Daily Wear"
+                    value={formData.occasion}
+                    onChange={(e) => setFormData({ ...formData, occasion: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Care Instructions</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dry Clean Only / Gentle Handwash"
+                    value={formData.careInstructions}
+                    onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Sizes Available */}
+              <div className="space-y-2 pt-2 border-t border-gray-100">
+                <label className="block font-bold text-gray-900 uppercase">Available Sizes</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {['Free Size', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map((sz) => {
+                    const selected = formData.sizes.includes(sz);
+                    return (
+                      <button
+                        type="button"
+                        key={sz}
+                        onClick={() => toggleSize(sz)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                          selected
+                            ? 'bg-[#6B1518] text-white border-[#6B1518]'
+                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'media' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block font-bold text-gray-900 mb-1">Product Images (Cloudinary)</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-[#6B1518] transition-colors bg-gray-50">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="font-bold text-gray-800">Upload Product Photography</p>
+                  <p className="text-gray-400 text-[11px] mt-0.5">JPG, PNG or WEBP up to 10MB</p>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="cloudinary-upload-input"
+                  />
+                  <label
+                    htmlFor="cloudinary-upload-input"
+                    className="mt-3 inline-block bg-[#6B1518] text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-[#4B0F11]"
+                  >
+                    {uploading ? 'Uploading to Cloudinary...' : 'Select Files'}
+                  </label>
+                </div>
+              </div>
+
+              {/* Uploaded Images List */}
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-4 gap-3 pt-2">
+                  {formData.images.map((img, idx) => (
+                    <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-gray-200 bg-gray-50">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 shadow-md"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Video URL Link */}
+              <div className="pt-3 border-t border-gray-100">
+                <label className="block font-bold text-gray-900 mb-1 flex items-center gap-1.5">
+                  <Video className="w-4 h-4 text-[#6B1518]" /> Product Video / Demonstration Link (YouTube or Instagram)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://www.youtube.com/watch?v=... or https://instagram.com/..."
+                  value={formData.videoUrl}
+                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Customers can click "Watch Product Video →" on the Product Detail page to view video.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Save Actions */}
+          <div className="pt-4 border-t border-gray-200 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-[#6B1518] hover:bg-[#4B0F11] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shadow-md"
+            >
+              <Check className="w-4 h-4" />
+              <span>Save & Publish Product</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

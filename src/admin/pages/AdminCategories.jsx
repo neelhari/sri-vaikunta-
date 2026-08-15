@@ -1,0 +1,147 @@
+import React, { useState } from 'react';
+import { Plus, Edit2, Trash2, CheckCircle2, Grid, Sparkles, Check, X } from 'lucide-react';
+import { useStoreData } from '../../context/StoreDataContext';
+
+export default function AdminCategories() {
+  const { categories, addCategory, updateCategory, deleteCategory } = useStoreData();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCat, setEditingCat] = useState(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleOpenAdd = () => {
+    setEditingCat(null);
+    setName('');
+    setDescription('');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (cat) => {
+    setEditingCat(cat);
+    setName(cat.name);
+    setDescription(cat.tagline || cat.description || '');
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name) return;
+
+    if (editingCat) {
+      updateCategory(editingCat.id, { name, tagline: description });
+    } else {
+      addCategory({
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        name,
+        tagline: description,
+        image: '/slider/image copy 2.png',
+        active: true,
+      });
+    }
+    setIsModalOpen(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-2xs">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-gray-900">Categories & Collections ({categories.length})</h2>
+          <p className="text-xs text-gray-500 mt-0.5">Control live storefront categories and navigation tiles</p>
+        </div>
+
+        <button
+          onClick={handleOpenAdd}
+          className="bg-[#6B1518] hover:bg-[#4B0F11] text-white text-xs font-bold px-5 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add New Category</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {categories.map((cat) => (
+          <div key={cat.id} className="bg-white rounded-3xl border border-gray-100 shadow-2xs overflow-hidden flex flex-col justify-between">
+            <div className="relative aspect-video bg-gray-100">
+              <img src={cat.image || '/slider/image copy 2.png'} alt={cat.name} className="w-full h-full object-cover" />
+              <span className="absolute top-3 right-3 bg-emerald-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs">
+                <CheckCircle2 className="w-3 h-3" /> Live Storefront
+              </span>
+            </div>
+
+            <div className="p-5 space-y-2">
+              <h3 className="font-serif text-lg font-bold text-gray-900">{cat.name}</h3>
+              <p className="text-xs text-gray-500 line-clamp-2">{cat.tagline || cat.description || 'Curated clothing items'}</p>
+
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-[10px] font-mono text-gray-400">ID: {cat.id}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleOpenEdit(cat)}
+                    className="p-2 rounded-xl text-blue-600 hover:bg-blue-50 border border-blue-100"
+                    title="Edit Category"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteCategory(cat.id)}
+                    className="p-2 rounded-xl text-red-600 hover:bg-red-50 border border-red-100"
+                    title="Delete Category"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-serif text-lg font-bold text-[#6B1518]">
+                {editingCat ? 'Edit Category' : 'Create New Category'}
+              </h3>
+              <button onClick={() => setIsModalOpen(false)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Designer Dupattas"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">Tagline / Short Description</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Festive handloom weaves"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 rounded-xl border border-gray-300 font-bold">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-[#6B1518] text-white px-5 py-2.5 rounded-xl font-bold">
+                  Save & Publish
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

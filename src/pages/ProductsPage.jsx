@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, RefreshCw, ShoppingBag, ChevronRight } from 'lucide-react';
-import { products } from '../data/products';
-import { categories } from '../data/categories';
+import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
 import { BRAND } from '../config/brand';
 
 export default function ProductsPage() {
   const navigate = useNavigate();
+  const { products, categories } = useStoreData();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedCategory = searchParams.get('category') || 'all';
 

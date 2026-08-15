@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
+import { StoreDataProvider } from './context/StoreDataContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { UIProvider } from './context/UIContext';
@@ -32,6 +33,18 @@ import PolicyPage from './pages/PolicyPage';
 import NotFoundPage from './pages/NotFoundPage';
 import SplashScreen from './components/SplashScreen';
 
+// Admin CMS Panel
+import AdminLayout from './admin/AdminLayout';
+import AdminDashboard from './admin/pages/AdminDashboard';
+import AdminProducts from './admin/pages/AdminProducts';
+import AdminCategories from './admin/pages/AdminCategories';
+import AdminInventory from './admin/pages/AdminInventory';
+import AdminOrders from './admin/pages/AdminOrders';
+import AdminCustomers from './admin/pages/AdminCustomers';
+import AdminCoupons from './admin/pages/AdminCoupons';
+import AdminBanners from './admin/pages/AdminBanners';
+import AdminSettings from './admin/pages/AdminSettings';
+
 function ScrollAndAosReset() {
   const location = useLocation();
 
@@ -45,6 +58,8 @@ function ScrollAndAosReset() {
 
 function AppContent() {
   const [showSplash, setShowSplash] = useState(true);
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     AOS.init({
@@ -56,21 +71,22 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white pb-16 xl:pb-0">
+    <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white">
       {/* Splash Screen Animation */}
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      {showSplash && !isAdminRoute && <SplashScreen onComplete={() => setShowSplash(false)} />}
 
       <ScrollAndAosReset />
 
       {/* Toast Feedback */}
       <Toast />
 
-      {/* Sticky Header */}
-      <Navbar />
+      {/* Show Navbar & Footer only for Storefront routes */}
+      {!isAdminRoute && <Navbar />}
 
       {/* Main Dynamic View */}
       <main className="flex-1">
         <Routes>
+          {/* Storefront Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/shop" element={<ProductsPage />} />
@@ -87,23 +103,35 @@ function AppContent() {
           <Route path="/our-story" element={<OurStoryPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/account" element={<AccountPage />} />
+
+          {/* Admin Panel CMS Shell Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="banners" element={<AdminBanners />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 
-      {/* Global Interactive Modals & Drawers */}
-      <CartDrawer />
-      <WishlistDrawer />
-      <SearchModal />
-
-      {/* Permanent Floating WhatsApp Action Widget */}
-      <WhatsAppFloatingButton />
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Mobile Sticky Bottom Navigation */}
-      <MobileBottomNav />
+      {/* Global Interactive Modals & Drawers for Storefront */}
+      {!isAdminRoute && (
+        <>
+          <CartDrawer />
+          <WishlistDrawer />
+          <SearchModal />
+          <WhatsAppFloatingButton />
+          <Footer />
+          <MobileBottomNav />
+        </>
+      )}
     </div>
   );
 }
@@ -111,13 +139,15 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <WishlistProvider>
-          <UIProvider>
-            <AppContent />
-          </UIProvider>
-        </WishlistProvider>
-      </CartProvider>
+      <StoreDataProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <UIProvider>
+              <AppContent />
+            </UIProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </StoreDataProvider>
     </BrowserRouter>
   );
 }
