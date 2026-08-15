@@ -26,8 +26,15 @@ export default function ProductCard({ product }) {
           className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-500 ease-out"
         />
 
+        {/* Video Badge */}
+        {product.video && (
+          <span className="absolute top-2 left-2 z-10 bg-[#D3923A] text-[#6B1518] text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
+            ▶ Video
+          </span>
+        )}
+
         {/* NEW Badge */}
-        {product.isNew && (
+        {product.isNew && !product.video && (
           <span className="absolute top-2 left-2 z-10 bg-[#6B1518] text-white text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded shadow-xs">
             NEW
           </span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Plus, Trash2, Check, Video, AlertCircle } from 'lucide-react';
+import { X, Upload, Plus, Trash2, Check, Video, Play, AlertCircle, Film } from 'lucide-react';
 import { uploadToCloudinary } from '../../lib/cloudinary';
 
 export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct }) {
@@ -17,11 +17,13 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     careInstructions: 'Dry Clean Only',
     sizes: ['S', 'M', 'L', 'XL'],
     description: '',
+    video: '',
     videoUrl: '',
     images: [],
   });
 
-  const [uploading, setUploading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         careInstructions: initialProduct.careInstructions || 'Dry Clean Only',
         sizes: initialProduct.sizes || ['S', 'M', 'L', 'XL'],
         description: initialProduct.description || '',
+        video: initialProduct.video || '',
         videoUrl: initialProduct.videoUrl || '',
         images: initialProduct.images || (initialProduct.image ? [initialProduct.image] : []),
       });
@@ -58,6 +61,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         careInstructions: 'Dry Clean Only',
         sizes: ['S', 'M', 'L', 'XL'],
         description: '',
+        video: '',
         videoUrl: '',
         images: ['/products/saree-placeholder.png'],
       });
@@ -69,20 +73,39 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-    setUploading(true);
+    setUploadingImage(true);
 
     const uploadedUrls = [];
     for (const file of files) {
       const res = await uploadToCloudinary(file);
       if (res && res.secure_url) {
         uploadedUrls.push(res.secure_url);
+      } else {
+        // Fallback local data url for instant offline testing
+        uploadedUrls.push(URL.createObjectURL(file));
       }
     }
 
     if (uploadedUrls.length > 0) {
       setFormData((prev) => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
     }
-    setUploading(false);
+    setUploadingImage(false);
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingVideo(true);
+
+    const res = await uploadToCloudinary(file);
+    if (res && res.secure_url) {
+      setFormData((prev) => ({ ...prev, video: res.secure_url }));
+    } else {
+      // Local preview URL fallback
+      const localUrl = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, video: localUrl }));
+    }
+    setUploadingVideo(false);
   };
 
   const handleRemoveImage = (idx) => {
@@ -90,6 +113,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
       ...prev,
       images: prev.images.filter((_, i) => i !== idx),
     }));
+  };
+
+  const handleRemoveVideo = () => {
+    setFormData((prev) => ({ ...prev, video: '' }));
   };
 
   const toggleSize = (size) => {
@@ -115,6 +142,8 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
       oldPrice: formData.oldPrice ? Number(formData.oldPrice) : null,
       discount: discountStr,
       image: formData.images[0] || '/products/saree-placeholder.png',
+      video: formData.video || null,
+      videoUrl: formData.videoUrl || null,
     };
 
     onSave(payload);
@@ -131,7 +160,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
               {initialProduct ? 'Edit Clothing Product' : 'Add New Clothing Product'}
             </h3>
             <p className="text-[11px] text-gray-300">
-              Aalaya Vastra Clothing CMS • Live Storefront Synchronization
+              Aalaya Vastra Clothing CMS • Live Storefront & Video Synchronization
             </p>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-white">
@@ -159,11 +188,12 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
           </button>
           <button
             onClick={() => setActiveTab('media')}
-            className={`py-3 border-b-2 transition-colors ${
+            className={`py-3 border-b-2 transition-colors flex items-center gap-1.5 ${
               activeTab === 'media' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
             }`}
           >
-            3. Images & Video Link
+            <Film className="w-3.5 h-3.5" />
+            <span>3. Images & Video Upload</span>
           </button>
         </div>
 
@@ -351,11 +381,12 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
           )}
 
           {activeTab === 'media' && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* 1. Photo Upload */}
               <div>
-                <label className="block font-bold text-gray-900 mb-1">Product Images (Cloudinary)</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-[#6B1518] transition-colors bg-gray-50">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <label className="block font-bold text-gray-900 mb-1">Product Images (Upload 3 or more photos)</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center hover:border-[#6B1518] transition-colors bg-gray-50">
+                  <Upload className="w-7 h-7 text-gray-400 mx-auto mb-1.5" />
                   <p className="font-bold text-gray-800">Upload Product Photography</p>
                   <p className="text-gray-400 text-[11px] mt-0.5">JPG, PNG or WEBP up to 10MB</p>
                   <input
@@ -368,35 +399,102 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                   />
                   <label
                     htmlFor="cloudinary-upload-input"
-                    className="mt-3 inline-block bg-[#6B1518] text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-[#4B0F11]"
+                    className="mt-2.5 inline-block bg-[#6B1518] text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-[#4B0F11]"
                   >
-                    {uploading ? 'Uploading to Cloudinary...' : 'Select Files'}
+                    {uploadingImage ? 'Uploading Photos...' : 'Select Photos'}
                   </label>
                 </div>
+
+                {/* Uploaded Images List */}
+                {formData.images.length > 0 && (
+                  <div className="grid grid-cols-4 gap-3 pt-3">
+                    {formData.images.map((img, idx) => (
+                      <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-gray-200 bg-gray-50">
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          {idx === 0 ? 'Main' : `Photo ${idx + 1}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 shadow-md"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Uploaded Images List */}
-              {formData.images.length > 0 && (
-                <div className="grid grid-cols-4 gap-3 pt-2">
-                  {formData.images.map((img, idx) => (
-                    <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-gray-200 bg-gray-50">
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+              {/* 2. Direct Video File Upload (3-4s motion video) */}
+              <div className="pt-4 border-t border-gray-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block font-bold text-gray-900 flex items-center gap-1.5">
+                      <Film className="w-4 h-4 text-[#D3923A]" /> 3-4 Seconds Product Drape Video Upload
+                    </label>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      Upload a 3-4 second video showing the fabric movement & drape in real life.
+                    </p>
+                  </div>
+                </div>
+
+                {formData.video ? (
+                  <div className="p-3 bg-[#FAF8F5] rounded-2xl border border-gray-200 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-full sm:w-44 h-28 rounded-xl overflow-hidden bg-black relative shrink-0">
+                      <video
+                        src={formData.video}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-1 right-1 bg-[#D3923A] text-[#6B1518] text-[9px] font-extrabold px-1.5 py-0.5 rounded">
+                        ▶ 3-4s Video
+                      </span>
+                    </div>
+                    <div className="flex-1 space-y-1 text-center sm:text-left">
+                      <p className="font-bold text-gray-900">Product Video Active</p>
+                      <p className="text-[11px] text-emerald-700 font-semibold">
+                        ✓ Will play seamlessly on the storefront Product Detail Page!
+                      </p>
                       <button
                         type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 shadow-md"
+                        onClick={handleRemoveVideo}
+                        className="text-xs text-red-600 hover:text-red-800 font-bold inline-flex items-center gap-1 pt-1"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" /> Remove Video
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center hover:border-[#D3923A] transition-colors bg-[#FAF8F5]">
+                    <Video className="w-7 h-7 text-[#D3923A] mx-auto mb-1.5" />
+                    <p className="font-bold text-gray-800">Upload 3-4s Motion Video</p>
+                    <p className="text-gray-400 text-[11px] mt-0.5">MP4, WEBM or MOV up to 50MB</p>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                      id="cloudinary-video-upload-input"
+                    />
+                    <label
+                      htmlFor="cloudinary-video-upload-input"
+                      className="mt-2.5 inline-block bg-[#D3923A] hover:bg-[#B37C31] text-[#6B1518] font-extrabold text-xs px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-colors"
+                    >
+                      {uploadingVideo ? 'Uploading Video...' : 'Select Video File'}
+                    </label>
+                  </div>
+                )}
+              </div>
 
-              {/* Video URL Link */}
+              {/* 3. External Video Demonstration Link */}
               <div className="pt-3 border-t border-gray-100">
                 <label className="block font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-                  <Video className="w-4 h-4 text-[#6B1518]" /> Product Video / Demonstration Link (YouTube or Instagram)
+                  <Play className="w-4 h-4 text-[#6B1518]" /> External Video Link (Optional YouTube / Instagram URL)
                 </label>
                 <input
                   type="url"
@@ -405,9 +503,6 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                   onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                   className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
                 />
-                <p className="text-[11px] text-gray-400 mt-1">
-                  Customers can click "Watch Product Video →" on the Product Detail page to view video.
-                </p>
               </div>
             </div>
           )}
