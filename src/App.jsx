@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 import { StoreDataProvider } from './context/StoreDataContext';
 import { AuthProvider } from './context/AuthContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { UIProvider } from './context/UIContext';
@@ -37,6 +38,8 @@ import NotFoundPage from './pages/NotFoundPage';
 import SplashScreen from './components/SplashScreen';
 
 // Admin CMS Panel
+import AdminLogin from './admin/AdminLogin';
+import ProtectedAdminRoute from './admin/ProtectedAdminRoute';
 import AdminLayout from './admin/AdminLayout';
 import AdminDashboard from './admin/pages/AdminDashboard';
 import AdminProducts from './admin/pages/AdminProducts';
@@ -108,18 +111,28 @@ function AppContent() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/account" element={<AccountPage />} />
 
-          {/* Admin Panel CMS Shell Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="categories" element={<AdminCategories />} />
-            <Route path="inventory" element={<AdminInventory />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="customers" element={<AdminCustomers />} />
-            <Route path="coupons" element={<AdminCoupons />} />
-            <Route path="banners" element={<AdminBanners />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="*" element={<AdminDashboard />} />
+          {/* Admin Panel CMS Shell Routes — gated by real Supabase Auth + admin_users allowlist */}
+          <Route element={<AdminAuthProvider><Outlet /></AdminAuthProvider>}>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout />
+                </ProtectedAdminRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="inventory" element={<AdminInventory />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="coupons" element={<AdminCoupons />} />
+              <Route path="banners" element={<AdminBanners />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="*" element={<AdminDashboard />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

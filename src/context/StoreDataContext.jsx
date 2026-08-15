@@ -1,204 +1,176 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { products as initialProducts } from '../data/products';
-import { categories as initialCategories } from '../data/categories';
-import { BRAND } from '../config/brand';
-import { supabase } from '../lib/supabase';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import {
+  fetchProducts, insertProduct, updateProductInDb, deleteProductFromDb,
+  fetchCategories, insertCategory, updateCategoryInDb, deleteCategoryFromDb,
+  fetchBanners, insertBanner, updateBannerInDb, deleteBannerFromDb,
+  fetchCoupons, insertCoupon, updateCouponInDb, deleteCouponFromDb,
+  fetchOrders, saveOrderToSupabase, updateOrderStatusInDb,
+  fetchContactMessages, updateMessageStatusInDb,
+  fetchSettings, updateSettingsInDb,
+} from '../lib/supabase';
 
 const StoreDataContext = createContext();
 
-const INITIAL_BANNERS = [
-  { id: 'b1', title: 'Banarasi Silk Sarees', image: '/slider/image copy 2.png', active: true, link: '/shop?category=sarees' },
-  { id: 'b2', title: 'Festive Dress Collection', image: '/slider/image copy 3.png', active: true, link: '/shop?category=dresses' },
-];
-
-const INITIAL_COUPONS = [
-  { id: 'c1', code: 'AV10', type: 'percentage', discountValue: 10, minOrder: 1999, active: true, maxDiscount: 500 },
-  { id: 'c2', code: 'WELCOME500', type: 'fixed', discountValue: 500, minOrder: 2999, active: true },
-];
-
-const INITIAL_SETTINGS = {
-  storeName: BRAND.name,
-  phone: BRAND.phone,
-  email: BRAND.email,
-  whatsapp: BRAND.phone,
-  ownerName: BRAND.ownerFullName,
-  address: BRAND.address.full,
-  freeShippingThreshold: BRAND.freeShippingThreshold,
-  gstin: '37AAAAA0000A1Z5',
-  currency: '₹',
-};
-
-const INITIAL_ORDERS = [
-  {
-    id: 'AV-100241',
-    customerName: 'Ananya Sharma',
-    customerPhone: '9876543210',
-    customerEmail: 'ananya@example.com',
-    address: 'Flat 402, Lotus Apartments, Rajahmundry',
-    date: '2026-08-14',
-    totalAmount: 2499,
-    itemsCount: 1,
-    status: 'Delivered',
-    paymentStatus: 'Paid',
-    paymentMethod: 'UPI',
-    items: [{ id: 'p1', name: 'Mulchanderi 3 Piece Dress With Embroidery - A Line', price: 2499, quantity: 1 }],
-  },
-  {
-    id: 'AV-100242',
-    customerName: 'Priya Reddy',
-    customerPhone: '9123456789',
-    customerEmail: 'priya@example.com',
-    address: 'Door 12-3-4, Main Road, Kakinada',
-    date: '2026-08-15',
-    totalAmount: 3499,
-    itemsCount: 1,
-    status: 'Confirmed',
-    paymentStatus: 'Pending',
-    paymentMethod: 'Cash on Delivery',
-    items: [{ id: 'p5', name: 'Banarasi Tissue Saree', price: 3499, quantity: 1 }],
-  },
-];
-
 export function StoreDataProvider({ children }) {
-  // Load state from LocalStorage fallback or defaults
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('av_store_products');
-    return saved ? JSON.parse(saved) : initialProducts;
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [banners, setBanners] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [settings, setSettings] = useState({
+    storeName: '', phone: '', email: '', whatsapp: '', ownerName: '',
+    address: '', freeShippingThreshold: 2000, gstin: '', currency: '₹',
   });
+  const [loading, setLoading] = useState(true);
 
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('av_store_categories');
-    return saved ? JSON.parse(saved) : initialCategories;
-  });
-
-  const [banners, setBanners] = useState(() => {
-    const saved = localStorage.getItem('av_store_banners');
-    return saved ? JSON.parse(saved) : INITIAL_BANNERS;
-  });
-
-  const [coupons, setCoupons] = useState(() => {
-    const saved = localStorage.getItem('av_store_coupons');
-    return saved ? JSON.parse(saved) : INITIAL_COUPONS;
-  });
-
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem('av_store_orders');
-    return saved ? JSON.parse(saved) : INITIAL_ORDERS;
-  });
-
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('av_store_settings');
-    return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
-  });
-
-  // Sync to LocalStorage
+  // Initial load — public-readable data (products/categories/banners/coupons/settings).
   useEffect(() => {
-    localStorage.setItem('av_store_products', JSON.stringify(products));
-  }, [products]);
+    let active = true;
+    (async () => {
+      const [p, c, b, cp, s] = await Promise.all([
+        fetchProducts(), fetchCategories(), fetchBanners(), fetchCoupons(), fetchSettings(),
+      ]);
+      if (!active) return;
+      if (p.success) setProducts(p.data);
+      if (c.success) setCategories(c.data);
+      if (b.success) setBanners(b.data);
+      if (cp.success) setCoupons(cp.data);
+      if (s.success && s.data) setSettings(s.data);
+      setLoading(false);
+    })();
+    return () => { active = false; };
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('av_store_categories', JSON.stringify(categories));
-  }, [categories]);
+  // Orders & contact messages are admin-only (blocked by RLS for anon visitors),
+  // so the admin pages call these explicitly once the admin session is ready.
+  const refreshOrders = useCallback(async () => {
+    const res = await fetchOrders();
+    if (res.success) setOrders(res.data);
+    return res;
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('av_store_banners', JSON.stringify(banners));
-  }, [banners]);
+  const refreshMessages = useCallback(async () => {
+    const res = await fetchContactMessages();
+    if (res.success) setMessages(res.data);
+    return res;
+  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('av_store_coupons', JSON.stringify(coupons));
-  }, [coupons]);
-
-  useEffect(() => {
-    localStorage.setItem('av_store_orders', JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
-    localStorage.setItem('av_store_settings', JSON.stringify(settings));
-  }, [settings]);
-
-  // Product CRUD
-  const addProduct = (newProduct) => {
-    const p = {
-      ...newProduct,
-      id: newProduct.id || `p-${Date.now()}`,
-      createdDate: new Date().toISOString().split('T')[0],
-      inStock: newProduct.stock > 0,
-    };
-    setProducts((prev) => [p, ...prev]);
-    return p;
+  // ---------------- Products ----------------
+  const addProduct = async (newProduct) => {
+    const res = await insertProduct(newProduct);
+    if (res.success) setProducts((prev) => [res.data, ...prev]);
+    return res;
   };
 
-  const updateProduct = (id, updatedData) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updatedData, inStock: (updatedData.stock ?? p.stock) > 0 } : p))
-    );
+  const updateProduct = async (id, updatedData) => {
+    const res = await updateProductInDb(id, updatedData);
+    if (res.success) setProducts((prev) => prev.map((p) => (p.id === id ? res.data : p)));
+    return res;
   };
 
-  const deleteProduct = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const deleteProduct = async (id) => {
+    const res = await deleteProductFromDb(id);
+    if (res.success) setProducts((prev) => prev.filter((p) => p.id !== id));
+    return res;
   };
 
-  // Category CRUD
-  const addCategory = (newCat) => {
-    const c = { ...newCat, id: newCat.id || `cat-${Date.now()}`, active: true };
-    setCategories((prev) => [...prev, c]);
+  // ---------------- Categories ----------------
+  const addCategory = async (newCat) => {
+    const res = await insertCategory(newCat);
+    if (res.success) setCategories((prev) => [...prev, res.data]);
+    return res;
   };
 
-  const updateCategory = (id, updatedData) => {
-    setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updatedData } : c)));
+  const updateCategory = async (id, updatedData) => {
+    const res = await updateCategoryInDb(id, updatedData);
+    if (res.success) setCategories((prev) => prev.map((c) => (c.id === id ? res.data : c)));
+    return res;
   };
 
-  const deleteCategory = (id) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+  const deleteCategory = async (id) => {
+    const res = await deleteCategoryFromDb(id);
+    if (res.success) setCategories((prev) => prev.filter((c) => c.id !== id));
+    return res;
   };
 
-  // Order Operations
-  const addOrder = (orderData) => {
-    const newOrd = {
-      ...orderData,
-      id: orderData.id || `AV-${Math.floor(100000 + Math.random() * 900000)}`,
-      date: new Date().toISOString().split('T')[0],
-      status: 'Pending',
-    };
-    setOrders((prev) => [newOrd, ...prev]);
-    return newOrd;
+  // ---------------- Orders ----------------
+  const addOrder = async (orderData) => {
+    const res = await saveOrderToSupabase(orderData);
+    if (res.success) {
+      setOrders((prev) => [res.data, ...prev]);
+
+      // Best-effort stock decrement per ordered item. Not transactional —
+      // fine at this store's scale, but two simultaneous orders for the last
+      // unit of an item could both succeed. A Postgres function with row
+      // locking would be needed to close that race completely.
+      for (const item of orderData.items || []) {
+        const product = products.find((p) => p.id === item.id);
+        if (product) {
+          const newStock = Math.max(0, product.stock - (item.quantity || 1));
+          updateProduct(item.id, { stock: newStock });
+        }
+      }
+    }
+    return res;
   };
 
-  const updateOrderStatus = (id, status) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+  const updateOrderStatus = async (id, status) => {
+    const res = await updateOrderStatusInDb(id, status);
+    if (res.success) setOrders((prev) => prev.map((o) => (o.id === id ? res.data : o)));
+    return res;
   };
 
-  // Banner Operations
-  const addBanner = (banner) => {
-    const b = { ...banner, id: `b-${Date.now()}`, active: true };
-    setBanners((prev) => [...prev, b]);
+  // ---------------- Contact messages ----------------
+  const updateMessageStatus = async (id, status) => {
+    const res = await updateMessageStatusInDb(id, status);
+    if (res.success) setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+    return res;
   };
 
-  const updateBanner = (id, updated) => {
-    setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updated } : b)));
+  // ---------------- Banners ----------------
+  const addBanner = async (banner) => {
+    const res = await insertBanner(banner);
+    if (res.success) setBanners((prev) => [...prev, res.data]);
+    return res;
   };
 
-  const deleteBanner = (id) => {
-    setBanners((prev) => prev.filter((b) => b.id !== id));
+  const updateBanner = async (id, updated) => {
+    const res = await updateBannerInDb(id, updated);
+    if (res.success) setBanners((prev) => prev.map((b) => (b.id === id ? res.data : b)));
+    return res;
   };
 
-  // Coupon Operations
-  const addCoupon = (coupon) => {
-    const c = { ...coupon, id: `c-${Date.now()}`, active: true };
-    setCoupons((prev) => [...prev, c]);
+  const deleteBanner = async (id) => {
+    const res = await deleteBannerFromDb(id);
+    if (res.success) setBanners((prev) => prev.filter((b) => b.id !== id));
+    return res;
   };
 
-  const updateCoupon = (id, updated) => {
-    setCoupons((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)));
+  // ---------------- Coupons ----------------
+  const addCoupon = async (coupon) => {
+    const res = await insertCoupon(coupon);
+    if (res.success) setCoupons((prev) => [res.data, ...prev]);
+    return res;
   };
 
-  const deleteCoupon = (id) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
+  const updateCoupon = async (id, updated) => {
+    const res = await updateCouponInDb(id, updated);
+    if (res.success) setCoupons((prev) => prev.map((c) => (c.id === id ? res.data : c)));
+    return res;
   };
 
-  // Settings
-  const updateSettings = (newSettings) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
+  const deleteCoupon = async (id) => {
+    const res = await deleteCouponFromDb(id);
+    if (res.success) setCoupons((prev) => prev.filter((c) => c.id !== id));
+    return res;
+  };
+
+  // ---------------- Settings ----------------
+  const updateSettings = async (newSettings) => {
+    const res = await updateSettingsInDb(newSettings);
+    if (res.success) setSettings((prev) => ({ ...prev, ...res.data }));
+    return res;
   };
 
   return (
@@ -209,7 +181,11 @@ export function StoreDataProvider({ children }) {
         banners,
         coupons,
         orders,
+        messages,
         settings,
+        loading,
+        refreshOrders,
+        refreshMessages,
         addProduct,
         updateProduct,
         deleteProduct,
@@ -218,6 +194,7 @@ export function StoreDataProvider({ children }) {
         deleteCategory,
         addOrder,
         updateOrderStatus,
+        updateMessageStatus,
         addBanner,
         updateBanner,
         deleteBanner,

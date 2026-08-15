@@ -8,6 +8,7 @@ const quickLinks = [
   { label: 'Home', path: '/' },
   { label: 'Categories', path: '/categories' },
   { label: 'Products', path: '/shop' },
+  { label: 'My Account & Orders', path: '/account' },
   { label: 'Shopping Cart', path: '/cart' },
   { label: 'My Wishlist', path: '/wishlist' },
   { label: 'FAQs & Help', path: '/faqs' },

@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useStoreData } from './StoreDataContext';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  const { coupons } = useStoreData();
+
   const [cartItems, setCartItems] = useState(() => {
     try {
       const saved = localStorage.getItem('sv_cart_items');
@@ -14,6 +17,23 @@ export const CartProvider = ({ children }) => {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  const [couponCode, setCouponCode] = useState(() => {
+    try {
+      return localStorage.getItem('sv_applied_coupon') || '';
+    } catch (e) {
+      return '';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (couponCode) localStorage.setItem('sv_applied_coupon', couponCode);
+      else localStorage.removeItem('sv_applied_coupon');
+    } catch (e) {
+      // ignore
+    }
+  }, [couponCode]);
 
   useEffect(() => {
     try {

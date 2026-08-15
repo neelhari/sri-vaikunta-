@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Lock, Mail, Loader2, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { BRAND } from '../config/brand';
 
 export default function AdminLogin() {
-  const { session, signIn } = useAuth();
+  const { session, signIn } = useAdminAuth();
   const location = useLocation();
   const navigate = useNavigate();
 

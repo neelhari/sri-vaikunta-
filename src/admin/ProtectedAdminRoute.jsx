@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2, ShieldAlert, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function ProtectedAdminRoute({ children }) {
-  const { loading, session, isAdmin, user, signOut, supabaseConfigured } = useAuth();
+  const { loading, session, isAdmin, user, signOut, supabaseConfigured } = useAdminAuth();
   const location = useLocation();
 
   if (!supabaseConfigured) {

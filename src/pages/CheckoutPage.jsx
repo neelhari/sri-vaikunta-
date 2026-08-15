@@ -26,6 +26,8 @@ export default function CheckoutPage() {
   });
 
   const [errors, setErrors] = useState({});
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState('');
 
   if (cartItems.length === 0) {
     return (
@@ -63,9 +65,25 @@ export default function CheckoutPage() {
     return Object.keys(errs).length === 0;
   };
 
-  const handlePlaceOrder = (e) => {
+  const sendWhatsAppCopy = (orderId) => {
+    let text = `*New Order ${orderId} - ${BRAND.name}*\n`;
+    text += `Customer: ${formData.fullName} (${formData.phone})\n`;
+    text += `Address: ${formData.address}, ${formData.city} - ${formData.pincode}, ${formData.state}\n`;
+    text += `-----------------------------------\n`;
+    cartItems.forEach((item, index) => {
+      text += `${index + 1}. *${item.name}* (x${item.quantity}) - ₹${(item.price * item.quantity).toLocaleString('en-IN')}\n`;
+    });
+    text += `-----------------------------------\n`;
+    text += `*Total Amount:* ₹${totalAmount.toLocaleString('en-IN')} (${formData.paymentMethod.toUpperCase()})\n`;
+    window.open(waLink(text), '_blank');
+  };
+
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || placingOrder) return;
+
+    setOrderError('');
+    setPlacingOrder(true);
 
     const orderId = `AV-${Math.floor(100000 + Math.random() * 900000)}`;
     const orderData = {
@@ -79,38 +97,47 @@ export default function CheckoutPage() {
       paymentMethod: formData.paymentMethod,
     };
 
-    // Save order in StoreDataContext for live admin and customer account reflection
-    addOrder({
+    const result = await addOrder({
       id: orderId,
       customerName: formData.fullName,
       customerPhone: formData.phone,
       customerEmail: formData.email,
-      address: `${formData.address}, ${formData.city} - ${formData.pincode}, ${formData.state}`,
-      items: [...cartItems],
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+      items: cartItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        selectedSize: item.selectedSize || null,
+      })),
+      subtotal,
+      deliveryCharge,
       totalAmount,
       paymentMethod: formData.paymentMethod.toUpperCase(),
+      paymentStatus: 'Pending',
       status: 'Pending',
-      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
     });
 
-    if (formData.paymentMethod === 'whatsapp') {
-      let text = `*New Order ${orderId} - ${BRAND.name}*\n`;
-      text += `Customer: ${formData.fullName} (${formData.phone})\n`;
-      text += `Address: ${formData.address}, ${formData.city} - ${formData.pincode}, ${formData.state}\n`;
-      text += `-----------------------------------\n`;
-      cartItems.forEach((item, index) => {
-        text += `${index + 1}. *${item.name}* (x${item.quantity}) - ₹${(item.price * item.quantity).toLocaleString('en-IN')}\n`;
-      });
-      text += `-----------------------------------\n`;
-      text += `*Total Amount:* ₹${totalAmount.toLocaleString('en-IN')} (${formData.paymentMethod.toUpperCase()})\n`;
+    setPlacingOrder(false);
 
-      clearCart();
-      window.open(waLink(text), '_blank');
-      navigate('/order-success', { state: { orderData } });
-    } else {
-      clearCart();
-      navigate('/order-success', { state: { orderData } });
+    if (!result.success) {
+      setOrderError(
+        `We couldn't record your order automatically (${result.message || 'connection issue'}). ` +
+        `Please send it via WhatsApp instead so we don't lose your order.`
+      );
+      return;
     }
+
+    if (formData.paymentMethod === 'whatsapp') {
+      sendWhatsAppCopy(orderId);
+    }
+
+    clearCart();
+    navigate('/order-success', { state: { orderData } });
   };
 
   return (
@@ -381,13 +408,30 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {orderError && (
+              <div className="text-[11px] text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl space-y-2">
+                <p className="font-semibold">{orderError}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const orderId = `AV-${Math.floor(100000 + Math.random() * 900000)}`;
+                    sendWhatsAppCopy(orderId);
+                  }}
+                  className="inline-flex items-center gap-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold px-3 py-2 rounded-lg transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" /> Send Order via WhatsApp
+                </button>
+              </div>
+            )}
+
             {/* Submit Action */}
             <button
               type="submit"
-              className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:scale-[1.01]"
+              disabled={placingOrder}
+              className="w-full bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:scale-[1.01]"
             >
               <Lock className="w-4 h-4 text-[#D3923A]" />
-              <span>Confirm & Place Order (₹{totalAmount.toLocaleString('en-IN')})</span>
+              <span>{placingOrder ? 'Placing Order...' : `Confirm & Place Order (₹${totalAmount.toLocaleString('en-IN')})`}</span>
             </button>
 
             <div className="text-center text-[11px] text-gray-400 flex items-center justify-center gap-1">
