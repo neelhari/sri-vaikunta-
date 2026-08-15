@@ -57,23 +57,23 @@ export default function HomePage() {
   return (
     <div className="pb-12 space-y-8 sm:space-y-12">
       {/* 1. HERO SECTION (IMAGE SLIDER) */}
-      <section className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-2 sm:pt-4">
+      <section className="w-full">
         <div
           onClick={() => navigate('/shop')}
-          className="relative overflow-hidden w-full aspect-[1.85/1] sm:aspect-[2.1/1] md:aspect-[2.3/1] lg:aspect-[2.5/1] max-h-[580px] bg-[#FAF5EE] sm:rounded-3xl sm:border sm:border-gray-100 sm:shadow-sm cursor-pointer group"
+          className="relative overflow-hidden w-full aspect-[1.85/1] sm:aspect-auto sm:h-[480px] md:h-[560px] lg:h-[640px] bg-[#FAF5EE] cursor-pointer group"
         >
           {sliderImages.map((src, index) => (
             <img
               key={index}
               src={src}
               alt={`Slide ${index + 1}`}
-              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-1000 ${
+              className={`absolute inset-0 w-full h-full object-contain sm:object-cover transition-opacity duration-1000 ${
                 index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
             />
           ))}
           {/* Slider Indicators */}
-          <div className="absolute bottom-3 sm:bottom-5 left-0 right-0 z-20 flex justify-center items-center gap-2">
+          <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 z-20 flex justify-center items-center gap-2">
             {sliderImages.map((_, idx) => (
               <div
                 key={idx}
