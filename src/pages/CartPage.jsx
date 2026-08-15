@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2, ArrowRight, Truck, Check, ShieldCheck, ArrowLeft, MessageCircle, Sparkles, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { BRAND, waLink } from '../config/brand';
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, openLoginModal } = useAuth();
   const {
     cartItems,
     removeFromCart,
@@ -293,7 +295,13 @@ export default function CartPage() {
               {/* Checkout Action Buttons */}
               <div className="space-y-3 pt-2">
                 <button
-                  onClick={() => navigate('/checkout')}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      openLoginModal('/checkout');
+                    } else {
+                      navigate('/checkout');
+                    }
+                  }}
                   className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-3.5 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all transform hover:scale-[1.01]"
                 >
                   <span>Proceed to Online Checkout</span>

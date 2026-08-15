@@ -2,20 +2,26 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Truck, ArrowLeft, CheckCircle2, Lock, CreditCard, MessageCircle, MapPin, User, Phone, Mail, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useStoreData } from '../context/StoreDataContext';
 import { BRAND, waLink } from '../config/brand';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addOrder } = useStoreData();
   const { cartItems, subtotal, isFreeShipping, clearCart } = useCart();
 
+  const defaultAddr = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
+
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: 'Rajahmundry',
-    pincode: '',
-    state: 'Andhra Pradesh',
+    fullName: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
+    address: defaultAddr?.addressLine || '',
+    city: defaultAddr?.city || 'Rajahmundry',
+    pincode: defaultAddr?.pincode || '',
+    state: defaultAddr?.state || 'Andhra Pradesh',
     paymentMethod: 'upi', // 'upi' | 'cod' | 'whatsapp'
   });
 
@@ -72,6 +78,20 @@ export default function CheckoutPage() {
       totalAmount,
       paymentMethod: formData.paymentMethod,
     };
+
+    // Save order in StoreDataContext for live admin and customer account reflection
+    addOrder({
+      id: orderId,
+      customerName: formData.fullName,
+      customerPhone: formData.phone,
+      customerEmail: formData.email,
+      address: `${formData.address}, ${formData.city} - ${formData.pincode}, ${formData.state}`,
+      items: [...cartItems],
+      totalAmount,
+      paymentMethod: formData.paymentMethod.toUpperCase(),
+      status: 'Pending',
+      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+    });
 
     if (formData.paymentMethod === 'whatsapp') {
       let text = `*New Order ${orderId} - ${BRAND.name}*\n`;

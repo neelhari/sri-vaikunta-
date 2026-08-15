@@ -22,6 +22,7 @@ import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { BRAND, waLink } from '../config/brand';
 
 export default function ProductDetailPage() {
@@ -30,6 +31,7 @@ export default function ProductDetailPage() {
   const { products, categories } = useStoreData();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { user, isAuthenticated, openLoginModal } = useAuth();
 
   const product = products.find((p) => p.id === id);
 
@@ -103,7 +105,11 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     addToCart(product, quantity, selectedSize);
-    navigate('/checkout');
+    if (!isAuthenticated) {
+      openLoginModal('/checkout');
+    } else {
+      navigate('/checkout');
+    }
   };
 
   const handleCheckPincode = (e) => {

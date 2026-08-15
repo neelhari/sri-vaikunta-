@@ -4,6 +4,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 import { StoreDataProvider } from './context/StoreDataContext';
+import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { UIProvider } from './context/UIContext';
@@ -15,6 +16,7 @@ import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 import CartDrawer from './components/CartDrawer';
 import WishlistDrawer from './components/WishlistDrawer';
 import SearchModal from './components/SearchModal';
+import LoginModal from './components/LoginModal';
 import Toast from './components/Toast';
 
 import HomePage from './pages/HomePage';
@@ -24,6 +26,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import OurStoryPage from './pages/OurStoryPage';
 import ContactPage from './pages/ContactPage';
 import AccountPage from './pages/AccountPage';
+import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
@@ -95,6 +98,7 @@ function AppContent() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/faqs" element={<FaqPage />} />
           <Route path="/privacy-policy" element={<PolicyPage />} />
           <Route path="/return-policy" element={<PolicyPage />} />
@@ -125,6 +129,7 @@ function AppContent() {
       {/* Global Interactive Modals & Drawers for Storefront */}
       {!isAdminRoute && (
         <>
+          <LoginModal />
           <CartDrawer />
           <WishlistDrawer />
           <SearchModal />
@@ -141,13 +146,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <StoreDataProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <UIProvider>
-              <AppContent />
-            </UIProvider>
-          </WishlistProvider>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <UIProvider>
+                <AppContent />
+              </UIProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
       </StoreDataProvider>
     </BrowserRouter>
   );

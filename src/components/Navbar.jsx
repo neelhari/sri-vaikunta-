@@ -5,6 +5,7 @@ import { InstagramIcon } from './BrandIcons';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useUI } from '../context/UIContext';
+import { useAuth } from '../context/AuthContext';
 import { BRAND, waLink } from '../config/brand';
 
 const navLinks = [
@@ -22,6 +23,7 @@ export default function Navbar() {
   const { totalItemsCount, setIsCartOpen, subtotal } = useCart();
   const { wishlistCount, setIsWishlistOpen } = useWishlist();
   const { setIsSearchOpen } = useUI();
+  const { user, isAuthenticated, openLoginModal } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -130,6 +132,31 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
+            {/* User Profile / Login Button (Myntra-style) */}
+            {isAuthenticated && user ? (
+              <button
+                onClick={() => goTo('/account')}
+                className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-full hover:bg-gray-100 transition-colors text-xs font-bold text-gray-800"
+                title="My Account"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#6B1518] text-[#D3923A] flex items-center justify-center text-xs font-serif font-bold">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <span className="hidden lg:inline text-xs font-bold max-w-[80px] truncate">
+                  {user.name?.split(' ')[0] || 'Profile'}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => openLoginModal()}
+                className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#FAF8F5] hover:bg-[#F8F0F0] text-[#6B1518] border border-[#EADEDF] transition-colors text-xs font-bold"
+                title="Login / Signup"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Login</span>
+              </button>
+            )}
 
             {/* Mobile Hamburger */}
             <button

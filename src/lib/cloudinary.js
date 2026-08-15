@@ -1,4 +1,11 @@
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'bttoiwjr';
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'aalaya_vastra';
+
+if (!CLOUD_NAME) {
+  console.error(
+    'Cloudinary is not configured: set VITE_CLOUDINARY_CLOUD_NAME in .env. Image/video uploads will fail until this is fixed.'
+  );
+}
 
 /**
  * Returns optimized Cloudinary URL for media asset
@@ -19,12 +26,20 @@ export function buildCloudinaryUrl(publicId, options = {}) {
 }
 
 /**
- * Helper to upload image/video file to Cloudinary unsigned upload preset
+ * Uploads an image/video file to Cloudinary via an unsigned upload preset.
+ * Always returns { success, url?, message? } — callers must check `success`
+ * and must NOT fall back to a local blob: URL, since that only exists in the
+ * current browser tab and will render broken for every other visitor and
+ * after refresh.
  */
-export async function uploadToCloudinary(file, uploadPreset = 'aalaya_vastra') {
+export async function uploadToCloudinary(file) {
+  if (!CLOUD_NAME) {
+    return { success: false, message: 'Cloudinary is not configured (missing VITE_CLOUDINARY_CLOUD_NAME).' };
+  }
+
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', uploadPreset);
+  formData.append('upload_preset', UPLOAD_PRESET);
 
   const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
 
@@ -34,9 +49,14 @@ export async function uploadToCloudinary(file, uploadPreset = 'aalaya_vastra') {
       body: formData,
     });
     const data = await res.json();
-    return data;
+    if (!res.ok || !data.secure_url) {
+      const message = data?.error?.message || `Upload failed with status ${res.status}`;
+      console.error('Cloudinary upload error:', message);
+      return { success: false, message };
+    }
+    return { success: true, url: data.secure_url, publicId: data.public_id, raw: data };
   } catch (err) {
     console.error('Cloudinary upload error:', err);
-    return null;
+    return { success: false, message: err.message || 'Network error while uploading to Cloudinary.' };
   }
 }
