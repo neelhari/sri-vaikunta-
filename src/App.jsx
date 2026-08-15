@@ -115,6 +115,7 @@ function AppContent() {
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="banners" element={<AdminBanners />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="*" element={<AdminDashboard />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
