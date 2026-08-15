@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Sparkles, ShieldCheck, Truck, Tag, Heart, Award, CheckCircle2, ShoppingBag, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Sparkles, ShieldCheck, Truck, Tag, Heart, Award, CheckCircle2, ShoppingBag, Star, TrendingUp } from 'lucide-react';
 import { InstagramIcon } from '../components/BrandIcons';
 import { categories } from '../data/categories';
 import { products } from '../data/products';
 import ProductCard from '../components/ProductCard';
+import CategoryTile from '../components/CategoryTile';
 import { BRAND } from '../config/brand';
 
-export default function HomePage({ setActivePage, onCategorySelect }) {
+export default function HomePage() {
+  const navigate = useNavigate();
   // TODO: replace with real Aalaya Vastra photography. These two are the only
   // slides from the reference kit that match this store's actual catalog
   // (sarees, dresses) — the other 6 (jewellery/shirts/t-shirts/hair
@@ -20,7 +23,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
   useEffect(() => {
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
-    }, 2000);
+    }, 4500);
     return () => clearInterval(slideInterval);
   }, []);
 
@@ -52,111 +55,88 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
   ];
 
   return (
-    <div className="space-y-12 sm:space-y-16 pb-12">
-      <div className="flex flex-col">
-        {/* 1. HERO SECTION (IMAGE SLIDER) */}
-        <section className="relative overflow-hidden w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[2.5/1] lg:aspect-[3/1] max-h-[600px] bg-[#FAF8F5]">
+    <div className="pb-12 space-y-8 sm:space-y-12">
+      {/* 1. HERO SECTION (IMAGE SLIDER) */}
+      <section className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-2 sm:pt-4">
+        <div
+          onClick={() => navigate('/shop')}
+          className="relative overflow-hidden w-full aspect-[1.85/1] sm:aspect-[2.1/1] md:aspect-[2.3/1] lg:aspect-[2.5/1] max-h-[580px] bg-[#FAF5EE] sm:rounded-3xl sm:border sm:border-gray-100 sm:shadow-sm cursor-pointer group"
+        >
           {sliderImages.map((src, index) => (
             <img
               key={index}
               src={src}
               alt={`Slide ${index + 1}`}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-1000 ${
                 index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
             />
           ))}
           {/* Slider Indicators */}
-          <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+          <div className="absolute bottom-3 sm:bottom-5 left-0 right-0 z-20 flex justify-center items-center gap-2">
             {sliderImages.map((_, idx) => (
-              <div 
-                key={idx} 
-                className={`h-1.5 rounded-full transition-all duration-500 ${idx === currentSlide ? 'w-6 bg-[#D4AF37]' : 'w-2 bg-white/50'}`}
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-500 ${idx === currentSlide ? 'w-6 bg-[#D3923A]' : 'w-2 bg-white/70'}`}
               />
             ))}
           </div>
-
-          {/* Shop Now Button Overlay (Desktop Only) */}
-          <div className="hidden sm:flex absolute inset-0 z-30 flex-col items-center justify-end pb-12 sm:pb-16 pointer-events-none">
-            <button
-              onClick={() => setActivePage('products')}
-              className="pointer-events-auto bg-[#701A23]/90 hover:bg-[#521117] text-white px-8 py-3.5 rounded-full font-bold text-base flex items-center justify-center gap-2 shadow-2xl backdrop-blur-sm transition-all transform hover:scale-105 border border-white/20"
-            >
-              <span>SHOP NOW</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </section>
-
-        {/* Shop Now Button (Mobile Only) */}
-        <div className="sm:hidden flex justify-center mt-3 px-4">
-          <button
-            onClick={() => setActivePage('products')}
-            className="bg-[#701A23] hover:bg-[#521117] text-white px-6 py-2.5 rounded-full font-bold text-xs flex items-center justify-center gap-2 shadow-lg w-full max-w-[200px] transition-colors"
-          >
-            <span>SHOP NOW</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* 3. SHOP BY CATEGORY ("EXPLORE OUR COLLECTIONS") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" data-aos="fade-up">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-gray-100 pb-4">
-          <div>
-            <span className="text-xs uppercase font-bold tracking-widest text-[#D4AF37]">Curated Collections</span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 mt-1">EXPLORE OUR COLLECTIONS</h2>
-          </div>
-          <button
-            onClick={() => setActivePage('categories')}
-            className="text-xs font-bold text-[#701A23] hover:underline flex items-center gap-1"
-          >
-            VIEW ALL CATEGORIES →
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {categories.map((cat) => (
-            <div
-              key={cat.id}
-              onClick={() => {
-                if (onCategorySelect) onCategorySelect(cat.id);
-                setActivePage('products');
-              }}
-              className="group relative aspect-square sm:aspect-auto sm:h-72 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer transition-all duration-300 border border-gray-100"
-            >
-              <img
-                src={cat.image}
-                alt={cat.name}
-                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-              <div className="absolute bottom-0 inset-x-0 p-3 sm:p-5 text-white flex flex-col justify-end space-y-1 sm:space-y-2">
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">
-                  {cat.itemCount}
-                </span>
-                <h3 className="font-serif text-base sm:text-2xl font-bold text-white leading-tight">
-                  {cat.name}
-                </h3>
-                <p className="hidden sm:block text-xs text-gray-300 line-clamp-1">{cat.tagline}</p>
-
-                <div className="pt-1 sm:pt-2">
-                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold bg-[#701A23] text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg group-hover:bg-[#521117] transition-colors">
-                    SHOP NOW →
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
+      {/* 3. SHOP BY CATEGORY ("EXPLORE OUR COLLECTIONS") */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 mb-12 sm:mb-16" data-aos="fade-up">
+        {/* Centered Premium Header with Side Lines (Always Visible on Mobile) */}
+        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
+              <Sparkles className="w-3.5 h-3.5" /> BROWSE BY CATEGORY
+            </span>
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+          </div>
+          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
+            EXPLORE OUR COLLECTIONS
+          </h2>
+        </div>
+
+        {/* 2-column grid, wraps inline — no horizontal scroll */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          {categories.map((cat) => (
+            <CategoryTile
+              key={cat.id}
+              category={cat}
+              variant="compact"
+              onClick={() => navigate(`/shop?category=${cat.id}`)}
+            />
+          ))}
+        </div>
+
+        <div className="flex justify-center pt-1">
+          <button
+            onClick={() => navigate('/categories')}
+            className="bg-[#F8F0F0] hover:bg-[#EADEDF] text-[#6B1518] text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 transition-colors"
+          >
+            View All Categories →
+          </button>
+        </div>
+      </section>
+
+      <div className="space-y-12 sm:space-y-16">
       {/* 4. FEATURED PRODUCTS / NEW ARRIVALS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" data-aos="fade-up">
-        <div className="flex flex-col items-center justify-center mb-2 sm:mb-6">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1a202c]">NEW ARRIVALS</h2>
-          <div className="w-16 h-0.5 bg-gray-800 mt-2"></div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8" data-aos="fade-up">
+        {/* Centered Premium Header with Side Lines */}
+        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
+              Fresh Styles Just Added
+            </span>
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+          </div>
+          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
+            New Arrivals
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -164,13 +144,31 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
+
+        <div className="flex justify-center pt-1">
+          <button
+            onClick={() => navigate('/shop')}
+            className="bg-[#F8F0F0] hover:bg-[#EADEDF] text-[#6B1518] text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 transition-colors"
+          >
+            View All New Arrivals →
+          </button>
+        </div>
       </section>
 
       {/* 4.5 BEST SELLERS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" data-aos="fade-up">
-        <div className="flex flex-col items-center justify-center mb-2 sm:mb-6">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1a202c]">BEST SELLERS</h2>
-          <div className="w-16 h-0.5 bg-gray-800 mt-2"></div>
+        {/* Centered Premium Header with Side Lines */}
+        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
+              <Award className="w-3.5 h-3.5" /> Customer Favourites
+            </span>
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+          </div>
+          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
+            Best Sellers
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -182,9 +180,18 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
 
       {/* 4.7 TRENDING PRODUCTS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" data-aos="fade-up">
-        <div className="flex flex-col items-center justify-center mb-2 sm:mb-6">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1a202c]">TRENDING PRODUCTS</h2>
-          <div className="w-16 h-0.5 bg-gray-800 mt-2"></div>
+        {/* Centered Premium Header with Side Lines */}
+        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
+              <TrendingUp className="w-3.5 h-3.5" /> Trending Now
+            </span>
+            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
+          </div>
+          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
+            Trending Products
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -196,27 +203,30 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
 
       {/* 5. BRAND INTRODUCTION */}
       <section className="max-w-4xl mx-auto text-center px-4 space-y-4" data-aos="fade-up">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Welcome to {BRAND.name}</span>
-        <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900">
+        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A]">Welcome to {BRAND.name}</span>
+        <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
           Bringing You Elegance, Quality & Honest Pricing
         </h2>
-        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+        <p className="text-gray-600 text-xs sm:text-base leading-relaxed">
           Founded by <strong className="text-gray-900">{BRAND.ownerFullName}</strong>, {BRAND.name} was built on a simple belief: <em>everyone deserves to wear beautiful, high-quality fashion without paying high prices.</em> From graceful sarees and beautiful ethnic wear to stylish contemporary outfits, we curate every piece with care.
         </p>
       </section>
 
-
       {/* 7. WHY CHOOSE SRI VASTRALAYA */}
       <section className="bg-[#FAF8F5] py-12 border-y border-gray-100" data-aos="fade-up">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-10">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-[#D4AF37]">The {BRAND.name} Promise</span>
-            <h2 className="font-serif text-3xl font-bold text-gray-900 mt-1">WHY SHOP WITH US?</h2>
+          <div className="flex items-center justify-center gap-3 w-full max-w-2xl mx-auto px-4">
+            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-[#D3923A]/50 to-[#D3923A]"></span>
+            <div className="text-center shrink-0 space-y-0.5">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#D3923A] block">The {BRAND.name} Promise</span>
+              <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 uppercase tracking-wider">WHY SHOP WITH US?</h2>
+            </div>
+            <span className="flex-1 h-px bg-gradient-to-l from-transparent via-[#D3923A]/50 to-[#D3923A]"></span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#FAF0F1] text-[#701A23] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
                 01
               </div>
               <h4 className="font-serif font-bold text-lg text-gray-900">Quality Products</h4>
@@ -226,7 +236,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#FAF0F1] text-[#701A23] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
                 02
               </div>
               <h4 className="font-serif font-bold text-lg text-gray-900">Affordable Prices</h4>
@@ -236,7 +246,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#FAF0F1] text-[#701A23] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
                 03
               </div>
               <h4 className="font-serif font-bold text-lg text-gray-900">Elegant Designs</h4>
@@ -246,7 +256,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#FAF0F1] text-[#701A23] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
                 04
               </div>
               <h4 className="font-serif font-bold text-lg text-gray-900">For Every Occasion</h4>
@@ -261,9 +271,9 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
       {/* 8. INSTAGRAM SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6" data-aos="fade-up">
         <div className="text-center space-y-1">
-          <InstagramIcon className="w-6 h-6 text-[#701A23] mx-auto" />
+          <InstagramIcon className="w-6 h-6 text-[#6B1518] mx-auto" />
           <h3 className="font-serif text-2xl font-bold text-gray-900">FOLLOW US ON INSTAGRAM</h3>
-          <p className="text-xs font-semibold text-[#D4AF37]">{BRAND.instagramHandle}</p>
+          <p className="text-xs font-semibold text-[#D3923A]">{BRAND.instagramHandle}</p>
         </div>
 
         <div className="flex overflow-x-auto gap-3 pb-4 hide-scroll snap-x">
@@ -297,7 +307,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
                 </div>
                 <p className="text-sm text-gray-600 italic flex-1">"{review.text}"</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
-                  <div className="w-10 h-10 rounded-full bg-[#FAF0F1] text-[#701A23] flex items-center justify-center font-bold text-lg">
+                  <div className="w-10 h-10 rounded-full bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold text-lg">
                     {review.name.charAt(0)}
                   </div>
                   <div>
@@ -317,7 +327,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
                 </div>
                 <p className="text-sm text-gray-600 italic flex-1">"{review.text}"</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
-                  <div className="w-10 h-10 rounded-full bg-[#FAF0F1] text-[#701A23] flex items-center justify-center font-bold text-lg">
+                  <div className="w-10 h-10 rounded-full bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold text-lg">
                     {review.name.charAt(0)}
                   </div>
                   <div>
@@ -333,16 +343,16 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
 
       {/* 10. FINAL MAROON CTA */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-aos="fade-up">
-        <div className="bg-[#701A23] rounded-3xl p-8 sm:p-12 text-center text-white space-y-4 shadow-xl relative overflow-hidden">
+        <div className="bg-[#6B1518] rounded-3xl p-8 sm:p-12 text-center text-white space-y-4 shadow-xl relative overflow-hidden">
           <div className="relative z-10 max-w-2xl mx-auto space-y-4">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Discover Your Style</span>
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A]">Discover Your Style</span>
             <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">Find Your Perfect Style Today</h2>
             <p className="text-gray-200 text-xs sm:text-sm leading-relaxed">
               Explore our latest saree drapings, womenswear, and fabrics. Simple ordering and direct WhatsApp assistance!
             </p>
             <button
-              onClick={() => setActivePage('products')}
-              className="bg-[#D4AF37] hover:bg-[#c59b27] text-[#701A23] px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-md transition-all inline-flex items-center gap-2 transform hover:scale-105"
+              onClick={() => navigate('/shop')}
+              className="bg-[#D3923A] hover:bg-[#B37C31] text-[#6B1518] px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-md transition-all inline-flex items-center gap-2 transform hover:scale-105"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>SHOP NOW</span>
@@ -350,6 +360,7 @@ export default function HomePage({ setActivePage, onCategorySelect }) {
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }

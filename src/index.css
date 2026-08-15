@@ -2,12 +2,12 @@
 
 @layer base {
   :root {
-    --color-maroon-primary: #701A23;
-    --color-maroon-dark: #521117;
-    --color-maroon-hover: #891E2A;
-    --color-maroon-light: #FAF0F1;
-    --color-gold-accent: #D4AF37;
-    --color-gold-light: #F9F3DF;
+    --color-maroon-primary: #6B1518;
+    --color-maroon-dark: #4B0F11;
+    --color-maroon-hover: #831A1D;
+    --color-maroon-light: #F8F0F0;
+    --color-gold-accent: #D3923A;
+    --color-gold-light: #F4E4CE;
   }
 
   html, body {
@@ -39,11 +39,11 @@
   background: #f8f8f8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #701A23;
+  background: #6B1518;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #521117;
+  background: #4B0F11;
 }
 
 .hide-scroll::-webkit-scrollbar {
@@ -71,34 +71,34 @@
 
 /* Custom utility classes */
 .bg-maroon-primary {
-  background-color: #701A23;
+  background-color: #6B1518;
 }
 .bg-maroon-dark {
-  background-color: #521117;
+  background-color: #4B0F11;
 }
 .bg-maroon-hover:hover {
-  background-color: #891E2A;
+  background-color: #831A1D;
 }
 .bg-maroon-light {
-  background-color: #FAF0F1;
+  background-color: #F8F0F0;
 }
 .text-maroon-primary {
-  color: #701A23;
+  color: #6B1518;
 }
 .text-maroon-dark {
-  color: #521117;
+  color: #4B0F11;
 }
 .border-maroon-primary {
-  border-color: #701A23;
+  border-color: #6B1518;
 }
 .border-gold-accent {
-  border-color: #D4AF37;
+  border-color: #D3923A;
 }
 .text-gold-accent {
-  color: #D4AF37;
+  color: #D3923A;
 }
 .bg-gold-accent {
-  background-color: #D4AF37;
+  background-color: #D3923A;
 }
 
 /* Animations */

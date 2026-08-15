@@ -42,7 +42,7 @@ export default function ContactPage() {
 
   const contactCards = [
     {
-      icon: <Phone className="w-6 h-6 text-[#701A23]" />,
+      icon: <Phone className="w-6 h-6 text-[#6B1518]" />,
       title: "Phone Support",
       detail: `+91 ${BRAND.phone}`,
       subdetail: "Available 9:00 AM - 9:00 PM IST",
@@ -58,7 +58,7 @@ export default function ContactPage() {
       actionText: "Chat on WhatsApp"
     },
     {
-      icon: <Mail className="w-6 h-6 text-[#701A23]" />,
+      icon: <Mail className="w-6 h-6 text-[#6B1518]" />,
       title: "Email Us",
       detail: BRAND.email,
       subdetail: "Send your detailed questions",
@@ -96,7 +96,7 @@ export default function ContactPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
       {/* Header */}
       <section className="text-center max-w-3xl mx-auto space-y-3" data-aos="fade-down">
-        <span className="text-xs uppercase font-bold tracking-widest text-[#D4AF37]">We Are Here To Help</span>
+        <span className="text-xs uppercase font-bold tracking-widest text-[#D3923A]">We Are Here To Help</span>
         <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
           Contact {BRAND.name}
         </h1>
@@ -116,18 +116,18 @@ export default function ContactPage() {
             className="group bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 text-center"
           >
             <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#FAF0F1] mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-[#F8F0F0] mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
                 {card.icon}
               </div>
               <div>
                 <h3 className="font-serif text-xl font-bold text-gray-900">{card.title}</h3>
-                <p className="text-base font-extrabold text-[#701A23] mt-1">{card.detail}</p>
+                <p className="text-base font-extrabold text-[#6B1518] mt-1">{card.detail}</p>
                 <p className="text-xs text-gray-400 mt-1">{card.subdetail}</p>
               </div>
             </div>
 
             <div className="pt-4 border-t border-gray-100">
-              <span className="text-xs font-bold text-[#701A23] group-hover:underline">
+              <span className="text-xs font-bold text-[#6B1518] group-hover:underline">
                 {card.actionText} →
               </span>
             </div>
@@ -138,24 +138,24 @@ export default function ContactPage() {
       {/* Main Form & Business Information Section */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12" data-aos="fade-up">
         {/* Left Side: Business Info */}
-        <div className="lg:col-span-5 bg-[#701A23] text-white p-8 sm:p-10 rounded-3xl space-y-8 flex flex-col justify-between shadow-xl">
+        <div className="lg:col-span-5 bg-[#6B1518] text-white p-8 sm:p-10 rounded-3xl space-y-8 flex flex-col justify-between shadow-xl">
           <div className="space-y-6">
-            <div className="bg-white p-2.5 rounded-xl inline-block shadow-md border border-[#D4AF37]/30">
-              <img src="/logo.jpg" alt={BRAND.name} className="h-24 sm:h-28 w-auto object-contain" />
+            <div className="bg-white p-2.5 rounded-xl inline-block shadow-md border border-[#D3923A]/30">
+              <img src="/logo-wide.png" alt={BRAND.name} className="h-20 sm:h-24 w-auto object-contain" />
             </div>
 
             <p className="text-gray-200 text-xs sm:text-sm leading-relaxed">
               We look forward to serving you with stylish and affordable fashion. Feel free to contact us anytime for customized saree inquiries or order assistance.
             </p>
 
-            <div className="space-y-4 text-xs sm:text-sm text-gray-200 pt-4 border-t border-[#891E2A]">
+            <div className="space-y-4 text-xs sm:text-sm text-gray-200 pt-4 border-t border-[#831A1D]">
               <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-[#D4AF37]" />
+                <User className="w-4 h-4 text-[#D3923A]" />
                 <span>Owner: <strong className="text-white">{BRAND.ownerFullName}</strong></span>
               </div>
 
               <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-[#D4AF37]" />
+                <Phone className="w-4 h-4 text-[#D3923A]" />
                 <a href={`tel:${BRAND.phone}`} className="hover:text-white underline">
                   {BRAND.phone}
                 </a>
@@ -169,20 +169,20 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-[#D4AF37]" />
+                <Mail className="w-4 h-4 text-[#D3923A]" />
                 <a href={`mailto:${BRAND.email}`} className="hover:text-white underline">
                   {BRAND.email}
                 </a>
               </div>
 
               <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-[#D4AF37] mt-0.5 shrink-0" />
+                <MapPin className="w-4 h-4 text-[#D3923A] mt-0.5 shrink-0" />
                 <span>{BRAND.address.full}</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#891E2A] text-xs text-gray-300">
+          <div className="pt-6 border-t border-[#831A1D] text-xs text-gray-300">
             <p><strong>Note:</strong> Submitting this contact form does not require any payment.</p>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function ContactPage() {
                   setSubmitted(false);
                   setFormData({ name: '', phone: '', email: '', message: '' });
                 }}
-                className="bg-[#701A23] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-xs"
+                className="bg-[#6B1518] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-xs"
               >
                 Send Another Message
               </button>
@@ -224,7 +224,7 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={`w-full text-xs p-3 rounded-xl border focus:outline-none ${
-                    errors.name ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#701A23]'
+                    errors.name ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
                   }`}
                 />
                 {errors.name && <p className="text-[11px] text-red-500 mt-1 font-semibold">{errors.name}</p>}
@@ -240,7 +240,7 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className={`w-full text-xs p-3 rounded-xl border focus:outline-none ${
-                      errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#701A23]'
+                      errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
                     }`}
                   />
                   {errors.phone && <p className="text-[11px] text-red-500 mt-1 font-semibold">{errors.phone}</p>}
@@ -254,7 +254,7 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className={`w-full text-xs p-3 rounded-xl border focus:outline-none ${
-                      errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#701A23]'
+                      errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
                     }`}
                   />
                   {errors.email && <p className="text-[11px] text-red-500 mt-1 font-semibold">{errors.email}</p>}
@@ -270,7 +270,7 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className={`w-full text-xs p-3 rounded-xl border focus:outline-none resize-none ${
-                    errors.message ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#701A23]'
+                    errors.message ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
                   }`}
                 />
                 {errors.message && <p className="text-[11px] text-red-500 mt-1 font-semibold">{errors.message}</p>}
@@ -278,7 +278,7 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full bg-[#701A23] hover:bg-[#521117] text-white py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
+                className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
               >
                 <Send className="w-4 h-4" />
                 <span>Submit Contact Message</span>
@@ -291,7 +291,7 @@ export default function ContactPage() {
       {/* Accordion FAQ Section */}
       <section className="space-y-6" data-aos="fade-up">
         <div className="text-center space-y-2">
-          <HelpCircle className="w-6 h-6 text-[#701A23] mx-auto" />
+          <HelpCircle className="w-6 h-6 text-[#6B1518] mx-auto" />
           <h2 className="font-serif text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
         </div>
 
@@ -305,7 +305,7 @@ export default function ContactPage() {
                   className="w-full text-left p-4 font-serif font-bold text-base text-gray-900 flex justify-between items-center hover:bg-gray-50 transition-colors"
                 >
                   <span>{faq.q}</span>
-                  <ChevronDown className={`w-5 h-5 text-[#701A23] transition-transform ${isFaqOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-[#6B1518] transition-transform ${isFaqOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isFaqOpen && (
                   <div className="px-4 pb-4 text-xs text-gray-600 leading-relaxed border-t border-gray-100 pt-3">

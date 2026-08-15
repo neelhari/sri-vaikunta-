@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Trash2, ShoppingBag, ArrowRight, MessageCircle, Truck, Sparkles, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { BRAND, waLink } from '../config/brand';
 
-export default function CartDrawer({ setActivePage }) {
+export default function CartDrawer() {
+  const navigate = useNavigate();
   const {
     cartItems,
     isCartOpen,
@@ -68,11 +70,11 @@ export default function CartDrawer({ setActivePage }) {
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col z-10 animate-slideLeft">
           {/* Header */}
-          <div className="p-4 sm:p-5 bg-[#701A23] text-white flex items-center justify-between">
+          <div className="p-4 sm:p-5 bg-[#6B1518] text-white flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-[#D4AF37]" />
+              <ShoppingBag className="w-5 h-5 text-[#D3923A]" />
               <h3 className="font-serif font-bold text-lg text-white">Your Shopping Cart</h3>
-              <span className="bg-[#521117] text-[#D4AF37] text-xs font-bold px-2 py-0.5 rounded-full border border-[#891E2A]">
+              <span className="bg-[#4B0F11] text-[#D3923A] text-xs font-bold px-2 py-0.5 rounded-full border border-[#831A1D]">
                 {cartItems.length} items
               </span>
             </div>
@@ -85,7 +87,7 @@ export default function CartDrawer({ setActivePage }) {
           </div>
 
           {/* Free Shipping Progress Indicator */}
-          <div className="bg-[#FAF0F1] p-3 px-5 border-b border-[#F5DCD0] text-xs text-[#701A23]">
+          <div className="bg-[#F8F0F0] p-3 px-5 border-b border-[#EADEDF] text-xs text-[#6B1518]">
             {isFreeShipping ? (
               <div className="flex items-center gap-2 font-bold text-emerald-700">
                 <Truck className="w-4 h-4 text-emerald-600" />
@@ -99,7 +101,7 @@ export default function CartDrawer({ setActivePage }) {
                 </div>
                 <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#701A23] h-full rounded-full transition-all duration-300"
+                    className="bg-[#6B1518] h-full rounded-full transition-all duration-300"
                     style={{ width: `${Math.min(100, (subtotal / BRAND.freeShippingThreshold) * 100)}%` }}
                   />
                 </div>
@@ -121,9 +123,9 @@ export default function CartDrawer({ setActivePage }) {
                 <button
                   onClick={() => {
                     setIsCartOpen(false);
-                    if (setActivePage) setActivePage('products');
+                    navigate('/shop');
                   }}
-                  className="bg-[#701A23] hover:bg-[#521117] text-white px-6 py-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-2 transition-colors shadow-sm"
+                  className="bg-[#6B1518] hover:bg-[#4B0F11] text-white px-6 py-2.5 rounded-lg text-xs font-bold inline-flex items-center gap-2 transition-colors shadow-sm"
                 >
                   <span>Explore Products</span>
                   <ArrowRight className="w-4 h-4" />
@@ -149,10 +151,10 @@ export default function CartDrawer({ setActivePage }) {
                             {item.name}
                           </h4>
                         </div>
-                        <span className="text-[10px] text-[#D4AF37] font-bold uppercase tracking-wider block">
+                        <span className="text-[10px] text-[#D3923A] font-bold uppercase tracking-wider block">
                           {item.subcategory || item.category}
                         </span>
-                        <div className="text-xs font-bold text-[#701A23] mt-1">
+                        <div className="text-xs font-bold text-[#6B1518] mt-1">
                           ₹{item.price.toLocaleString('en-IN')}
                         </div>
                       </div>
@@ -215,7 +217,7 @@ export default function CartDrawer({ setActivePage }) {
                   placeholder="Enter promo code (e.g. AV10)"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 text-xs p-2 rounded-lg border border-gray-200 focus:outline-none focus:border-[#701A23] uppercase"
+                  className="flex-1 text-xs p-2 rounded-lg border border-gray-200 focus:outline-none focus:border-[#6B1518] uppercase"
                 />
                 <button
                   type="submit"
@@ -255,20 +257,45 @@ export default function CartDrawer({ setActivePage }) {
                 </div>
                 <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
                   <span>Total Amount:</span>
-                  <span className="text-[#701A23] text-lg font-extrabold">
+                  <span className="text-[#6B1518] text-lg font-extrabold">
                     ₹{(finalTotal + (isFreeShipping ? 0 : 99)).toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
 
-              {/* WhatsApp Checkout Button */}
-              <button
-                onClick={handleWhatsAppCheckout}
-                className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>Place Order via WhatsApp</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-1">
+                <button
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    navigate('/checkout');
+                  }}
+                  className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Proceed to Online Checkout</span>
+                </button>
+
+                <button
+                  onClick={handleWhatsAppCheckout}
+                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Order via WhatsApp</span>
+                </button>
+
+                <div className="text-center pt-1">
+                  <button
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      navigate('/cart');
+                    }}
+                    className="text-xs font-semibold text-gray-600 hover:text-[#6B1518] underline"
+                  >
+                    View Full Cart Page →
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageCircle, X, Send } from 'lucide-react';
 import { BRAND, waLink } from '../config/brand';
 
@@ -6,13 +7,18 @@ export default function WhatsAppFloatingButton() {
   const [isOpen, setIsOpen] = useState(false);
   const defaultMessage = `Hello ${BRAND.name}, I would like to know more about your products.`;
   const [customMsg, setCustomMsg] = useState(defaultMessage);
+  const location = useLocation();
 
   const openWhatsApp = (msgToUse) => {
     window.open(waLink(msgToUse || defaultMessage), '_blank');
   };
 
+  // The product page has its own WhatsApp action in its sticky bottom bar —
+  // showing this floating one too on mobile would stack two green circles.
+  if (location.pathname.startsWith('/product/')) return null;
+
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end max-w-[calc(100vw-2rem)]">
+    <div className="fixed bottom-20 right-4 xl:bottom-6 sm:right-6 z-50 flex flex-col items-end max-w-[calc(100vw-2rem)]">
       {/* Interactive Quick Popup Card */}
       {isOpen && (
         <div className="mb-3 w-[calc(100vw-2rem)] sm:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-slideUp">

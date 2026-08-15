@@ -1,0 +1,382 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShieldCheck, Truck, ArrowLeft, CheckCircle2, Lock, CreditCard, MessageCircle, MapPin, User, Phone, Mail, ShoppingBag } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { BRAND, waLink } from '../config/brand';
+
+export default function CheckoutPage() {
+  const navigate = useNavigate();
+  const { cartItems, subtotal, isFreeShipping, clearCart } = useCart();
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: 'Rajahmundry',
+    pincode: '',
+    state: 'Andhra Pradesh',
+    paymentMethod: 'upi', // 'upi' | 'cod' | 'whatsapp'
+  });
+
+  const [errors, setErrors] = useState({});
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-16 h-16 bg-[#F8F0F0] text-[#6B1518] rounded-full flex items-center justify-center mx-auto">
+          <ShoppingBag className="w-8 h-8" />
+        </div>
+        <h1 className="font-serif text-2xl font-bold text-gray-900">Your cart is empty</h1>
+        <p className="text-xs text-gray-500">Please add items to your cart before proceeding to checkout.</p>
+        <button
+          onClick={() => navigate('/shop')}
+          className="bg-[#6B1518] text-white px-6 py-2.5 rounded-xl text-xs font-bold"
+        >
+          Return to Shop
+        </button>
+      </div>
+    );
+  }
+
+  const deliveryCharge = isFreeShipping ? 0 : 99;
+  const totalAmount = subtotal + deliveryCharge;
+
+  const validate = () => {
+    const errs = {};
+    if (!formData.fullName.trim()) errs.fullName = 'Full Name is required';
+    if (!formData.phone.trim()) {
+      errs.phone = 'Phone number is required';
+    } else if (!/^[0-9+\s-]{10,15}$/.test(formData.phone.trim())) {
+      errs.phone = 'Enter a valid phone number';
+    }
+    if (!formData.address.trim()) errs.address = 'Street address is required';
+    if (!formData.pincode.trim()) errs.pincode = 'Pincode is required';
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handlePlaceOrder = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const orderId = `AV-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderData = {
+      orderId,
+      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      customer: { ...formData },
+      items: [...cartItems],
+      subtotal,
+      deliveryCharge,
+      totalAmount,
+      paymentMethod: formData.paymentMethod,
+    };
+
+    if (formData.paymentMethod === 'whatsapp') {
+      let text = `*New Order ${orderId} - ${BRAND.name}*\n`;
+      text += `Customer: ${formData.fullName} (${formData.phone})\n`;
+      text += `Address: ${formData.address}, ${formData.city} - ${formData.pincode}, ${formData.state}\n`;
+      text += `-----------------------------------\n`;
+      cartItems.forEach((item, index) => {
+        text += `${index + 1}. *${item.name}* (x${item.quantity}) - ₹${(item.price * item.quantity).toLocaleString('en-IN')}\n`;
+      });
+      text += `-----------------------------------\n`;
+      text += `*Total Amount:* ₹${totalAmount.toLocaleString('en-IN')} (${formData.paymentMethod.toUpperCase()})\n`;
+
+      clearCart();
+      window.open(waLink(text), '_blank');
+      navigate('/order-success', { state: { orderData } });
+    } else {
+      clearCart();
+      navigate('/order-success', { state: { orderData } });
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Breadcrumbs */}
+      <nav className="flex items-center gap-1.5 text-xs text-gray-500" aria-label="Breadcrumb">
+        <Link to="/" className="hover:text-[#6B1518] transition-colors">Home</Link>
+        <span>/</span>
+        <Link to="/cart" className="hover:text-[#6B1518] transition-colors">Cart</Link>
+        <span>/</span>
+        <span className="text-[#6B1518] font-semibold">Checkout</span>
+      </nav>
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#D3923A]">Secure Payment & Delivery</span>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 mt-1">Complete Your Order</h1>
+        </div>
+
+        <button
+          onClick={() => navigate('/cart')}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#6B1518]"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Cart</span>
+        </button>
+      </div>
+
+      <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Form Column */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Section 1: Customer & Delivery Address */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-5">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+              <MapPin className="w-5 h-5 text-[#6B1518]" />
+              <h2 className="font-serif text-xl font-bold text-gray-900">Shipping & Delivery Details</h2>
+            </div>
+
+            <div className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-800 uppercase mb-1">Full Name *</label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    className={`w-full text-xs pl-9 pr-4 py-3 rounded-xl border focus:outline-none ${
+                      errors.fullName ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
+                    }`}
+                  />
+                </div>
+                {errors.fullName && <p className="text-[11px] text-red-500 mt-1">{errors.fullName}</p>}
+              </div>
+
+              {/* Phone & Email */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 uppercase mb-1">Mobile Number *</label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      placeholder="10-digit mobile number"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className={`w-full text-xs pl-9 pr-4 py-3 rounded-xl border focus:outline-none ${
+                        errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
+                      }`}
+                    />
+                  </div>
+                  {errors.phone && <p className="text-[11px] text-red-500 mt-1">{errors.phone}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 uppercase mb-1">Email Address (Optional)</label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      placeholder="name@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full text-xs pl-9 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#6B1518]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Street Address */}
+              <div>
+                <label className="block text-xs font-bold text-gray-800 uppercase mb-1">Delivery Address *</label>
+                <textarea
+                  rows={3}
+                  placeholder="House No., Building Name, Street / Colony Area..."
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className={`w-full text-xs p-3 rounded-xl border focus:outline-none resize-none ${
+                    errors.address ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
+                  }`}
+                />
+                {errors.address && <p className="text-[11px] text-red-500 mt-1">{errors.address}</p>}
+              </div>
+
+              {/* City, State, Pincode Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 uppercase mb-1">City / Town *</label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full text-xs p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#6B1518]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 uppercase mb-1">Pincode *</label>
+                  <input
+                    type="text"
+                    placeholder="6-digit pincode"
+                    value={formData.pincode}
+                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                    className={`w-full text-xs p-3 rounded-xl border focus:outline-none ${
+                      errors.pincode ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#6B1518]'
+                    }`}
+                  />
+                  {errors.pincode && <p className="text-[11px] text-red-500 mt-1">{errors.pincode}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 uppercase mb-1">State *</label>
+                  <input
+                    type="text"
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full text-xs p-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#6B1518]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Payment Method Selection */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+              <CreditCard className="w-5 h-5 text-[#6B1518]" />
+              <h2 className="font-serif text-xl font-bold text-gray-900">Select Payment Method</h2>
+            </div>
+
+            <div className="space-y-3">
+              {/* UPI / GPay Option */}
+              <label
+                onClick={() => setFormData({ ...formData, paymentMethod: 'upi' })}
+                className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                  formData.paymentMethod === 'upi'
+                    ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  checked={formData.paymentMethod === 'upi'}
+                  onChange={() => setFormData({ ...formData, paymentMethod: 'upi' })}
+                  className="mt-1 text-[#6B1518] focus:ring-[#6B1518]"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs sm:text-sm text-gray-900">UPI / QR Payment (GPay, PhonePe, Paytm)</span>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">Recommended</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">Fast, secure payment via any UPI app or QR code scanner.</p>
+                </div>
+              </label>
+
+              {/* COD Option */}
+              <label
+                onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })}
+                className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                  formData.paymentMethod === 'cod'
+                    ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  checked={formData.paymentMethod === 'cod'}
+                  onChange={() => setFormData({ ...formData, paymentMethod: 'cod' })}
+                  className="mt-1 text-[#6B1518] focus:ring-[#6B1518]"
+                />
+                <div className="flex-1">
+                  <span className="font-bold text-xs sm:text-sm text-gray-900">Cash on Delivery (COD)</span>
+                  <p className="text-xs text-gray-500 mt-0.5">Pay in cash when your parcel is delivered at your doorstep.</p>
+                </div>
+              </label>
+
+              {/* WhatsApp Option */}
+              <label
+                onClick={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })}
+                className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
+                  formData.paymentMethod === 'whatsapp'
+                    ? 'border-[#25D366] bg-emerald-50/50 ring-1 ring-[#25D366]'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  checked={formData.paymentMethod === 'whatsapp'}
+                  onChange={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })}
+                  className="mt-1 text-[#25D366] focus:ring-[#25D366]"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                    <span className="font-bold text-xs sm:text-sm text-gray-900">Direct WhatsApp Instant Order</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">Send order copy to WhatsApp for direct chat verification & payment assistance.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Summary Column */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-5 sticky top-24">
+            <h3 className="font-serif text-xl font-bold text-gray-900 border-b border-gray-100 pb-3">
+              Order Items ({cartItems.length})
+            </h3>
+
+            {/* Product items mini list */}
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+              {cartItems.map((item) => (
+                <div key={item.itemKey} className="flex items-center gap-3">
+                  <img src={item.image} alt={item.name} className="w-12 h-14 object-cover rounded-lg shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-semibold text-gray-900 line-clamp-1">{item.name}</h4>
+                    <span className="text-[11px] text-gray-500">Qty: {item.quantity}</span>
+                  </div>
+                  <span className="text-xs font-bold text-gray-900">
+                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Calculations */}
+            <div className="space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-4">
+              <div className="flex justify-between">
+                <span>Items Subtotal:</span>
+                <span className="font-semibold text-gray-900">₹{subtotal.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping Charge:</span>
+                <span>{isFreeShipping ? <strong className="text-emerald-600">FREE</strong> : '₹99'}</span>
+              </div>
+              <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t border-gray-200">
+                <span>Total Amount:</span>
+                <span className="text-[#6B1518] text-xl font-extrabold">
+                  ₹{totalAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            {/* Submit Action */}
+            <button
+              type="submit"
+              className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-4 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform hover:scale-[1.01]"
+            >
+              <Lock className="w-4 h-4 text-[#D3923A]" />
+              <span>Confirm & Place Order (₹{totalAmount.toLocaleString('en-IN')})</span>
+            </button>
+
+            <div className="text-center text-[11px] text-gray-400 flex items-center justify-center gap-1">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>100% Encrypted & Safe Checkout</span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}

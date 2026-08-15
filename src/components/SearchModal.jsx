@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, X, ShoppingBag } from 'lucide-react';
 import { useUI } from '../context/UIContext';
 import { products } from '../data/products';
 
-export default function SearchModal({ setActivePage, onProductSelect }) {
-  const { isSearchOpen, setIsSearchOpen, openQuickView } = useUI();
+export default function SearchModal() {
+  const navigate = useNavigate();
+  const { isSearchOpen, setIsSearchOpen } = useUI();
   const [query, setQuery] = useState('');
 
   if (!isSearchOpen) return null;
@@ -29,7 +31,7 @@ export default function SearchModal({ setActivePage, onProductSelect }) {
       <div className="relative bg-white w-full max-w-2xl mx-auto rounded-2xl shadow-2xl overflow-hidden z-10 border border-gray-100 animate-slideDown">
         {/* Search Header */}
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-          <Search className="w-5 h-5 text-[#701A23]" />
+          <Search className="w-5 h-5 text-[#6B1518]" />
           <input
             type="text"
             autoFocus
@@ -56,7 +58,7 @@ export default function SearchModal({ setActivePage, onProductSelect }) {
                   <button
                     key={tag}
                     onClick={() => setQuery(tag)}
-                    className="bg-gray-100 hover:bg-[#FAF0F1] hover:text-[#701A23] text-gray-700 text-xs px-3 py-1.5 rounded-full transition-colors"
+                    className="bg-gray-100 hover:bg-[#F8F0F0] hover:text-[#6B1518] text-gray-700 text-xs px-3 py-1.5 rounded-full transition-colors"
                   >
                     {tag}
                   </button>
@@ -75,17 +77,17 @@ export default function SearchModal({ setActivePage, onProductSelect }) {
                   key={product.id}
                   onClick={() => {
                     setIsSearchOpen(false);
-                    openQuickView(product);
+                    navigate(`/product/${product.id}`);
                   }}
                   className="flex items-center gap-3 p-2.5 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-gray-200"
                 >
                   <img src={product.image} alt={product.name} className="w-12 h-14 object-cover rounded-lg" />
                   <div className="flex-1">
                     <h5 className="font-serif font-semibold text-sm text-gray-900 line-clamp-1">{product.name}</h5>
-                    <span className="text-[10px] text-[#D4AF37] font-bold uppercase tracking-wider block">
+                    <span className="text-[10px] text-[#D3923A] font-bold uppercase tracking-wider block">
                       {product.subcategory || product.category}
                     </span>
-                    <span className="text-xs font-bold text-[#701A23]">₹{product.price.toLocaleString('en-IN')}</span>
+                    <span className="text-xs font-bold text-[#6B1518]">₹{product.price.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               ))}
