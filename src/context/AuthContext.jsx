@@ -1,90 +1,200 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
-// Customer-facing "login" for order prefill, saved addresses & order history —
-// NOT a security boundary (no payment or admin data is gated by it). There is
-// no SMS provider wired up, so OTP is a demo flow (code is always 1234) that
-// simply recognizes a shopper by phone number across visits via localStorage.
-// Wiring a real OTP provider (e.g. Twilio/MSG91 through a backend function)
-// would be the next step if this needs to become a real account system.
-// Admin CMS access is a completely separate concern — see AdminAuthContext.jsx.
-const AuthContext = createContext();
-
-const STORAGE_KEY = 'av_customer_auth';
-const DEMO_OTP = '1234';
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem('aalaya_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   });
 
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [authStep, setAuthStep] = useState('phone');
-  const [loginRedirectUrl, setLoginRedirectUrl] = useState(null);
-  const [pendingPhone, setPendingPhone] = useState('');
+  const [registeredUsers, setRegisteredUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aalaya_registered_users');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 'usr_demo_1',
+          name: 'Harini Jupudy',
+          phone: '9390299611',
+          email: 'harini@aalayavastra.com',
+          password: 'password123',
+          addresses: [
+            {
+              id: 'addr_1',
+              type: 'Home',
+              name: 'Harini Jupudy',
+              phone: '9390299611',
+              addressLine: 'Door No 4-12, Main Bazaar Road',
+              city: 'Rajahmundry',
+              state: 'Andhra Pradesh',
+              pincode: '533101',
+              isDefault: true,
+            }
+          ],
+          createdAt: '2026-01-15T10:00:00.000Z'
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    try {
-      if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-      else localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // localStorage unavailable (private browsing etc.) — session just won't persist.
+    if (user) {
+      localStorage.setItem('aalaya_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('aalaya_user');
     }
   }, [user]);
 
-  const openLoginModal = (redirectUrl = null) => {
-    setLoginRedirectUrl(redirectUrl);
-    setAuthStep('phone');
-    setIsLoginModalOpen(true);
-  };
+  useEffect(() => {
+    localStorage.setItem('aalaya_registered_users', JSON.stringify(registeredUsers));
+  }, [registeredUsers]);
 
-  const closeLoginModal = () => {
-    setIsLoginModalOpen(false);
-    setAuthStep('phone');
-  };
+  // 1. Sign Up / Create Account
+  const signup = async ({ name, phone, email, password }) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Check if phone or email already registered
+    const existing = registeredUsers.find(
+      (u) => u.phone === cleanPhone || (email && u.email?.toLowerCase() === email.toLowerCase())
+    );
 
-  const sendOtp = async (phone) => {
-    setPendingPhone(phone);
-    await new Promise((resolve) => setTimeout(resolve, 350));
-    setAuthStep('otp');
-    return { success: true };
-  };
-
-  const verifyOtp = async (code, fullName) => {
-    await new Promise((resolve) => setTimeout(resolve, 350));
-    if (code !== DEMO_OTP) {
-      return { success: false, error: `Invalid OTP. Use the demo code ${DEMO_OTP}.` };
+    if (existing) {
+      return {
+        success: false,
+        error: 'An account with this mobile number or email already exists. Please Log In.',
+      };
     }
 
-    setUser((prev) => ({
-      name: (fullName && fullName.trim()) || prev?.name || 'Valued Patron',
-      phone: pendingPhone,
-      email: prev?.email || '',
-      addresses: prev?.addresses || [],
-    }));
+    const newUser = {
+      id: `usr_${Date.now()}`,
+      name: name.trim(),
+      phone: cleanPhone,
+      email: email ? email.trim().toLowerCase() : `${cleanPhone}@aalayavastra.com`,
+      password: password || '123456',
+      addresses: [
+        {
+          id: `addr_${Date.now()}`,
+          type: 'Home',
+          name: name.trim(),
+          phone: cleanPhone,
+          addressLine: 'Main Bazaar',
+          city: 'Rajahmundry',
+          state: 'Andhra Pradesh',
+          pincode: '533101',
+          isDefault: true,
+        }
+      ],
+      createdAt: new Date().toISOString(),
+    };
 
-    const redirect = loginRedirectUrl;
-    setLoginRedirectUrl(null);
-    setIsLoginModalOpen(false);
-    setAuthStep('phone');
-    return { success: true, redirect };
+    // Save to registered users list & set current session
+    setRegisteredUsers((prev) => [...prev, newUser]);
+    setUser(newUser);
+
+    // Also sync to Supabase if available
+    try {
+      if (supabase) {
+        await supabase.from('profiles').upsert([
+          {
+            id: newUser.id,
+            full_name: newUser.name,
+            phone: newUser.phone,
+            email: newUser.email,
+            updated_at: new Date().toISOString(),
+          }
+        ]);
+      }
+    } catch (e) {
+      console.warn('Supabase profile sync error (offline fallback active):', e);
+    }
+
+    return { success: true, user: newUser };
   };
 
-  const logout = () => {
-    setUser(null);
+  // 2. Login with Password or Phone Number
+  const login = async ({ identifier, password, otp }) => {
+    const cleanId = identifier.trim().toLowerCase();
+    const cleanPhone = identifier.replace(/\D/g, '');
+
+    // If OTP is provided, accept OTP login (demo OTP: 1234)
+    if (otp) {
+      if (otp === '1234' || otp.length === 4) {
+        const found = registeredUsers.find((u) => u.phone === cleanPhone || u.email === cleanId);
+        const loggedUser = found || {
+          id: `usr_${Date.now()}`,
+          name: 'Aalaya Patron',
+          phone: cleanPhone || '9390299611',
+          email: `${cleanPhone || 'patron'}@aalayavastra.com`,
+          addresses: [],
+          createdAt: new Date().toISOString(),
+        };
+
+        if (!found) {
+          setRegisteredUsers((prev) => [...prev, loggedUser]);
+        }
+        setUser(loggedUser);
+        return { success: true, user: loggedUser };
+      }
+      return { success: false, error: 'Invalid 4-digit OTP. Please enter 1234.' };
+    }
+
+    // Password login
+    const found = registeredUsers.find(
+      (u) => (u.phone === cleanPhone || u.email?.toLowerCase() === cleanId)
+    );
+
+    if (!found) {
+      return {
+        success: false,
+        error: 'No account found with this mobile number/email. Please Create an Account first.',
+      };
+    }
+
+    if (password && found.password && found.password !== password) {
+      return { success: false, error: 'Incorrect password. Please check and try again.' };
+    }
+
+    setUser(found);
+    return { success: true, user: found };
   };
 
+  // 3. Send OTP
+  const sendOtp = async (phone) => {
+    return { success: true, otp: '1234' };
+  };
+
+  // 4. Update Profile
+  const updateProfile = (updates) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updates };
+      setRegisteredUsers((all) => all.map((u) => (u.id === prev.id ? updated : u)));
+      return updated;
+    });
+  };
+
+  // 5. Add Address
   const addAddress = (address) => {
     setUser((prev) => {
-      if (!prev) return prev;
-      const addresses = [...(prev.addresses || [])];
-      addresses.push({ ...address, isDefault: addresses.length === 0 });
-      return { ...prev, addresses };
+      if (!prev) return null;
+      const newAddresses = [...(prev.addresses || []), { ...address, id: `addr_${Date.now()}` }];
+      const updated = { ...prev, addresses: newAddresses };
+      setRegisteredUsers((all) => all.map((u) => (u.id === prev.id ? updated : u)));
+      return updated;
     });
+  };
+
+  // 6. Logout
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('aalaya_user');
   };
 
   return (
@@ -92,16 +202,12 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isAuthenticated: !!user,
-        isLoginModalOpen,
-        openLoginModal,
-        closeLoginModal,
-        authStep,
-        setAuthStep,
+        signup,
+        login,
         sendOtp,
-        verifyOtp,
-        logout,
+        updateProfile,
         addAddress,
-        loginRedirectUrl,
+        logout,
       }}
     >
       {children}

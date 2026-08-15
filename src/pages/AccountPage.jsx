@@ -133,12 +133,20 @@ export default function AccountPage() {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate('/login?redirect=/account')}
-            className="bg-[#6B1518] hover:bg-[#4B0F11] text-white px-8 py-3.5 rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-transform hover:scale-105 active:scale-95 shrink-0"
-          >
-            LOGIN
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+            <button
+              onClick={() => navigate('/login?redirect=/account')}
+              className="w-full sm:w-auto bg-[#6B1518] hover:bg-[#4B0F11] text-white px-7 py-3 rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-transform hover:scale-105 active:scale-95"
+            >
+              LOG IN
+            </button>
+            <button
+              onClick={() => navigate('/signup?redirect=/account')}
+              className="w-full sm:w-auto bg-[#FAF8F5] hover:bg-[#F8F0F0] text-[#6B1518] border-2 border-[#6B1518] px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm shadow-xs transition-transform hover:scale-105 active:scale-95"
+            >
+              CREATE ACCOUNT
+            </button>
+          </div>
         </div>
       )}
 

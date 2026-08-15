@@ -27,6 +27,7 @@ import OurStoryPage from './pages/OurStoryPage';
 import ContactPage from './pages/ContactPage';
 import AccountPage from './pages/AccountPage';
 import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
@@ -102,6 +103,8 @@ function AppContent() {
           <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/register" element={<SignupPage />} />
           <Route path="/faqs" element={<FaqPage />} />
           <Route path="/privacy-policy" element={<PolicyPage />} />
           <Route path="/return-policy" element={<PolicyPage />} />

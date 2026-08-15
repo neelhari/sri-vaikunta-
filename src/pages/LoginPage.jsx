@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Phone, ArrowRight, CheckCircle2, Lock, ShieldCheck, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Phone, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2, ShieldCheck, Sparkles, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BRAND } from '../config/brand';
 
 export default function LoginPage() {
-  const { user, isAuthenticated, sendOtp, verifyOtp } = useAuth();
+  const { isAuthenticated, login, sendOtp } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/account';
 
-  const [authStep, setAuthStep] = useState('phone'); // 'phone' | 'otp'
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [loginMethod, setLoginMethod] = useState('otp'); // 'otp' | 'password'
+  const [authStep, setAuthStep] = useState('input'); // 'input' | 'otp'
+  const [identifier, setIdentifier] = useState(''); // phone or email
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['1', '2', '3', '4']);
   const [timer, setTimer] = useState(30);
   const [loading, setLoading] = useState(false);
@@ -34,16 +37,40 @@ export default function LoginPage() {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (phoneNumber.length !== 10) {
+    const cleanPhone = identifier.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
       setErrorMsg('Please enter a valid 10-digit mobile number');
       return;
     }
     setErrorMsg('');
     setLoading(true);
-    await sendOtp(phoneNumber);
+    await sendOtp(identifier);
     setLoading(false);
     setAuthStep('otp');
     setTimer(30);
+  };
+
+  const handlePasswordLogin = async (e) => {
+    e.preventDefault();
+    if (!identifier.trim()) {
+      setErrorMsg('Please enter your mobile number or email');
+      return;
+    }
+    if (!password) {
+      setErrorMsg('Please enter your password');
+      return;
+    }
+
+    setErrorMsg('');
+    setLoading(true);
+    const res = await login({ identifier, password });
+    setLoading(false);
+
+    if (res.success) {
+      navigate(redirectUrl, { replace: true });
+    } else {
+      setErrorMsg(res.error || 'Login failed');
+    }
   };
 
   const handleOtpChange = (index, value) => {
@@ -73,7 +100,7 @@ export default function LoginPage() {
 
     setLoading(true);
     setErrorMsg('');
-    const res = await verifyOtp(enteredOtp);
+    const res = await login({ identifier, otp: enteredOtp });
     setLoading(false);
 
     if (res.success) {
@@ -93,12 +120,12 @@ export default function LoginPage() {
               {BRAND.name}
             </span>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold">
-              {authStep === 'phone' ? 'Login' : 'Verify Mobile'}
+              {authStep === 'input' ? 'Log In to Account' : 'Verify Mobile'}
             </h1>
             <p className="text-xs text-gray-200">
-              {authStep === 'phone'
-                ? 'Enter your mobile number to view orders and proceed.'
-                : `Enter 4-digit OTP sent to +91 ${phoneNumber}`}
+              {authStep === 'input'
+                ? 'Access your orders, saved addresses & express checkout.'
+                : `Enter 4-digit OTP sent to +91 ${identifier}`}
             </p>
           </div>
 
@@ -108,49 +135,146 @@ export default function LoginPage() {
         {/* Form Body */}
         <div className="p-6 sm:p-8 space-y-6">
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs font-semibold border border-red-100 animate-fadeIn">
+            <div className="p-3.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold border border-red-100 animate-fadeIn">
               {errorMsg}
             </div>
           )}
 
-          {authStep === 'phone' ? (
-            <form onSubmit={handleSendOtp} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-gray-800 mb-1.5">
-                  Mobile Number <span className="text-red-500">*</span>
-                </label>
-                <div className="flex rounded-xl border border-gray-300 focus-within:border-[#6B1518] focus-within:ring-2 focus-within:ring-[#6B1518]/20 transition-all overflow-hidden bg-white">
-                  <span className="bg-gray-50 px-3.5 py-3.5 text-xs font-bold text-gray-600 border-r border-gray-200 flex items-center">
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    required
-                    maxLength={10}
-                    placeholder="Enter 10 digit mobile number"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                    className="flex-1 px-3 py-3.5 text-sm font-semibold text-gray-900 focus:outline-none tracking-wider"
-                    autoFocus
-                  />
-                </div>
+          {authStep === 'input' ? (
+            <div className="space-y-5">
+              {/* Method Switcher Tabs */}
+              <div className="flex border-b border-gray-200 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('otp');
+                    setErrorMsg('');
+                  }}
+                  className={`pb-2.5 flex-1 text-center border-b-2 transition-colors ${
+                    loginMethod === 'otp'
+                      ? 'border-[#6B1518] text-[#6B1518]'
+                      : 'border-transparent text-gray-400 hover:text-gray-700'
+                  }`}
+                >
+                  Quick OTP Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('password');
+                    setErrorMsg('');
+                  }}
+                  className={`pb-2.5 flex-1 text-center border-b-2 transition-colors ${
+                    loginMethod === 'password'
+                      ? 'border-[#6B1518] text-[#6B1518]'
+                      : 'border-transparent text-gray-400 hover:text-gray-700'
+                  }`}
+                >
+                  Password Login
+                </button>
               </div>
 
-              <div className="text-[11px] text-gray-500 leading-relaxed">
-                By continuing, you agree to our{' '}
-                <Link to="/terms" className="text-[#6B1518] font-bold underline">Terms</Link> &{' '}
-                <Link to="/privacy-policy" className="text-[#6B1518] font-bold underline">Privacy Policy</Link>.
-              </div>
+              {loginMethod === 'otp' ? (
+                <form onSubmit={handleSendOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1.5">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex rounded-xl border border-gray-300 focus-within:border-[#6B1518] focus-within:ring-2 focus-within:ring-[#6B1518]/20 transition-all overflow-hidden bg-white">
+                      <span className="bg-gray-50 px-3.5 py-3.5 text-xs font-bold text-gray-600 border-r border-gray-200 flex items-center">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        maxLength={10}
+                        placeholder="Enter 10 digit mobile number"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value.replace(/\D/g, ''))}
+                        className="flex-1 px-3 py-3.5 text-sm font-semibold text-gray-900 focus:outline-none tracking-wider"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
 
-              <button
-                type="submit"
-                disabled={loading || phoneNumber.length !== 10}
-                className="w-full bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-50 text-white font-bold text-sm py-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <span>{loading ? 'Sending OTP...' : 'CONTINUE'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+                  <button
+                    type="submit"
+                    disabled={loading || identifier.length !== 10}
+                    className="w-full bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-50 text-white font-bold text-sm py-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>{loading ? 'Sending OTP...' : 'CONTINUE WITH OTP'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handlePasswordLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1.5">
+                      Mobile Number or Email <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center rounded-xl border border-gray-300 focus-within:border-[#6B1518] focus-within:ring-2 focus-within:ring-[#6B1518]/20 transition-all px-3 bg-white">
+                      <Phone className="w-4 h-4 text-gray-400 shrink-0 mr-2" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. 9390299611 or email"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        className="w-full py-3.5 text-sm text-gray-900 focus:outline-none"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1.5">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center rounded-xl border border-gray-300 focus-within:border-[#6B1518] focus-within:ring-2 focus-within:ring-[#6B1518]/20 transition-all px-3 bg-white">
+                      <Lock className="w-4 h-4 text-gray-400 shrink-0 mr-2" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full py-3.5 text-sm text-gray-900 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="text-gray-400 hover:text-gray-600 p-1"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-50 text-white font-bold text-sm py-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>{loading ? 'Logging In...' : 'LOG IN'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
+
+              {/* Sign Up / Create Account Prompt */}
+              <div className="text-center pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-600">
+                  New to Aalaya Vastra?{' '}
+                  <Link
+                    to={`/signup${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+                    className="text-[#6B1518] font-extrabold hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>Create an Account here</span>
+                    <span>→</span>
+                  </Link>
+                </p>
+              </div>
+            </div>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div className="space-y-3 text-center">
@@ -179,14 +303,14 @@ export default function LoginPage() {
               <div className="flex items-center justify-between text-xs pt-1">
                 <button
                   type="button"
-                  onClick={() => setAuthStep('phone')}
+                  onClick={() => setAuthStep('input')}
                   className="text-gray-500 hover:text-gray-900 font-bold"
                 >
                   Change Number
                 </button>
                 <button
                   type="button"
-                  onClick={() => sendOtp(phoneNumber)}
+                  onClick={() => sendOtp(identifier)}
                   disabled={timer > 0}
                   className={`font-bold ${
                     timer > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-[#6B1518] hover:underline'
@@ -201,20 +325,16 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white font-bold text-sm py-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <span>{loading ? 'Verifying...' : 'VERIFY & CONTINUE'}</span>
+                <span>{loading ? 'Verifying...' : 'VERIFY & LOG IN'}</span>
                 <CheckCircle2 className="w-4 h-4" />
               </button>
             </form>
           )}
 
-          {/* Trust badges */}
-          <div className="pt-4 border-t border-gray-100 flex items-center justify-center gap-4 text-[11px] text-gray-400">
+          {/* Trust Badges */}
+          <div className="pt-3 border-t border-gray-100 flex items-center justify-center gap-4 text-[11px] text-gray-400">
             <span className="flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-emerald-600" /> Safe & Secure
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#D3923A]" /> Official Aalaya Vastra
+              <ShieldCheck className="w-3.5 h-3.5 text-[#D3923A]" /> 100% Authentic Handloom
             </span>
           </div>
         </div>
