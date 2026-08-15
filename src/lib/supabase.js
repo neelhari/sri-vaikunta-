@@ -430,6 +430,13 @@ export async function saveOrderToSupabase(orderData) {
   }
 }
 
+export async function fetchOrdersByPhone(phone) {
+  if (!supabase || !phone) return { success: false, data: [], message: 'Missing phone or Supabase not configured' };
+  const { data, error } = await supabase.rpc('get_orders_by_phone', { p_phone: phone });
+  if (error) return { success: false, data: [], message: error.message };
+  return { success: true, data: (data || []).map(mapOrderFromDb) };
+}
+
 export async function updateOrderStatusInDb(id, status) {
   if (!supabase) return { success: false, message: 'Supabase not configured' };
   const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select().single();

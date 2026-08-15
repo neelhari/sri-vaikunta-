@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Grid3x3, Heart, ShoppingBag } from 'lucide-react';
+import { Home, Grid3x3, ShoppingBag, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function MobileBottomNav() {
   const { totalItemsCount, setIsCartOpen } = useCart();
-  const { wishlistCount } = useWishlist();
+  const { user, isAuthenticated, openLoginModal } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,20 +31,19 @@ export default function MobileBottomNav() {
       onClick: () => goTo('/categories'),
     },
     {
-      id: 'wishlist',
-      label: 'Wishlist',
-      icon: Heart,
-      isActive: location.pathname === '/wishlist',
-      badge: wishlistCount > 0 ? wishlistCount : null,
-      onClick: () => goTo('/wishlist'),
-    },
-    {
       id: 'cart',
       label: 'Cart',
       icon: ShoppingBag,
       isActive: location.pathname === '/cart',
       badge: totalItemsCount > 0 ? totalItemsCount : null,
       onClick: () => setIsCartOpen(true),
+    },
+    {
+      id: 'account',
+      label: 'Account',
+      icon: User,
+      isActive: location.pathname === '/account' || location.pathname === '/login',
+      onClick: () => goTo('/account'),
     },
   ];
 
@@ -66,7 +65,7 @@ export default function MobileBottomNav() {
             <div className="relative">
               <Icon className={`w-5 h-5 ${item.isActive ? 'fill-[#F8F0F0]' : ''}`} strokeWidth={item.isActive ? 2.4 : 2} />
               {item.badge && (
-                <span className="absolute -top-1.5 -right-2 bg-[#D3923A] text-[#6B1518] text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-2 bg-[#D3923A] text-[#6B1518] text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
                   {item.badge}
                 </span>
               )}

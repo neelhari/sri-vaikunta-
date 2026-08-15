@@ -23,22 +23,37 @@ export default function AdminCategories() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name) return;
+  const [saving, setSaving] = useState(false);
 
-    if (editingCat) {
-      updateCategory(editingCat.id, { name, tagline: description });
-    } else {
-      addCategory({
-        id: name.toLowerCase().replace(/\s+/g, '-'),
-        name,
-        tagline: description,
-        image: '/slider/image copy 2.png',
-        active: true,
-      });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name || saving) return;
+
+    setSaving(true);
+    const result = editingCat
+      ? await updateCategory(editingCat.id, { name, tagline: description })
+      : await addCategory({
+          id: name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          name,
+          tagline: description,
+          image: '/slider/image copy 2.png',
+          active: true,
+        });
+    setSaving(false);
+
+    if (!result.success) {
+      window.alert(`Could not save category: ${result.message || 'Unknown error'}`);
+      return;
     }
     setIsModalOpen(false);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this category? Products already assigned to it will keep the old category value.')) return;
+    const result = await deleteCategory(id);
+    if (!result.success) {
+      window.alert(`Could not delete category: ${result.message || 'Unknown error'}`);
+    }
   };
 
   return (
@@ -83,7 +98,7 @@ export default function AdminCategories() {
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => deleteCategory(cat.id)}
+                    onClick={() => handleDelete(cat.id)}
                     className="p-2 rounded-xl text-red-600 hover:bg-red-50 border border-red-100"
                     title="Delete Category"
                   >
@@ -134,8 +149,8 @@ export default function AdminCategories() {
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 rounded-xl border border-gray-300 font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="bg-[#6B1518] text-white px-5 py-2.5 rounded-xl font-bold">
-                  Save & Publish
+                <button type="submit" disabled={saving} className="bg-[#6B1518] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-bold">
+                  {saving ? 'Saving...' : 'Save & Publish'}
                 </button>
               </div>
             </form>

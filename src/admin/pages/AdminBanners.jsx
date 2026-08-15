@@ -8,27 +8,49 @@ export default function AdminBanners() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('/shop');
-  const [image, setImage] = useState('/slider/image copy 2.png');
+  const [image, setImage] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     const res = await uploadToCloudinary(file);
-    if (res && res.secure_url) {
-      setImage(res.secure_url);
+    if (res.success) {
+      setImage(res.url);
+    } else {
+      setUploadError(res.message);
     }
     setUploading(false);
   };
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
-    if (!title || !image) return;
+    if (!title || !image || saving) return;
 
-    addBanner({ title, link, image, active: true });
+    setSaving(true);
+    const result = await addBanner({ title, link, image, active: true });
+    setSaving(false);
+
+    if (!result.success) {
+      window.alert(`Could not save banner: ${result.message || 'Unknown error'}`);
+      return;
+    }
     setTitle('');
+    setImage('');
+    setLink('/shop');
     setIsModalOpen(false);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this banner?')) return;
+    const result = await deleteBanner(id);
+    if (!result.success) {
+      window.alert(`Could not delete banner: ${result.message || 'Unknown error'}`);
+    }
   };
 
   return (

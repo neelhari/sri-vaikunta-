@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User,
@@ -22,7 +22,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
-import { useStoreData } from '../context/StoreDataContext';
+import { fetchOrdersByPhone } from '../lib/supabase';
 import { BRAND, waLink } from '../config/brand';
 
 export default function AccountPage() {
@@ -30,7 +30,6 @@ export default function AccountPage() {
   const { user, isAuthenticated, logout, openLoginModal, addAddress } = useAuth();
   const { wishlistItems } = useWishlist();
   const { cartItems } = useCart();
-  const { orders } = useStoreData();
 
   const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'addresses' | 'profile'
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -44,12 +43,22 @@ export default function AccountPage() {
     type: 'Home',
   });
 
-  // Filter orders for logged in user (by phone or recent)
-  const userOrders = user
-    ? orders.filter(
-        (o) => o.customerPhone === user.phone || o.customerName.toLowerCase().includes(user.name.toLowerCase())
-      )
-    : [];
+  // The order table is RLS-locked to admins (see supabase/schema.sql) since
+  // there's no real per-customer login here — a phone-scoped RPC is used
+  // instead of exposing every customer's orders through the shared anon key.
+  const [userOrders, setUserOrders] = useState([]);
+
+  useEffect(() => {
+    if (!user?.phone) {
+      setUserOrders([]);
+      return;
+    }
+    let active = true;
+    fetchOrdersByPhone(user.phone).then((res) => {
+      if (active && res.success) setUserOrders(res.data);
+    });
+    return () => { active = false; };
+  }, [user?.phone]);
 
   const handleAddAddress = (e) => {
     e.preventDefault();

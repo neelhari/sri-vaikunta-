@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Trash2, ShoppingBag, ArrowRight, MessageCircle, Truck, Sparkles, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { BRAND, waLink } from '../config/brand';
 
 export default function CartDrawer() {
   const navigate = useNavigate();
+  const { isAuthenticated, openLoginModal } = useAuth();
   const {
     cartItems,
     isCartOpen,
@@ -15,28 +17,29 @@ export default function CartDrawer() {
     subtotal,
     isFreeShipping,
     amountNeededForFreeShipping,
-    clearCart
+    clearCart,
+    appliedCoupon,
+    discountAmount,
+    applyCoupon,
+    removeCoupon,
   } = useCart();
 
-  const [couponCode, setCouponCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState(0);
-  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState('');
 
   if (!isCartOpen) return null;
 
   const handleApplyCoupon = (e) => {
     e.preventDefault();
-    if (couponCode.trim().toUpperCase() === 'AV10' || couponCode.trim().toUpperCase() === 'WELCOME10') {
-      setDiscountPercent(10);
-      setCouponApplied(true);
+    const result = applyCoupon(couponInput);
+    if (result.success) {
       setCouponError('');
+      setCouponInput('');
     } else {
-      setCouponError('Invalid coupon code. Try AV10 for 10% OFF!');
+      setCouponError(result.message);
     }
   };
 
-  const discountAmount = (subtotal * discountPercent) / 100;
   const finalTotal = subtotal - discountAmount;
 
   const handleWhatsAppCheckout = () => {
@@ -49,8 +52,8 @@ export default function CartDrawer() {
     });
     text += `-----------------------------------\n`;
     text += `*Subtotal:* ₹${subtotal.toLocaleString('en-IN')}\n`;
-    if (couponApplied) {
-      text += `*Discount (AV10):* -₹${discountAmount.toLocaleString('en-IN')}\n`;
+    if (appliedCoupon) {
+      text += `*Discount (${appliedCoupon.code}):* -₹${discountAmount.toLocaleString('en-IN')}\n`;
     }
     text += `*Estimated Shipping:* ${isFreeShipping ? 'FREE' : '₹99'}\n`;
     text += `*Total Amount:* ₹${(finalTotal + (isFreeShipping ? 0 : 99)).toLocaleString('en-IN')}\n\n`;
@@ -211,27 +214,30 @@ export default function CartDrawer() {
           {cartItems.length > 0 && (
             <div className="p-4 sm:p-5 bg-white border-t border-gray-100 space-y-3">
               {/* Promo Code Form */}
-              <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter promo code (e.g. AV10)"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 text-xs p-2 rounded-lg border border-gray-200 focus:outline-none focus:border-[#6B1518] uppercase"
-                />
-                <button
-                  type="submit"
-                  className="bg-gray-900 hover:bg-black text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors"
-                >
-                  Apply
-                </button>
-              </form>
-
-              {couponApplied && (
-                <div className="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Promo code AV10 applied! 10% discount subtracted.</span>
+              {appliedCoupon ? (
+                <div className="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded flex items-center justify-between gap-1">
+                  <span className="flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" />
+                    Promo code <strong>{appliedCoupon.code}</strong> applied!
+                  </span>
+                  <button type="button" onClick={removeCoupon} className="font-bold underline">Remove</button>
                 </div>
+              ) : (
+                <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter promo code"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    className="flex-1 text-xs p-2 rounded-lg border border-gray-200 focus:outline-none focus:border-[#6B1518] uppercase"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-gray-900 hover:bg-black text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors"
+                  >
+                    Apply
+                  </button>
+                </form>
               )}
               {couponError && (
                 <div className="text-[11px] text-red-600 bg-red-50 p-2 rounded">
@@ -245,9 +251,9 @@ export default function CartDrawer() {
                   <span>Subtotal:</span>
                   <span className="font-semibold text-gray-800">₹{subtotal.toLocaleString('en-IN')}</span>
                 </div>
-                {couponApplied && (
+                {appliedCoupon && (
                   <div className="flex justify-between text-emerald-600 font-medium">
-                    <span>Discount (10%):</span>
+                    <span>Discount ({appliedCoupon.code}):</span>
                     <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
@@ -268,7 +274,11 @@ export default function CartDrawer() {
                 <button
                   onClick={() => {
                     setIsCartOpen(false);
-                    navigate('/checkout');
+                    if (!isAuthenticated) {
+                      openLoginModal('/checkout');
+                    } else {
+                      navigate('/checkout');
+                    }
                   }}
                   className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
                 >

@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Eye, CheckCircle2, Clock, Truck, XCircle, Search, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Eye, CheckCircle2, Clock, Truck, XCircle, Search, Filter, Loader2 } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus } = useStoreData();
+  const { orders, updateOrderStatus, refreshOrders } = useStoreData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    refreshOrders().finally(() => setLoading(false));
+  }, [refreshOrders]);
 
   const filteredOrders = orders.filter((o) => {
     const matchesSearch =
@@ -67,7 +72,19 @@ export default function AdminOrders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-medium">
-              {filteredOrders.map((ord) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-12 text-gray-400">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                  </td>
+                </tr>
+              ) : filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-12 text-gray-400 font-serif text-sm">
+                    No orders yet.
+                  </td>
+                </tr>
+              ) : filteredOrders.map((ord) => (
                 <tr key={ord.id} className="hover:bg-gray-50/80 transition-colors">
                   <td className="p-4 font-bold text-[#6B1518] text-sm">{ord.id}</td>
                   <td className="p-4">

@@ -191,6 +191,24 @@ create policy "orders admin update" on orders for update
 drop policy if exists "orders admin delete" on orders;
 create policy "orders admin delete" on orders for delete using (is_admin());
 
+-- Customer "My Orders" lookup — there's no real per-customer login (the
+-- storefront account system is a demo OTP, not Supabase Auth), so RLS can't
+-- key off auth.uid() for shoppers. This function returns only rows matching
+-- the phone number the caller supplies, which is far narrower than exposing
+-- the whole table to the anon key. It's still phone-guessable in principle;
+-- that's an accepted tradeoff at this store's scale without real customer auth.
+create or replace function get_orders_by_phone(p_phone text)
+returns setof orders
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select * from orders where customer_phone = p_phone order by created_at desc;
+$$;
+
+grant execute on function get_orders_by_phone(text) to anon, authenticated;
+
 -- ----------------------------------------------------------------------------
 -- 7. CONTACT MESSAGES
 -- ----------------------------------------------------------------------------

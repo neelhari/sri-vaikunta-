@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Phone, Mail, MessageCircle, MapPin, Send, CheckCircle2, User, HelpCircle, ChevronDown } from 'lucide-react';
+import { Phone, Mail, MessageCircle, MapPin, Send, CheckCircle2, User, HelpCircle, ChevronDown, AlertTriangle } from 'lucide-react';
 import { BRAND, waLink } from '../config/brand';
+import { saveContactMessageToSupabase } from '../lib/supabase';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,8 @@ export default function ContactPage() {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const validate = () => {
     const errs = {};
@@ -32,12 +35,15 @@ export default function ContactPage() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      setSubmitted(true);
-      // reset after delay or keep message
-    }
+    if (!validate() || submitting) return;
+
+    setSubmitting(true);
+    const result = await saveContactMessageToSupabase(formData);
+    setSubmitting(false);
+    setSaveFailed(!result.success);
+    setSubmitted(true);
   };
 
   const contactCards = [
@@ -205,24 +211,55 @@ export default function ContactPage() {
           </div>
 
           {submitted ? (
-            <div className="bg-emerald-50 border border-emerald-200 p-8 rounded-2xl text-center space-y-4 animate-fadeIn">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8" />
+            saveFailed ? (
+              <div className="bg-amber-50 border border-amber-200 p-8 rounded-2xl text-center space-y-4 animate-fadeIn">
+                <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <h4 className="font-serif text-2xl font-bold text-amber-900">We couldn't save your message</h4>
+                <p className="text-xs text-amber-800 max-w-md mx-auto">
+                  Something went wrong on our end. Please reach out directly on WhatsApp or phone instead so your message isn't lost.
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <a
+                    href={waLink(`Hello ${BRAND.name}, my message: ${formData.message}`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-[#25D366] hover:bg-[#128C7E] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-xs inline-flex items-center gap-1.5"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Us
+                  </a>
+                  <button
+                    onClick={() => {
+                      setSubmitted(false);
+                      setSaveFailed(false);
+                    }}
+                    className="bg-white border border-gray-300 text-gray-700 text-xs font-bold px-5 py-2.5 rounded-xl"
+                  >
+                    Try Again
+                  </button>
+                </div>
               </div>
-              <h4 className="font-serif text-2xl font-bold text-emerald-900">Message Received!</h4>
-              <p className="text-xs text-emerald-700 max-w-md mx-auto">
-                Thank you for contacting <strong>{BRAND.name}</strong>. {BRAND.ownerName} will respond to your message shortly.
-              </p>
-              <button
-                onClick={() => {
-                  setSubmitted(false);
-                  setFormData({ name: '', phone: '', email: '', message: '' });
-                }}
-                className="bg-[#6B1518] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-xs"
-              >
-                Send Another Message
-              </button>
-            </div>
+            ) : (
+              <div className="bg-emerald-50 border border-emerald-200 p-8 rounded-2xl text-center space-y-4 animate-fadeIn">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h4 className="font-serif text-2xl font-bold text-emerald-900">Message Received!</h4>
+                <p className="text-xs text-emerald-700 max-w-md mx-auto">
+                  Thank you for contacting <strong>{BRAND.name}</strong>. {BRAND.ownerName} will respond to your message shortly.
+                </p>
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setFormData({ name: '', phone: '', email: '', message: '' });
+                  }}
+                  className="bg-[#6B1518] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-xs"
+                >
+                  Send Another Message
+                </button>
+              </div>
+            )
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
@@ -288,10 +325,11 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full bg-[#6B1518] hover:bg-[#4B0F11] text-white py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
+                disabled={submitting}
+                className="w-full bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
               >
                 <Send className="w-4 h-4" />
-                <span>Submit Contact Message</span>
+                <span>{submitting ? 'Sending...' : 'Submit Contact Message'}</span>
               </button>
             </form>
           )}

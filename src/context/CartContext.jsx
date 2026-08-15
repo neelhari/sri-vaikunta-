@@ -83,6 +83,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
+    setCouponCode('');
   };
 
   const showToast = (message) => {
@@ -97,6 +98,37 @@ export const CartProvider = ({ children }) => {
   const freeShippingThreshold = 2000;
   const isFreeShipping = subtotal >= freeShippingThreshold;
   const amountNeededForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+
+  // Coupons come from the admin-managed list (Supabase-backed via StoreDataContext)
+  // instead of hardcoded strings, so codes created in /admin/coupons actually work at checkout.
+  const appliedCoupon = couponCode
+    ? coupons.find((c) => c.code === couponCode && c.active)
+    : null;
+  const couponMinOrderMet = appliedCoupon ? subtotal >= appliedCoupon.minOrder : false;
+
+  const discountAmount = (() => {
+    if (!appliedCoupon || !couponMinOrderMet) return 0;
+    let amount = appliedCoupon.type === 'percentage'
+      ? (subtotal * appliedCoupon.discountValue) / 100
+      : appliedCoupon.discountValue;
+    if (appliedCoupon.maxDiscount) amount = Math.min(amount, appliedCoupon.maxDiscount);
+    return Math.min(amount, subtotal);
+  })();
+
+  const applyCoupon = (code) => {
+    const normalized = code.trim().toUpperCase();
+    const match = coupons.find((c) => c.code === normalized && c.active);
+    if (!match) {
+      return { success: false, message: 'Invalid or inactive coupon code.' };
+    }
+    if (subtotal < match.minOrder) {
+      return { success: false, message: `This code needs a minimum order of ₹${match.minOrder.toLocaleString('en-IN')}.` };
+    }
+    setCouponCode(normalized);
+    return { success: true, coupon: match };
+  };
+
+  const removeCoupon = () => setCouponCode('');
 
   return (
     <CartContext.Provider value={{
@@ -113,7 +145,11 @@ export const CartProvider = ({ children }) => {
       isFreeShipping,
       amountNeededForFreeShipping,
       toastMessage,
-      showToast
+      showToast,
+      appliedCoupon: appliedCoupon && couponMinOrderMet ? appliedCoupon : null,
+      discountAmount,
+      applyCoupon,
+      removeCoupon,
     }}>
       {children}
     </CartContext.Provider>

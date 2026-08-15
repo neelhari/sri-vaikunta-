@@ -15,27 +15,27 @@ export default function CartPage() {
     subtotal,
     isFreeShipping,
     amountNeededForFreeShipping,
-    clearCart
+    clearCart,
+    appliedCoupon,
+    discountAmount,
+    applyCoupon,
+    removeCoupon,
   } = useCart();
 
-  const [couponCode, setCouponCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState(0);
-  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState('');
 
   const handleApplyCoupon = (e) => {
     e.preventDefault();
-    const code = couponCode.trim().toUpperCase();
-    if (code === 'AV10' || code === 'WELCOME10') {
-      setDiscountPercent(10);
-      setCouponApplied(true);
+    const result = applyCoupon(couponInput);
+    if (result.success) {
       setCouponError('');
+      setCouponInput('');
     } else {
-      setCouponError('Invalid promo code. Use AV10 for 10% OFF!');
+      setCouponError(result.message);
     }
   };
 
-  const discountAmount = (subtotal * discountPercent) / 100;
   const deliveryCharge = isFreeShipping ? 0 : 99;
   const finalTotal = subtotal - discountAmount + deliveryCharge;
 
@@ -49,8 +49,8 @@ export default function CartPage() {
     });
     text += `-----------------------------------\n`;
     text += `*Subtotal:* ₹${subtotal.toLocaleString('en-IN')}\n`;
-    if (couponApplied) {
-      text += `*Discount (AV10):* -₹${discountAmount.toLocaleString('en-IN')}\n`;
+    if (appliedCoupon) {
+      text += `*Discount (${appliedCoupon.code}):* -₹${discountAmount.toLocaleString('en-IN')}\n`;
     }
     text += `*Delivery:* ${isFreeShipping ? 'FREE' : '₹99'}\n`;
     text += `*Total Amount:* ₹${finalTotal.toLocaleString('en-IN')}\n\n`;
@@ -235,25 +235,29 @@ export default function CartPage() {
                 <label className="block text-xs font-bold text-gray-800 uppercase flex items-center gap-1">
                   <Tag className="w-3.5 h-3.5 text-[#D3923A]" /> Promo Code
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter code (e.g. AV10)"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    className="flex-1 text-xs p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#6B1518] uppercase"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-[#6B1518] hover:bg-[#4B0F11] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {couponApplied && (
-                  <div className="text-[11px] text-emerald-700 bg-emerald-50 p-2.5 rounded-xl flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 shrink-0" />
-                    <span>Promo code <strong>AV10</strong> applied! 10% discount subtracted.</span>
+                {appliedCoupon ? (
+                  <div className="text-[11px] text-emerald-700 bg-emerald-50 p-2.5 rounded-xl flex items-center justify-between gap-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      Promo code <strong>{appliedCoupon.code}</strong> applied!
+                    </span>
+                    <button type="button" onClick={removeCoupon} className="font-bold underline">Remove</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      className="flex-1 text-xs p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-[#6B1518] uppercase"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-[#6B1518] hover:bg-[#4B0F11] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
+                    >
+                      Apply
+                    </button>
                   </div>
                 )}
                 {couponError && (
@@ -270,9 +274,9 @@ export default function CartPage() {
                   <span className="font-semibold text-gray-900">₹{subtotal.toLocaleString('en-IN')}</span>
                 </div>
 
-                {couponApplied && (
+                {appliedCoupon && (
                   <div className="flex justify-between text-emerald-600 font-semibold">
-                    <span>Promo Discount (10%):</span>
+                    <span>Promo Discount ({appliedCoupon.code}):</span>
                     <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
                   </div>
                 )}

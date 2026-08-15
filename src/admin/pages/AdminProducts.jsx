@@ -18,12 +18,13 @@ import { useStoreData } from '../../context/StoreDataContext';
 import ClothingProductModal from '../components/ClothingProductModal';
 
 export default function AdminProducts() {
-  const { products, addProduct, updateProduct, deleteProduct } = useStoreData();
+  const { products, categories, addProduct, updateProduct, deleteProduct } = useStoreData();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   // Filter products
   const filteredProducts = products.filter((p) => {
@@ -44,28 +45,39 @@ export default function AdminProducts() {
     setIsModalOpen(true);
   };
 
-  const handleSaveProduct = (formData) => {
-    if (editingProduct) {
-      updateProduct(editingProduct.id, formData);
-    } else {
-      addProduct(formData);
+  const handleSaveProduct = async (formData) => {
+    setSaving(true);
+    const result = editingProduct
+      ? await updateProduct(editingProduct.id, formData)
+      : await addProduct(formData);
+    setSaving(false);
+
+    if (!result.success) {
+      window.alert(`Could not save product: ${result.message || 'Unknown error'}`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this clothing product?')) return;
+    const result = await deleteProduct(id);
+    if (!result.success) {
+      window.alert(`Could not delete product: ${result.message || 'Unknown error'}`);
     }
   };
 
-  const handleDeleteProduct = (id) => {
-    if (window.confirm('Are you sure you want to delete this clothing product?')) {
-      deleteProduct(id);
-    }
-  };
-
-  const handleDuplicateProduct = (p) => {
+  const handleDuplicateProduct = async (p) => {
+    const { id, createdDate, ...rest } = p;
     const duplicate = {
-      ...p,
-      id: `p-${Date.now()}`,
+      ...rest,
       name: `${p.name} (Copy)`,
       sku: `${p.sku || 'SKU'}-COPY`,
     };
-    addProduct(duplicate);
+    const result = await addProduct(duplicate);
+    if (!result.success) {
+      window.alert(`Could not duplicate product: ${result.message || 'Unknown error'}`);
+    }
   };
 
   const toggleSelectAll = () => {
@@ -120,10 +132,9 @@ export default function AdminProducts() {
             className="text-xs p-2.5 rounded-xl border border-gray-200 bg-white font-semibold focus:outline-none"
           >
             <option value="all">All Categories</option>
-            <option value="sarees">Sarees</option>
-            <option value="dresses">Dresses</option>
-            <option value="fabrics">Fabrics</option>
-            <option value="blouses">Blouse Pieces</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -234,6 +245,8 @@ export default function AdminProducts() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveProduct}
         initialProduct={editingProduct}
+        categories={categories}
+        saving={saving}
       />
     </div>
   );

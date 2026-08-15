@@ -10,7 +10,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addOrder } = useStoreData();
-  const { cartItems, subtotal, isFreeShipping, clearCart } = useCart();
+  const { cartItems, subtotal, isFreeShipping, clearCart, appliedCoupon, discountAmount } = useCart();
 
   const defaultAddr = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
 
@@ -48,7 +48,7 @@ export default function CheckoutPage() {
   }
 
   const deliveryCharge = isFreeShipping ? 0 : 99;
-  const totalAmount = subtotal + deliveryCharge;
+  const totalAmount = subtotal - discountAmount + deliveryCharge;
 
   const validate = () => {
     const errs = {};
@@ -120,6 +120,7 @@ export default function CheckoutPage() {
       paymentMethod: formData.paymentMethod.toUpperCase(),
       paymentStatus: 'Pending',
       status: 'Pending',
+      couponCode: appliedCoupon?.code || null,
     });
 
     setPlacingOrder(false);
@@ -396,6 +397,12 @@ export default function CheckoutPage() {
                 <span>Items Subtotal:</span>
                 <span className="font-semibold text-gray-900">₹{subtotal.toLocaleString('en-IN')}</span>
               </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-emerald-600 font-semibold">
+                  <span>Discount ({appliedCoupon.code}):</span>
+                  <span>-₹{discountAmount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Shipping Charge:</span>
                 <span>{isFreeShipping ? <strong className="text-emerald-600">FREE</strong> : '₹99'}</span>

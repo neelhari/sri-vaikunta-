@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, Plus, Trash2, Check, Video, Play, AlertCircle, Film } from 'lucide-react';
 import { uploadToCloudinary } from '../../lib/cloudinary';
 
-export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct }) {
+export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct, categories = [], saving = false }) {
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
     category: 'sarees',
+    subcategory: '',
     price: '',
     oldPrice: '',
     costPrice: '',
@@ -21,6 +22,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     videoUrl: '',
     images: [],
   });
+  const [uploadError, setUploadError] = useState('');
 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
@@ -32,6 +34,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         name: initialProduct.name || '',
         sku: initialProduct.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
         category: initialProduct.category || 'sarees',
+        subcategory: initialProduct.subcategory || '',
         price: initialProduct.price || '',
         oldPrice: initialProduct.oldPrice || '',
         costPrice: initialProduct.costPrice || '',
@@ -50,7 +53,8 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
       setFormData({
         name: '',
         sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-        category: 'sarees',
+        category: categories[0]?.id || 'sarees',
+        subcategory: '',
         price: '',
         oldPrice: '',
         costPrice: '',
@@ -74,38 +78,46 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     setUploadingImage(true);
+    setUploadError('');
 
     const uploadedUrls = [];
+    const failures = [];
     for (const file of files) {
       const res = await uploadToCloudinary(file);
-      if (res && res.secure_url) {
-        uploadedUrls.push(res.secure_url);
+      if (res.success) {
+        uploadedUrls.push(res.url);
       } else {
-        // Fallback local data url for instant offline testing
-        uploadedUrls.push(URL.createObjectURL(file));
+        failures.push(`${file.name}: ${res.message}`);
       }
     }
 
     if (uploadedUrls.length > 0) {
       setFormData((prev) => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
     }
+    if (failures.length > 0) {
+      // Never fall back to a blob: URL here — it only exists in this browser
+      // tab and would render as a broken image for every other visitor and
+      // after the next refresh, which is worse than surfacing the failure.
+      setUploadError(`Some photos failed to upload:\n${failures.join('\n')}`);
+    }
     setUploadingImage(false);
+    e.target.value = '';
   };
 
   const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploadingVideo(true);
+    setUploadError('');
 
     const res = await uploadToCloudinary(file);
-    if (res && res.secure_url) {
-      setFormData((prev) => ({ ...prev, video: res.secure_url }));
+    if (res.success) {
+      setFormData((prev) => ({ ...prev, video: res.url }));
     } else {
-      // Local preview URL fallback
-      const localUrl = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, video: localUrl }));
+      setUploadError(`Video upload failed: ${res.message}`);
     }
     setUploadingVideo(false);
+    e.target.value = '';
   };
 
   const handleRemoveImage = (idx) => {
@@ -127,7 +139,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.price) return;
 
@@ -146,8 +158,8 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
       videoUrl: formData.videoUrl || null,
     };
 
-    onSave(payload);
-    onClose();
+    const ok = await onSave(payload);
+    if (ok !== false) onClose();
   };
 
   return (
@@ -233,11 +245,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
                   >
-                    <option value="sarees">Sarees</option>
-                    <option value="dresses">Dresses</option>
-                    <option value="fabrics">Fabrics</option>
-                    <option value="blouses">Blouse Pieces</option>
-                    <option value="new-arrivals">New Arrivals</option>
+                    {categories.length === 0 && <option value={formData.category}>{formData.category}</option>}
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -252,6 +263,24 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                     className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">Subcategory</label>
+                <input
+                  type="text"
+                  list="subcategory-suggestions"
+                  placeholder="e.g. Banarasi Tissue, Mulchanderi Sets"
+                  value={formData.subcategory}
+                  onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                />
+                <datalist id="subcategory-suggestions">
+                  {(categories.find((c) => c.id === formData.category)?.subcategories || []).map((sub) => (
+                    <option key={sub} value={sub} />
+                  ))}
+                </datalist>
+                <p className="text-[10px] text-gray-400 mt-1">Used for search and category subfiltering on the storefront.</p>
               </div>
 
               {/* Pricing Grid */}
@@ -382,6 +411,12 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
 
           {activeTab === 'media' && (
             <div className="space-y-6">
+              {uploadError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-semibold p-3 rounded-xl whitespace-pre-line flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{uploadError}</span>
+                </div>
+              )}
               {/* 1. Photo Upload */}
               <div>
                 <label className="block font-bold text-gray-900 mb-1">Product Images (Upload 3 or more photos)</label>
@@ -518,10 +553,11 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
             </button>
             <button
               type="submit"
-              className="bg-[#6B1518] hover:bg-[#4B0F11] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shadow-md"
+              disabled={saving || uploadingImage || uploadingVideo}
+              className="bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shadow-md"
             >
               <Check className="w-4 h-4" />
-              <span>Save & Publish Product</span>
+              <span>{saving ? 'Saving...' : 'Save & Publish Product'}</span>
             </button>
           </div>
         </form>

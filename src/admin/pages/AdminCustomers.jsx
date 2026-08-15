@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Users, ShoppingBag, Phone, Mail } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
 
 export default function AdminCustomers() {
-  const { orders } = useStoreData();
+  const { orders, refreshOrders } = useStoreData();
+
+  useEffect(() => {
+    refreshOrders();
+  }, [refreshOrders]);
 
   // Extract unique customers from orders
   const customersMap = {};
