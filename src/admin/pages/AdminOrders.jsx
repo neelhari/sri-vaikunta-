@@ -169,8 +169,19 @@ export default function AdminOrders() {
               <span className="text-[#6B1518] text-base">₹{selectedOrder.totalAmount.toLocaleString('en-IN')}</span>
             </div>
 
-            <div className="pt-2 flex justify-end">
-              <button onClick={() => setSelectedOrder(null)} className="bg-[#6B1518] text-white font-bold px-5 py-2.5 rounded-xl">
+            <div className="pt-2 flex items-center justify-between gap-3">
+              <a
+                href={`https://wa.me/91${selectedOrder.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                  `Hello ${selectedOrder.customerName}, this is regarding your order ${selectedOrder.id} at Aalaya Vastra. Your order status is currently: ${selectedOrder.status}.`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 shadow-xs"
+              >
+                <span>💬 WhatsApp Customer</span>
+              </a>
+
+              <button onClick={() => setSelectedOrder(null)} className="bg-[#6B1518] text-white font-bold px-5 py-2.5 rounded-xl cursor-pointer">
                 Close View
               </button>
             </div>

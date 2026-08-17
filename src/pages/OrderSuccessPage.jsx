@@ -64,6 +64,40 @@ export default function OrderSuccessPage() {
           </div>
         </div>
 
+        {/* Visual Order Progress Bar */}
+        <div className="max-w-xl mx-auto pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-4 text-center relative">
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-[#6B1518] text-white flex items-center justify-center text-xs font-bold z-10 shadow-xs">
+                ✓
+              </div>
+              <span className="text-[10px] font-bold text-gray-900 mt-1.5">Placed</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-[#6B1518] text-[#D3923A] flex items-center justify-center text-xs font-bold z-10 shadow-xs">
+                2
+              </div>
+              <span className="text-[10px] font-bold text-[#6B1518] mt-1.5">Confirmed</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold z-10">
+                3
+              </div>
+              <span className="text-[10px] font-medium text-gray-400 mt-1.5">Shipped</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold z-10">
+                4
+              </div>
+              <span className="text-[10px] font-medium text-gray-400 mt-1.5">Delivered</span>
+            </div>
+            {/* Connecting line */}
+            <div className="absolute top-4 left-6 right-6 h-0.5 bg-gray-200 -z-0">
+              <div className="h-full bg-[#6B1518] w-1/3" />
+            </div>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           <a
