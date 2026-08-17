@@ -18,10 +18,10 @@ export function AuthProvider({ children }) {
       const saved = localStorage.getItem('aalaya_registered_users');
       return saved ? JSON.parse(saved) : [
         {
-          id: 'usr_demo_1',
+          id: 'usr_harini',
           name: 'Harini Jupudy',
-          phone: '9390299611',
           email: 'harini@aalayavastra.com',
+          phone: '9390299611',
           password: 'password123',
           addresses: [
             {
@@ -36,11 +36,21 @@ export function AuthProvider({ children }) {
               isDefault: true,
             }
           ],
-          createdAt: '2026-01-15T10:00:00.000Z'
+          createdAt: '2026-01-15T10:00:00.000Z',
         }
       ];
     } catch {
       return [];
+    }
+  });
+
+  // In-memory / stored reset tokens map: { [email]: { code: string, expires: number } }
+  const [resetTokens, setResetTokens] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aalaya_reset_tokens');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
     }
   });
 
@@ -56,34 +66,40 @@ export function AuthProvider({ children }) {
     localStorage.setItem('aalaya_registered_users', JSON.stringify(registeredUsers));
   }, [registeredUsers]);
 
-  // 1. Sign Up / Create Account
-  const signup = async ({ name, phone, email, password }) => {
-    const cleanPhone = phone.replace(/\D/g, '');
-    
-    // Check if phone or email already registered
-    const existing = registeredUsers.find(
-      (u) => u.phone === cleanPhone || (email && u.email?.toLowerCase() === email.toLowerCase())
-    );
+  useEffect(() => {
+    localStorage.setItem('aalaya_reset_tokens', JSON.stringify(resetTokens));
+  }, [resetTokens]);
 
+  // 1. Sign Up / Create Account with Email (Mandatory) + Name + Password + Optional Phone
+  const signup = async ({ name, email, password, phone = '' }) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone ? phone.replace(/\D/g, '') : '';
+
+    if (!cleanEmail || !name || !password) {
+      return { success: false, error: 'Name, Email, and Password are required.' };
+    }
+
+    // Check if email already registered
+    const existing = registeredUsers.find((u) => u.email.toLowerCase() === cleanEmail);
     if (existing) {
       return {
         success: false,
-        error: 'An account with this mobile number or email already exists. Please Log In.',
+        error: 'An account with this email address already exists. Please Log In.',
       };
     }
 
     const newUser = {
       id: `usr_${Date.now()}`,
       name: name.trim(),
-      phone: cleanPhone,
-      email: email ? email.trim().toLowerCase() : `${cleanPhone}@aalayavastra.com`,
-      password: password || '123456',
+      email: cleanEmail,
+      phone: cleanPhone || '9390299611',
+      password: password,
       addresses: [
         {
           id: `addr_${Date.now()}`,
           type: 'Home',
           name: name.trim(),
-          phone: cleanPhone,
+          phone: cleanPhone || '9390299611',
           addressLine: 'Main Bazaar',
           city: 'Rajahmundry',
           state: 'Andhra Pradesh',
@@ -94,83 +110,130 @@ export function AuthProvider({ children }) {
       createdAt: new Date().toISOString(),
     };
 
-    // Save to registered users list & set current session
     setRegisteredUsers((prev) => [...prev, newUser]);
     setUser(newUser);
 
-    // Also sync to Supabase if available
+    // Sync to Supabase auth / profiles if available
     try {
       if (supabase) {
         await supabase.from('profiles').upsert([
           {
             id: newUser.id,
             full_name: newUser.name,
-            phone: newUser.phone,
             email: newUser.email,
+            phone: newUser.phone,
             updated_at: new Date().toISOString(),
           }
         ]);
       }
     } catch (e) {
-      console.warn('Supabase profile sync error (offline fallback active):', e);
+      console.warn('Supabase sync notice:', e);
     }
 
     return { success: true, user: newUser };
   };
 
-  // 2. Login with Password or Phone Number
-  const login = async ({ identifier, password, otp }) => {
-    const cleanId = identifier.trim().toLowerCase();
-    const cleanPhone = identifier.replace(/\D/g, '');
+  // 2. Login with Email (Mandatory) & Password
+  const login = async ({ email, password }) => {
+    const cleanEmail = email.trim().toLowerCase();
 
-    // If OTP is provided, accept OTP login (demo OTP: 1234)
-    if (otp) {
-      if (otp === '1234' || otp.length === 4) {
-        const found = registeredUsers.find((u) => u.phone === cleanPhone || u.email === cleanId);
-        const loggedUser = found || {
-          id: `usr_${Date.now()}`,
-          name: 'Aalaya Patron',
-          phone: cleanPhone || '9390299611',
-          email: `${cleanPhone || 'patron'}@aalayavastra.com`,
-          addresses: [],
-          createdAt: new Date().toISOString(),
-        };
-
-        if (!found) {
-          setRegisteredUsers((prev) => [...prev, loggedUser]);
-        }
-        setUser(loggedUser);
-        return { success: true, user: loggedUser };
-      }
-      return { success: false, error: 'Invalid 4-digit OTP. Please enter 1234.' };
+    if (!cleanEmail || !password) {
+      return { success: false, error: 'Please enter both Email and Password.' };
     }
 
-    // Password login
-    const found = registeredUsers.find(
-      (u) => (u.phone === cleanPhone || u.email?.toLowerCase() === cleanId)
-    );
+    const found = registeredUsers.find((u) => u.email.toLowerCase() === cleanEmail);
 
     if (!found) {
       return {
         success: false,
-        error: 'No account found with this mobile number/email. Please Create an Account first.',
+        error: 'No account found with this email address. Please create an account.',
       };
     }
 
-    if (password && found.password && found.password !== password) {
-      return { success: false, error: 'Incorrect password. Please check and try again.' };
+    if (found.password !== password) {
+      return { success: false, error: 'Incorrect password. Please try again or reset your password.' };
     }
 
     setUser(found);
     return { success: true, user: found };
   };
 
-  // 3. Send OTP
-  const sendOtp = async (phone) => {
-    return { success: true, otp: '1234' };
+  // 3. Send Password Reset Code to Email
+  const sendPasswordResetEmail = async (email) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const found = registeredUsers.find((u) => u.email.toLowerCase() === cleanEmail);
+
+    if (!found) {
+      return {
+        success: false,
+        error: 'We could not find an account associated with this email address.',
+      };
+    }
+
+    // Generate a 6-digit verification code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const tokenData = {
+      code,
+      expires: Date.now() + 15 * 60 * 1000, // 15 mins expiry
+    };
+
+    setResetTokens((prev) => ({
+      ...prev,
+      [cleanEmail]: tokenData,
+    }));
+
+    // Trigger Supabase password reset if configured
+    try {
+      if (supabase) {
+        await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+      }
+    } catch (e) {
+      console.warn('Supabase email dispatch:', e);
+    }
+
+    return { success: true, code, email: cleanEmail };
   };
 
-  // 4. Update Profile
+  // 4. Verify Code & Reset Password
+  const resetPassword = async ({ email, code, newPassword }) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const tokenInfo = resetTokens[cleanEmail];
+
+    if (!tokenInfo) {
+      return { success: false, error: 'No active password reset request found for this email.' };
+    }
+
+    if (Date.now() > tokenInfo.expires) {
+      return { success: false, error: 'Password reset code has expired. Please request a new code.' };
+    }
+
+    if (tokenInfo.code !== code.trim()) {
+      return { success: false, error: 'Invalid verification code. Please check your email and enter the 6-digit code.' };
+    }
+
+    // Update password in registered users list
+    setRegisteredUsers((all) =>
+      all.map((u) => (u.email.toLowerCase() === cleanEmail ? { ...u, password: newPassword } : u))
+    );
+
+    // If user is currently logged in, update current session
+    if (user && user.email.toLowerCase() === cleanEmail) {
+      setUser((prev) => ({ ...prev, password: newPassword }));
+    }
+
+    // Remove used token
+    setResetTokens((prev) => {
+      const copy = { ...prev };
+      delete copy[cleanEmail];
+      return copy;
+    });
+
+    return { success: true };
+  };
+
+  // 5. Update Profile
   const updateProfile = (updates) => {
     setUser((prev) => {
       if (!prev) return null;
@@ -180,7 +243,7 @@ export function AuthProvider({ children }) {
     });
   };
 
-  // 5. Add Address
+  // 6. Add Address
   const addAddress = (address) => {
     setUser((prev) => {
       if (!prev) return null;
@@ -191,7 +254,7 @@ export function AuthProvider({ children }) {
     });
   };
 
-  // 6. Logout
+  // 7. Logout
   const logout = () => {
     setUser(null);
     localStorage.removeItem('aalaya_user');
@@ -204,7 +267,8 @@ export function AuthProvider({ children }) {
         isAuthenticated: !!user,
         signup,
         login,
-        sendOtp,
+        sendPasswordResetEmail,
+        resetPassword,
         updateProfile,
         addAddress,
         logout,
