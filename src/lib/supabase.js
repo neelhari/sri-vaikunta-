@@ -20,7 +20,7 @@ function requireClient() {
 }
 
 // ============================================================================
-// Auth
+// Customer & Admin Auth
 // ============================================================================
 export async function signInAdmin(email, password) {
   try {
@@ -42,6 +42,92 @@ export async function isUserAdmin(userId) {
   const { data, error } = await supabase.from('admin_users').select('id').eq('id', userId).maybeSingle();
   if (error) return false;
   return !!data;
+}
+
+export async function signUpCustomer({ email, password, name, phone }) {
+  if (!supabase) return { success: false, message: 'Supabase client not initialized' };
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          phone: phone || '',
+        },
+      },
+    });
+    if (error) return { success: false, message: error.message };
+
+    // Also upsert profile row
+    if (data?.user) {
+      await supabase.from('profiles').upsert([
+        {
+          id: data.user.id,
+          full_name: name,
+          email: email,
+          phone: phone || null,
+          updated_at: new Date().toISOString(),
+        }
+      ]).select();
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function signInCustomer({ email, password }) {
+  if (!supabase) return { success: false, message: 'Supabase client not initialized' };
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { success: false, message: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function sendPasswordResetEmailToSupabase(email) {
+  if (!supabase) return { success: false, message: 'Supabase client not initialized' };
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return { success: false, message: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function verifyRecoveryOtpInSupabase(email, token) {
+  if (!supabase) return { success: false, message: 'Supabase client not initialized' };
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery',
+    });
+    if (error) return { success: false, message: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function updateCustomerPasswordInSupabase(newPassword) {
+  if (!supabase) return { success: false, message: 'Supabase client not initialized' };
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) return { success: false, message: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
 }
 
 // ============================================================================
