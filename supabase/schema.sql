@@ -22,8 +22,6 @@ drop policy if exists "admin_users self read" on admin_users;
 create policy "admin_users self read" on admin_users
   for select using (auth.uid() = id);
 
--- security definer so RLS on admin_users itself doesn't cause recursion
--- when other tables' policies call this function.
 create or replace function is_admin()
 returns boolean
 language sql
@@ -33,6 +31,60 @@ set search_path = public
 as $$
   select exists (select 1 from admin_users where id = auth.uid());
 $$;
+
+-- ----------------------------------------------------------------------------
+-- 1B. CUSTOMER PROFILES
+-- Synchronized automatically with auth.users on signup/login.
+-- Stores customer name, phone, email, and saved addresses.
+-- ----------------------------------------------------------------------------
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  email text,
+  phone text,
+  addresses jsonb not null default '[]',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table profiles enable row level security;
+
+drop policy if exists "profiles public self read" on profiles;
+create policy "profiles public self read" on profiles
+  for select using (auth.uid() = id or is_admin());
+
+drop policy if exists "profiles public self write" on profiles;
+create policy "profiles public self write" on profiles
+  for all using (auth.uid() = id or is_admin()) with check (auth.uid() = id or is_admin());
+
+-- Auto-insert profile row whenever a new user signs up in auth.users
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name, email, phone)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    new.email,
+    coalesce(new.raw_user_meta_data->>'phone', '')
+  )
+  on conflict (id) do update
+  set full_name = coalesce(excluded.full_name, profiles.full_name),
+      email = coalesce(excluded.email, profiles.email),
+      phone = coalesce(excluded.phone, profiles.phone),
+      updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 -- ----------------------------------------------------------------------------
 -- 2. PRODUCTS
