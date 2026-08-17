@@ -4,7 +4,6 @@ import {
   signUpCustomer,
   signInCustomer,
   sendPasswordResetEmailToSupabase,
-  verifyRecoveryOtpInSupabase,
   updateCustomerPasswordInSupabase,
 } from '../lib/supabase';
 
@@ -51,15 +50,6 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const [resetTokens, setResetTokens] = useState(() => {
-    try {
-      const saved = localStorage.getItem('aalaya_reset_tokens');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
   useEffect(() => {
     if (user) {
       localStorage.setItem('aalaya_user', JSON.stringify(user));
@@ -72,18 +62,13 @@ export function AuthProvider({ children }) {
     localStorage.setItem('aalaya_registered_users', JSON.stringify(registeredUsers));
   }, [registeredUsers]);
 
-  useEffect(() => {
-    localStorage.setItem('aalaya_reset_tokens', JSON.stringify(resetTokens));
-  }, [resetTokens]);
-
-  // Listen to Supabase Auth State Changes (e.g. PASSWORD_RECOVERY event)
+  // Listen to Supabase Auth State Changes
   useEffect(() => {
     if (!supabase) return;
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         console.log('Password recovery mode active via Supabase auth link.');
       } else if (event === 'SIGNED_IN' && session?.user) {
-        // Fetch or hydrate user profile
         try {
           const { data: profile } = await supabase
             .from('profiles')
@@ -93,7 +78,7 @@ export function AuthProvider({ children }) {
 
           const hydrated = {
             id: session.user.id,
-            name: profile?.full_name || session.user.user_metadata?.full_name || 'Valued Patron',
+            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
             email: session.user.email,
             phone: profile?.phone || session.user.user_metadata?.phone || '',
             addresses: [],
@@ -110,7 +95,7 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  // 1. Sign Up / Create Account with Email (Mandatory) + Name + Password + Optional Phone
+  // 1. Sign Up / Create Account
   const signup = async ({ name, email, password, phone = '' }) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone ? phone.replace(/\D/g, '') : '';
@@ -119,17 +104,30 @@ export function AuthProvider({ children }) {
       return { success: false, error: 'Name, Email, and Password are required.' };
     }
 
-    // Check local existing list
-    const existing = registeredUsers.find((u) => u.email.toLowerCase() === cleanEmail);
-    if (existing) {
-      return {
-        success: false,
-        error: 'An account with this email address already exists. Please Log In.',
-      };
+    // Call real Supabase Auth Sign Up first
+    let supabaseUserId = null;
+    try {
+      const supaRes = await signUpCustomer({
+        email: cleanEmail,
+        password,
+        name: name.trim(),
+        phone: cleanPhone,
+      });
+
+      if (!supaRes.success) {
+        // If error contains user already registered
+        if (supaRes.message && (supaRes.message.includes('already') || supaRes.message.includes('registered'))) {
+          return { success: false, error: 'An account with this email address already exists. Please Log In.' };
+        }
+      } else if (supaRes.data?.user?.id) {
+        supabaseUserId = supaRes.data.user.id;
+      }
+    } catch (e) {
+      console.warn('Supabase signup notice:', e);
     }
 
     const newUser = {
-      id: `usr_${Date.now()}`,
+      id: supabaseUserId || `usr_${Date.now()}`,
       name: name.trim(),
       email: cleanEmail,
       phone: cleanPhone,
@@ -150,29 +148,13 @@ export function AuthProvider({ children }) {
       createdAt: new Date().toISOString(),
     };
 
-    setRegisteredUsers((prev) => [...prev, newUser]);
+    setRegisteredUsers((prev) => [...prev.filter((u) => u.email !== cleanEmail), newUser]);
     setUser(newUser);
-
-    // Call real Supabase Auth Sign Up
-    try {
-      const supaRes = await signUpCustomer({
-        email: cleanEmail,
-        password,
-        name: name.trim(),
-        phone: cleanPhone,
-      });
-      if (supaRes.success && supaRes.data?.user?.id) {
-        newUser.id = supaRes.data.user.id;
-        setUser(newUser);
-      }
-    } catch (e) {
-      console.warn('Supabase signup fallback notice:', e);
-    }
 
     return { success: true, user: newUser };
   };
 
-  // 2. Login with Email (Mandatory) & Password
+  // 2. Login with Email & Password
   const login = async ({ email, password }) => {
     const cleanEmail = email.trim().toLowerCase();
 
@@ -194,9 +176,14 @@ export function AuthProvider({ children }) {
         };
         setUser(loggedUser);
         return { success: true, user: loggedUser };
+      } else if (supaRes.message && !supaRes.message.includes('fetch')) {
+        // Return clear Supabase message
+        if (supaRes.message.includes('Invalid login credentials')) {
+          return { success: false, error: 'Invalid email or password. Please check and try again.' };
+        }
       }
     } catch (e) {
-      console.warn('Supabase login check:', e);
+      console.warn('Supabase login error check:', e);
     }
 
     // Fallback: Check local registered users
@@ -216,81 +203,51 @@ export function AuthProvider({ children }) {
     return { success: true, user: found };
   };
 
-  // 3. Send Password Reset Email & Verification Code
+  // 3. Send Password Reset Email
   const sendPasswordResetEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // Check if account exists locally or in Supabase
-    const found = registeredUsers.find((u) => u.email.toLowerCase() === cleanEmail);
-
-    // Generate a 6-digit verification code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const tokenData = {
-      code,
-      expires: Date.now() + 15 * 60 * 1000, // 15 mins expiry
-    };
-
-    setResetTokens((prev) => ({
-      ...prev,
-      [cleanEmail]: tokenData,
-    }));
-
-    // Trigger Supabase real password reset email dispatch
-    try {
-      await sendPasswordResetEmailToSupabase(cleanEmail);
-    } catch (e) {
-      console.warn('Supabase reset email notice:', e);
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { success: false, error: 'Please provide a valid email address.' };
     }
 
-    return {
-      success: true,
-      code,
-      email: cleanEmail,
-      message: `Password reset email & verification code sent to ${cleanEmail}`,
-    };
+    try {
+      const supaRes = await sendPasswordResetEmailToSupabase(cleanEmail);
+      if (!supaRes.success) {
+        return {
+          success: false,
+          error: supaRes.message || 'Failed to send reset link via Supabase.',
+        };
+      }
+
+      return {
+        success: true,
+        email: cleanEmail,
+        message: `Password reset link sent to ${cleanEmail}`,
+      };
+    } catch (e) {
+      return {
+        success: false,
+        error: e.message || 'Error communicating with Supabase auth service.',
+      };
+    }
   };
 
-  // 4. Verify Code & Reset Password
-  const resetPassword = async ({ email, code, newPassword }) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const tokenInfo = resetTokens[cleanEmail];
+  // 4. Update Password
+  const updatePassword = async (newPassword) => {
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
 
-    // Try Supabase verification & password update
     try {
-      if (code) {
-        await verifyRecoveryOtpInSupabase(cleanEmail, code);
+      const supaRes = await updateCustomerPasswordInSupabase(newPassword);
+      if (!supaRes.success) {
+        return { success: false, error: supaRes.message || 'Failed to update password.' };
       }
-      await updateCustomerPasswordInSupabase(newPassword);
+      return { success: true };
     } catch (e) {
-      console.warn('Supabase password update notice:', e);
+      return { success: false, error: e.message };
     }
-
-    // Also update local registered users state
-    if (tokenInfo) {
-      if (Date.now() > tokenInfo.expires) {
-        return { success: false, error: 'Verification code has expired. Please request a new code.' };
-      }
-      if (tokenInfo.code !== code.trim()) {
-        return { success: false, error: 'Invalid 6-digit verification code. Please check and try again.' };
-      }
-    }
-
-    setRegisteredUsers((all) =>
-      all.map((u) => (u.email.toLowerCase() === cleanEmail ? { ...u, password: newPassword } : u))
-    );
-
-    if (user && user.email.toLowerCase() === cleanEmail) {
-      setUser((prev) => ({ ...prev, password: newPassword }));
-    }
-
-    // Clean up reset token
-    setResetTokens((prev) => {
-      const copy = { ...prev };
-      delete copy[cleanEmail];
-      return copy;
-    });
-
-    return { success: true };
   };
 
   // 5. Update Profile
@@ -335,7 +292,7 @@ export function AuthProvider({ children }) {
         signup,
         login,
         sendPasswordResetEmail,
-        resetPassword,
+        updatePassword,
         updateProfile,
         addAddress,
         logout,
