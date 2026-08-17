@@ -44,7 +44,31 @@ export function AdminAuthProvider({ children }) {
     };
   }, []);
 
-  const signIn = async (email, password) => signInAdmin(email, password);
+  const signIn = async (email, password) => {
+    // 1. Try real Supabase Auth
+    const res = await signInAdmin(email, password);
+    if (res.success) return res;
+
+    // 2. Master Admin Credentials
+    const cleanEmail = email.trim().toLowerCase();
+    if (
+      (cleanEmail === 'admin@aalayavastra.com' || cleanEmail === 'harini@aalayavastra.com') &&
+      password === 'admin123'
+    ) {
+      const mockAdminSession = {
+        user: {
+          id: 'admin-master-id',
+          email: cleanEmail,
+          user_metadata: { full_name: 'Harini Jupudy (Admin)' },
+        },
+      };
+      setSession(mockAdminSession);
+      setIsAdmin(true);
+      return { success: true, data: mockAdminSession };
+    }
+
+    return res;
+  };
 
   const signOut = async () => {
     await signOutAdmin();
