@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Plus, Trash2, Check, Video, Play, AlertCircle, Film } from 'lucide-react';
 import { uploadToCloudinary } from '../../lib/cloudinary';
+import { BRAND } from '../../config/brand';
 
 export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct, categories = [], saving = false }) {
   const [formData, setFormData] = useState({
@@ -72,10 +73,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     }
   }, [initialProduct, isOpen]);
 
-  if (!isOpen) return null;
-
   const [isDragging, setIsDragging] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
+
+  if (!isOpen) return null;
 
   const readImageAsDataUrl = (file) => {
     return new Promise((resolve) => {
