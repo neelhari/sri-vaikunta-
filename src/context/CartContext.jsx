@@ -108,7 +108,8 @@ export const CartProvider = ({ children }) => {
 
   const discountAmount = (() => {
     if (!appliedCoupon || !couponMinOrderMet) return 0;
-    let amount = appliedCoupon.type === 'percentage'
+    const isPct = appliedCoupon.type === 'percentage' || appliedCoupon.discountType === 'percentage';
+    let amount = isPct
       ? (subtotal * appliedCoupon.discountValue) / 100
       : appliedCoupon.discountValue;
     if (appliedCoupon.maxDiscount) amount = Math.min(amount, appliedCoupon.maxDiscount);
