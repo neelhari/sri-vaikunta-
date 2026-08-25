@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle2, Grid, Sparkles, Check, X, Search, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, Grid, Sparkles, Check, X, Search, ExternalLink, Upload } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
+import { uploadToCloudinary } from '../../lib/cloudinary';
 import { BRAND } from '../../config/brand';
 
 export default function AdminCategories() {
@@ -12,7 +13,28 @@ export default function AdminCategories() {
   const [image, setImage] = useState('');
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const res = await uploadToCloudinary(file);
+      if (res.success && res.url) {
+        setImage(res.url);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => setImage(ev.target.result);
+        reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.warn('Category image upload error:', err);
+    }
+    setUploadingImage(false);
+    e.target.value = '';
+  };
 
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeProducts = Array.isArray(products) ? products : [];
@@ -289,15 +311,53 @@ export default function AdminCategories() {
                 />
               </div>
 
+              {/* Category Cover Photo Uploader */}
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Image URL / Path</label>
-                <input
-                  type="text"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="/products/cat_pure_pattu.jpg"
-                  className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-mono text-[11px]"
-                />
+                <label className="block font-bold text-gray-800 mb-1">Category Cover Photo *</label>
+                <div className="border-2 border-dashed border-gray-300 hover:border-[#68081C] rounded-2xl p-4 bg-gray-50 text-center transition-all">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="w-20 h-24 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative">
+                      <img
+                        src={image || '/products/cat_pure_pattu.jpg'}
+                        alt="Category Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-center sm:text-left space-y-1.5">
+                      <p className="font-bold text-gray-800 text-xs">
+                        {uploadingImage ? '⏳ Compressing & Uploading...' : 'Upload Category Photo from Device'}
+                      </p>
+                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="category-photo-file-upload"
+                        />
+                        <label
+                          htmlFor="category-photo-file-upload"
+                          className="inline-flex items-center gap-1.5 bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-all"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingImage ? 'Uploading...' : 'Choose Photo from Device'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Optional Manual URL */}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="Or paste image URL (e.g. /products/cat_pure_pattu.jpg)..."
+                    className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-mono text-[11px]"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
