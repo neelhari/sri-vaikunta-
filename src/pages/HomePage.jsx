@@ -359,13 +359,18 @@ export default function HomePage() {
               <div className="absolute inset-2.5 rounded-xl border border-[#D4AF37]/80 pointer-events-none group-hover:border-[#F6D55C] transition-colors" />
 
               {/* Tile Content (Bottom Center) */}
-              <div className="absolute bottom-4 left-3 right-3 text-center z-10 space-y-0.5">
-                <span className="font-serif text-[11px] sm:text-sm font-bold text-white tracking-wider block drop-shadow-md">
+              <div className="absolute bottom-3 sm:bottom-4 left-2 right-2 text-center z-10 space-y-1 sm:space-y-1.5 flex flex-col items-center">
+                <span className="font-serif text-[10.5px] sm:text-sm font-bold text-white tracking-wider block drop-shadow-md leading-tight">
                   {tile.title}
                 </span>
-                <span className="font-sans text-xs sm:text-sm font-black text-[#F6D55C] tracking-wide block drop-shadow-lg">
+                <span className="font-sans text-[11px] sm:text-sm font-black text-[#F6D55C] tracking-wide block drop-shadow-lg leading-tight">
                   {tile.discount}
                 </span>
+                <div className="pt-0.5">
+                  <span className="bg-white group-hover:bg-[#FAF5EE] text-[#68081C] font-extrabold text-[9px] sm:text-[11px] tracking-widest uppercase px-3.5 py-1 rounded-full shadow-lg border border-[#D4AF37]/40 transition-transform group-hover:scale-105 inline-block">
+                    SHOP NOW
+                  </span>
+                </div>
               </div>
             </div>
           ))}
