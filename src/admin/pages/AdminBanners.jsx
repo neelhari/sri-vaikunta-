@@ -699,7 +699,9 @@ export default function AdminBanners() {
             <form onSubmit={handleSaveHero} className="space-y-3.5">
               {/* Photo Upload Zone */}
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Banner Image (9:16 Vertical Mobile Photo) *</label>
+                <label className="block font-bold text-gray-800 mb-1">
+                  Banner Photo (Vertical 9:16 or Saree Drape Photo) *
+                </label>
                 <div
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
@@ -710,39 +712,49 @@ export default function AdminBanners() {
                     if (f) processBannerFile(f, setImage);
                   }}
                   className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all ${
-                    isDragging ? 'border-[#68081C] bg-[#FDF5F6]' : 'border-gray-300 bg-gray-50'
+                    isDragging ? 'border-[#68081C] bg-[#FDF5F6]' : 'border-gray-300 hover:border-[#68081C] bg-gray-50'
                   }`}
                 >
-                  {image ? (
-                    <div className="relative aspect-[3/4] max-w-[140px] mx-auto rounded-xl overflow-hidden shadow-sm">
-                      <img src={image} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setImage('')}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="w-20 h-28 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative group">
+                      <img src={image || '/slider/hero_slide_1.png'} alt="Hero Preview" className="w-full h-full object-cover" />
                     </div>
-                  ) : (
-                    <>
-                      <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
-                      <p className="font-bold text-gray-800 text-xs">Drag & Drop Saree Photo or Browse</p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => processBannerFile(e.target.files[0], setImage)}
-                        className="hidden"
-                        id="banner-file-input"
-                      />
-                      <label
-                        htmlFor="banner-file-input"
-                        className="mt-2 inline-block bg-[#68081C] text-white font-bold text-[11px] px-4 py-1.5 rounded-xl cursor-pointer hover:bg-[#4A0513]"
-                      >
-                        {uploading ? 'Processing Image...' : 'Select from Device'}
-                      </label>
-                    </>
-                  )}
+                    <div className="text-center sm:text-left space-y-1.5">
+                      <p className="font-bold text-gray-800 text-xs">
+                        {uploading ? '⏳ Compressing & Uploading to Cloudinary...' : 'Upload Saree Photo from Device'}
+                      </p>
+                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files[0]) processBannerFile(e.target.files[0], setImage);
+                          }}
+                          className="hidden"
+                          id="hero-banner-file-input"
+                        />
+                        <label
+                          htmlFor="hero-banner-file-input"
+                          className="inline-flex items-center gap-1.5 bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-all"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploading ? 'Uploading...' : 'Choose Photo from Device'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Optional Manual URL */}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="Or paste image URL (e.g. /slider/hero_slide_1.png)..."
+                    className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-mono text-[11px]"
+                  />
                 </div>
               </div>
 
