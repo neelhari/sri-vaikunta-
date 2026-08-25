@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Plus, Trash2, Check, Video, Play, AlertCircle, Film } from 'lucide-react';
+import { X, Upload, Trash2, Check, Video, AlertCircle, Film, Sparkles, ChevronDown, ChevronUp, Image as ImageIcon, Flame } from 'lucide-react';
 import { uploadToCloudinary } from '../../lib/cloudinary';
 import { BRAND } from '../../config/brand';
 
@@ -7,44 +7,46 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    category: 'sarees',
+    category: 'dharmavaram-pure-pattu',
     subcategory: '',
     price: '',
     oldPrice: '',
-    costPrice: '',
-    stock: 10,
-    fabric: 'Pure Cotton',
-    material: 'Zari Weave',
-    occasion: 'Festive Wear',
-    careInstructions: 'Dry Clean Only',
-    sizes: ['S', 'M', 'L', 'XL'],
+    stock: 1,
+    fabric: 'Pure Handloom Silk & Pattu',
+    material: 'Rich Gold / Antique Zari',
+    blouse: 'Included (Unstitched 80cm Running Blouse)',
+    length: 'Standard 6.3 Meters (with Blouse Piece)',
+    occasion: 'Bridal, Wedding Guest, Festive Pooja',
+    careInstructions: 'Dry Clean Only / Wrap in Muslin Cloth',
     description: '',
     video: '',
     videoUrl: '',
     images: [],
   });
-  const [uploadError, setUploadError] = useState('');
 
+  const [uploadError, setUploadError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
+  const [isDragging, setIsDragging] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
+  const [showAdvancedSpecs, setShowAdvancedSpecs] = useState(false);
 
   useEffect(() => {
     if (initialProduct) {
       setFormData({
         name: initialProduct.name || '',
         sku: initialProduct.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-        category: initialProduct.category || 'sarees',
+        category: initialProduct.category || categories[0]?.id || 'dharmavaram-pure-pattu',
         subcategory: initialProduct.subcategory || '',
         price: initialProduct.price || '',
         oldPrice: initialProduct.oldPrice || '',
-        costPrice: initialProduct.costPrice || '',
-        stock: initialProduct.stock || 10,
-        fabric: initialProduct.fabric || 'Pure Cotton',
-        material: initialProduct.material || 'Handloom',
-        occasion: initialProduct.occasion || 'Festive Wear',
-        careInstructions: initialProduct.careInstructions || 'Dry Clean Only',
-        sizes: initialProduct.sizes || ['S', 'M', 'L', 'XL'],
+        stock: initialProduct.stock !== undefined ? initialProduct.stock : 1,
+        fabric: initialProduct.fabric || 'Pure Handloom Silk & Pattu',
+        material: initialProduct.material || 'Rich Gold / Antique Zari',
+        blouse: initialProduct.blouse || 'Included (Unstitched 80cm Running Blouse)',
+        length: initialProduct.length || 'Standard 6.3 Meters (with Blouse Piece)',
+        occasion: initialProduct.occasion || 'Bridal, Wedding Guest, Festive Pooja',
+        careInstructions: initialProduct.careInstructions || 'Dry Clean Only / Wrap in Muslin Cloth',
         description: initialProduct.description || '',
         video: initialProduct.video || '',
         videoUrl: initialProduct.videoUrl || '',
@@ -54,27 +56,26 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
       setFormData({
         name: '',
         sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
-        category: categories[0]?.id || 'sarees',
+        category: categories[0]?.id || 'dharmavaram-pure-pattu',
         subcategory: '',
         price: '',
         oldPrice: '',
-        costPrice: '',
-        stock: 10,
-        fabric: 'Mulchanderi / Pure Cotton',
-        material: 'Handloom Zari Work',
-        occasion: 'Festive & Wedding Wear',
-        careInstructions: 'Dry Clean Only',
-        sizes: ['S', 'M', 'L', 'XL'],
+        stock: 1,
+        fabric: 'Pure Handloom Silk & Pattu',
+        material: 'Rich Gold / Antique Zari',
+        blouse: 'Included (Unstitched 80cm Running Blouse)',
+        length: 'Standard 6.3 Meters (with Blouse Piece)',
+        occasion: 'Bridal, Wedding Guest, Festive Pooja',
+        careInstructions: 'Dry Clean Only / Wrap in Muslin Cloth',
         description: '',
         video: '',
         videoUrl: '',
-        images: ['/products/saree-placeholder.png'],
+        images: [],
       });
     }
-  }, [initialProduct, isOpen]);
-
-  const [isDragging, setIsDragging] = useState(false);
-  const [manualUrl, setManualUrl] = useState('');
+    setUploadError('');
+    setShowAdvancedSpecs(false);
+  }, [initialProduct, isOpen, categories]);
 
   if (!isOpen) return null;
 
@@ -94,18 +95,19 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
 
     const newImages = [];
     for (const file of files) {
-      // 1. Try Cloudinary first if configured
       let url = null;
       try {
         const res = await uploadToCloudinary(file);
         if (res.success && res.url) {
           url = res.url;
+        } else if (res.message) {
+          console.warn('Cloudinary upload warning:', res.message);
         }
       } catch (err) {
-        // Fallback to local DataURL
+        console.warn('Upload error:', err);
       }
 
-      // 2. Fallback to high-quality DataURL so it works instantly without any cloud setup
+      // High-quality fallback if cloud is temporarily unreachable
       if (!url) {
         url = await readImageAsDataUrl(file);
       }
@@ -190,29 +192,33 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     setFormData((prev) => ({ ...prev, video: '' }));
   };
 
-  const toggleSize = (size) => {
-    setFormData((prev) => {
-      const exists = prev.sizes.includes(size);
-      const newSizes = exists ? prev.sizes.filter((s) => s !== size) : [...prev.sizes, size];
-      return { ...prev, sizes: newSizes };
-    });
+  const calculateDiscount = () => {
+    if (formData.oldPrice && Number(formData.oldPrice) > Number(formData.price) && Number(formData.price) > 0) {
+      const pct = Math.round(((Number(formData.oldPrice) - Number(formData.price)) / Number(formData.oldPrice)) * 100);
+      return `${pct}% OFF`;
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.price) return;
-
-    const discountStr =
-      formData.oldPrice && Number(formData.oldPrice) > Number(formData.price)
-        ? `${Math.round(((Number(formData.oldPrice) - Number(formData.price)) / Number(formData.oldPrice)) * 100)}% OFF`
-        : null;
+    if (!formData.name.trim()) {
+      setUploadError('Please provide a Saree Title');
+      return;
+    }
+    if (!formData.price || Number(formData.price) <= 0) {
+      setUploadError('Please provide a valid Selling Price');
+      return;
+    }
 
     const payload = {
       ...formData,
       price: Number(formData.price),
       oldPrice: formData.oldPrice ? Number(formData.oldPrice) : null,
-      discount: discountStr,
-      image: formData.images[0] || '/products/saree-placeholder.png',
+      discount: calculateDiscount(),
+      stock: Number(formData.stock) || 0,
+      image: formData.images[0] || '/products/cat_pure_pattu.jpg',
+      images: formData.images.length > 0 ? formData.images : ['/products/cat_pure_pattu.jpg'],
       video: formData.video || null,
       videoUrl: formData.videoUrl || null,
     };
@@ -222,476 +228,361 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Modal Header */}
-        <div className="bg-[#6B1518] text-white px-6 py-4 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[92vh]">
+        {/* Header */}
+        <div className="bg-[#68081C] text-white px-6 py-4 flex items-center justify-between shrink-0">
           <div>
             <h3 className="font-serif text-lg font-bold">
-              {initialProduct ? 'Edit Clothing Product' : 'Add New Clothing Product'}
+              {initialProduct ? 'Edit Saree Product' : 'Add New Saree to Catalog'}
             </h3>
             <p className="text-[11px] text-gray-300">
-              {BRAND.fullName} CMS • Live Storefront & Saree Catalog Synchronization
+              {BRAND.fullName} • Direct Cloudinary & Supabase Database Sync
             </p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-white">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-white cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 bg-gray-50 px-6 gap-6 text-xs font-bold">
-          <button
-            onClick={() => setActiveTab('basic')}
-            className={`py-3 border-b-2 transition-colors ${
-              activeTab === 'basic' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
-            }`}
-          >
-            1. Basic & Pricing
-          </button>
-          <button
-            onClick={() => setActiveTab('attributes')}
-            className={`py-3 border-b-2 transition-colors ${
-              activeTab === 'attributes' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
-            }`}
-          >
-            2. Clothing Specs & Sizes
-          </button>
-          <button
-            onClick={() => setActiveTab('media')}
-            className={`py-3 border-b-2 transition-colors flex items-center gap-1.5 ${
-              activeTab === 'media' ? 'border-[#6B1518] text-[#6B1518]' : 'border-transparent text-gray-500'
-            }`}
-          >
-            <Film className="w-3.5 h-3.5" />
-            <span>3. Images & Video Upload</span>
-          </button>
-        </div>
+        {/* Single-Screen Form Body */}
+        <form onSubmit={handleSubmit} className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6 text-xs">
+          {uploadError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold p-3.5 rounded-2xl flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{uploadError}</span>
+            </div>
+          )}
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-6 text-xs">
-          {activeTab === 'basic' && (
-            <div className="space-y-4">
-              {/* PRIMARY SAREE PHOTO UPLOADER (DIRECTLY ON TAB 1) */}
-              <div>
-                <label className="block font-bold text-gray-800 mb-1">
-                  Primary Saree Photo (Upload from Device or Drag & Drop) *
-                </label>
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all ${
-                    isDragging ? 'border-[#68081C] bg-[#FDF5F6]' : 'border-gray-300 bg-gray-50'
-                  }`}
+          {/* 1. MULTIPLE SAREE PHOTOS UPLOADER WITH AUTO-COMPRESSION */}
+          <div className="space-y-3 bg-[#FFFDF9] p-4 sm:p-5 rounded-3xl border border-amber-900/10">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-gray-900 text-xs sm:text-sm flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-[#68081C]" />
+                <span>Saree Photos (Upload Single or Multiple Photos) *</span>
+              </label>
+              <span className="text-[11px] text-gray-500 font-medium">
+                {formData.images.length} photo(s) selected
+              </span>
+            </div>
+
+            {/* Drag & Drop Box */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-2xl p-5 text-center transition-all ${
+                isDragging ? 'border-[#68081C] bg-[#FDF5F6] scale-[1.01]' : 'border-gray-300 hover:border-[#68081C] bg-white'
+              }`}
+            >
+              <Upload className={`w-8 h-8 mx-auto mb-2 transition-colors ${isDragging ? 'text-[#68081C]' : 'text-gray-400'}`} />
+              <p className="font-bold text-gray-800 text-xs sm:text-sm">
+                {isDragging ? 'Drop Photos to Upload' : 'Drag & Drop Saree Photos Here (Auto-Compressed)'}
+              </p>
+              <p className="text-gray-400 text-[10.5px] mt-0.5">
+                Select 1 to 10+ high-res photos. Automatic client-side compression enables instant high-speed uploads.
+              </p>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="saree-multi-photo-upload"
+              />
+              <div className="mt-3">
+                <label
+                  htmlFor="saree-multi-photo-upload"
+                  className="inline-flex items-center gap-1.5 bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-md transition-all"
                 >
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <div className="w-20 h-24 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative group">
-                      <img
-                        src={formData.images[0] || '/products/saree-placeholder.png'}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="text-center sm:text-left space-y-1.5">
-                      <p className="font-bold text-gray-800 text-xs">
-                        {uploadingImage ? '⏳ Uploading Photo to Cloudinary...' : 'Drag & Drop Saree Photo or Browse'}
-                      </p>
-                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
-                      <div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="primary-saree-photo-upload"
-                        />
-                        <label
-                          htmlFor="primary-saree-photo-upload"
-                          className="inline-flex items-center gap-1.5 bg-[#68081C] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer hover:bg-[#4A0513] shadow-xs"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{uploadingImage ? 'Uploading...' : 'Choose Photo from Device'}</span>
-                        </label>
-                      </div>
-                    </div>
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{uploadingImage ? '⏳ Compressing & Uploading to Cloudinary...' : 'Choose Photos from Device'}</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Uploaded Photos Grid */}
+            {formData.images.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2">
+                {formData.images.map((img, idx) => (
+                  <div key={idx} className="relative group rounded-xl overflow-hidden aspect-[3/4] border border-gray-200 bg-gray-900 shadow-xs">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <span className={`absolute bottom-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded shadow ${
+                      idx === 0 ? 'bg-[#D4AF37] text-[#4A0513] font-black' : 'bg-black/70 text-white'
+                    }`}>
+                      {idx === 0 ? '★ Main' : `Photo ${idx + 1}`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 shadow-md cursor-pointer transition-transform hover:scale-110"
+                      title="Remove Photo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                </div>
+                ))}
               </div>
+            )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Product Title *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Royal Dharmavaram Pure Pattu Saree"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-medium text-xs"
-                  />
-                </div>
+            {/* Optional Manual URL fallback */}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="text"
+                placeholder="Or paste image URL (e.g. /products/cat_pure_pattu.jpg)..."
+                value={manualUrl}
+                onChange={(e) => setManualUrl(e.target.value)}
+                className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-[#68081C] font-mono text-[11px]"
+              />
+              <button
+                type="button"
+                onClick={handleAddManualUrl}
+                disabled={!manualUrl.trim()}
+                className="text-xs font-bold px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-40 rounded-xl transition-colors cursor-pointer shrink-0"
+              >
+                Add URL
+              </button>
+            </div>
+          </div>
 
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">SKU Code</label>
-                  <input
-                    type="text"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none font-mono"
-                  />
+          {/* 2. OPTIONAL VIDEO UPLOAD */}
+          <div className="space-y-2 bg-gray-50/70 p-4 rounded-2xl border border-gray-200">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+                <Film className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>3-4 Seconds Saree Drape Video (Optional)</span>
+              </label>
+              <span className="text-[10.5px] text-gray-400">Shows fabric flow on Product Page</span>
+            </div>
+
+            {formData.video ? (
+              <div className="p-3 bg-white rounded-xl border border-gray-200 flex items-center gap-3">
+                <div className="w-24 h-16 rounded-lg overflow-hidden bg-black relative shrink-0">
+                  <video src={formData.video} autoPlay loop muted playsInline className="w-full h-full object-cover" />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-900 text-xs">Video Attached ✓</p>
+                  <p className="text-[10.5px] text-emerald-700">Plays automatically on Product Page</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveVideo}
+                  className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 cursor-pointer"
+                  title="Remove Video"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Category *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
-                  >
-                    {categories.length === 0 && <option value={formData.category}>{formData.category}</option>}
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Stock Quantity *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
-                  />
-                </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                  id="saree-video-upload-input"
+                />
+                <label
+                  htmlFor="saree-video-upload-input"
+                  className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs px-4 py-2 rounded-xl border border-gray-300 cursor-pointer shadow-2xs"
+                >
+                  <Video className="w-3.5 h-3.5 text-[#68081C]" />
+                  <span>{uploadingVideo ? '⏳ Uploading Video...' : 'Upload Saree Video (MP4/WEBM)'}</span>
+                </label>
+                <span className="text-[10.5px] text-gray-400">Max 50MB</span>
               </div>
+            )}
+          </div>
 
+          {/* 3. CORE PRODUCT ESSENTIALS */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Subcategory</label>
+                <label className="block font-bold text-gray-800 mb-1">Saree Title *</label>
                 <input
                   type="text"
-                  list="subcategory-suggestions"
-                  placeholder="e.g. Banarasi Tissue, Mulchanderi Sets"
-                  value={formData.subcategory}
-                  onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                  required
+                  placeholder="e.g. Crimson Gold Dharmavaram Pure Pattu Saree"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] font-semibold text-xs"
                 />
-                <datalist id="subcategory-suggestions">
-                  {(categories.find((c) => c.id === formData.category)?.subcategories || []).map((sub) => (
-                    <option key={sub} value={sub} />
-                  ))}
-                </datalist>
-                <p className="text-[10px] text-gray-400 mt-1">Used for search and category subfiltering on the storefront.</p>
-              </div>
-
-              {/* Clean Saree Pricing Grid (Selling Price & Original MRP) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FDFBF7] p-4 rounded-2xl border border-[#F3E5AB]/60">
-                <div>
-                  <label className="block font-bold text-gray-900 mb-1 text-xs">Selling Price (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 7999"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-bold text-sm bg-white"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">Live customer purchase price on storefront</p>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-gray-700 mb-1 text-xs">Original MRP (₹)</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 10999"
-                    value={formData.oldPrice}
-                    onChange={(e) => setFormData({ ...formData, oldPrice: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none bg-white text-sm"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    {formData.oldPrice && Number(formData.oldPrice) > Number(formData.price)
-                      ? `Auto-generates ${Math.round(((Number(formData.oldPrice) - Number(formData.price)) / Number(formData.oldPrice)) * 100)}% OFF badge`
-                      : 'Used to calculate discount badge'}
-                  </p>
-                </div>
               </div>
 
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Saree Description & Highlights</label>
-                <textarea
-                  rows={3}
-                  placeholder="Enter silk purity details, border zari work, pallu design, and drape guidance..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none resize-none text-xs"
+                <label className="block font-bold text-gray-800 mb-1">Saree Category *</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] bg-white font-semibold text-xs"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* 2-Column Pricing with Live Discount Badge */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#FAF5EE] p-4 rounded-2xl border border-[#D4AF37]/30">
+              <div>
+                <label className="block font-bold text-[#68081C] mb-1">Selling Price (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  placeholder="e.g. 9999"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-gray-300 focus:border-[#68081C] font-extrabold text-sm bg-white"
                 />
               </div>
-            </div>
-          )}
 
-          {activeTab === 'attributes' && (
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Fabric & Silk Type</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Dharmavaram Pure Silk / Pochampally Ikkat"
-                    value={formData.fabric}
-                    onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Zari & Border Work</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Pure Gold Zari / Broad Temple Border"
-                    value={formData.material}
-                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
-                  />
-                </div>
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Original MRP (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 14999"
+                  value={formData.oldPrice}
+                  onChange={(e) => setFormData({ ...formData, oldPrice: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-gray-300 focus:border-[#68081C] font-bold text-sm bg-white"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Blouse Piece Details</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Included (Unstitched 80cm Running Blouse)"
-                    value={formData.blouse || 'Included (Unstitched 80cm Running Blouse)'}
-                    onChange={(e) => setFormData({ ...formData, blouse: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Saree Drape Length</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Standard 6.3 Meters (with Blouse Piece)"
-                    value={formData.length || 'Standard 6.3 Meters (with Blouse Piece)'}
-                    onChange={(e) => setFormData({ ...formData, length: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
-                  />
-                </div>
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Available Stock Qty</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                  className="w-full p-2.5 rounded-xl border border-gray-300 focus:border-[#68081C] font-bold text-sm bg-white"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Occasion / Styling</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Bridal, Wedding Guest, Festive Pooja"
-                    value={formData.occasion}
-                    onChange={(e) => setFormData({ ...formData, occasion: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-gray-800 mb-1">Care & Preservation</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Dry Clean Only / Wrap in Muslin Cloth"
-                    value={formData.careInstructions}
-                    onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'media' && (
-            <div className="space-y-6">
-              {uploadError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-semibold p-3 rounded-xl whitespace-pre-line flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{uploadError}</span>
+              {calculateDiscount() && (
+                <div className="sm:col-span-3 pt-1 flex items-center gap-1.5 text-[#68081C] font-extrabold text-xs">
+                  <Flame className="w-3.5 h-3.5 fill-current text-[#D4AF37]" />
+                  <span>Auto-computed Customer Discount: <strong>{calculateDiscount()}</strong></span>
                 </div>
               )}
-              {/* 1. Photo Upload (Drag & Drop + File Picker) */}
-              <div>
-                <label className="block font-bold text-gray-900 mb-1">Product Images (Upload 3 or more photos)</label>
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
-                    isDragging
-                      ? 'border-[#68081C] bg-[#FDF5F6] scale-[1.01]'
-                      : 'border-gray-300 hover:border-[#68081C] bg-gray-50'
-                  }`}
-                >
-                  <Upload className={`w-8 h-8 mx-auto mb-2 transition-colors ${isDragging ? 'text-[#68081C]' : 'text-gray-400'}`} />
-                  <p className="font-bold text-gray-800 text-sm">
-                    {isDragging ? 'Drop Photos Here to Upload' : 'Drag & Drop Saree Photos Here'}
-                  </p>
-                  <p className="text-gray-400 text-[11px] mt-0.5">JPG, PNG or WEBP from your phone or laptop</p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="product-photo-upload-input"
-                  />
-                  <div className="mt-3 flex items-center justify-center gap-2">
-                    <label
-                      htmlFor="product-photo-upload-input"
-                      className="inline-block bg-[#68081C] text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-[#4A0513] shadow-xs"
-                    >
-                      {uploadingImage ? 'Processing Photos...' : 'Choose Photos from Device'}
-                    </label>
-                  </div>
-                </div>
-
-                {/* Optional Manual URL input */}
-                <div className="mt-2.5 flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Or paste image URL (e.g. /products/xyz.jpg)..."
-                    value={manualUrl}
-                    onChange={(e) => setManualUrl(e.target.value)}
-                    className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-[#68081C]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddManualUrl}
-                    disabled={!manualUrl.trim()}
-                    className="text-xs font-bold px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-40 rounded-xl transition-colors cursor-pointer"
-                  >
-                    Add URL
-                  </button>
-                </div>
-
-                {/* Uploaded Images List */}
-                {formData.images.length > 0 && (
-                  <div className="grid grid-cols-4 gap-3 pt-3">
-                    {formData.images.map((img, idx) => (
-                      <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-gray-200 bg-gray-50">
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                        <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                          {idx === 0 ? 'Main' : `Photo ${idx + 1}`}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 p-1 rounded-full bg-red-600 text-white opacity-90 hover:opacity-100 shadow-md"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* 2. Direct Video File Upload (3-4s motion video) */}
-              <div className="pt-4 border-t border-gray-100 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="block font-bold text-gray-900 flex items-center gap-1.5">
-                      <Film className="w-4 h-4 text-[#D3923A]" /> 3-4 Seconds Product Drape Video Upload
-                    </label>
-                    <p className="text-[11px] text-gray-500 mt-0.5">
-                      Upload a 3-4 second video showing the fabric movement & drape in real life.
-                    </p>
-                  </div>
-                </div>
-
-                {formData.video ? (
-                  <div className="p-3 bg-[#FAF8F5] rounded-2xl border border-gray-200 flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-full sm:w-44 h-28 rounded-xl overflow-hidden bg-black relative shrink-0">
-                      <video
-                        src={formData.video}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-1 right-1 bg-[#D3923A] text-[#6B1518] text-[9px] font-extrabold px-1.5 py-0.5 rounded">
-                        ▶ 3-4s Video
-                      </span>
-                    </div>
-                    <div className="flex-1 space-y-1 text-center sm:text-left">
-                      <p className="font-bold text-gray-900">Product Video Active</p>
-                      <p className="text-[11px] text-emerald-700 font-semibold">
-                        ✓ Will play seamlessly on the storefront Product Detail Page!
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleRemoveVideo}
-                        className="text-xs text-red-600 hover:text-red-800 font-bold inline-flex items-center gap-1 pt-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Remove Video
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center hover:border-[#D3923A] transition-colors bg-[#FAF8F5]">
-                    <Video className="w-7 h-7 text-[#D3923A] mx-auto mb-1.5" />
-                    <p className="font-bold text-gray-800">Upload 3-4s Motion Video</p>
-                    <p className="text-gray-400 text-[11px] mt-0.5">MP4, WEBM or MOV up to 50MB</p>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                      className="hidden"
-                      id="cloudinary-video-upload-input"
-                    />
-                    <label
-                      htmlFor="cloudinary-video-upload-input"
-                      className="mt-2.5 inline-block bg-[#D3923A] hover:bg-[#B37C31] text-[#6B1518] font-extrabold text-xs px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-colors"
-                    >
-                      {uploadingVideo ? 'Uploading Video...' : 'Select Video File'}
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* 3. External Video Demonstration Link */}
-              <div className="pt-3 border-t border-gray-100">
-                <label className="block font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-                  <Play className="w-4 h-4 text-[#6B1518]" /> External Video Link (Optional YouTube / Instagram URL)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://www.youtube.com/watch?v=... or https://instagram.com/..."
-                  value={formData.videoUrl}
-                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
-                />
-              </div>
             </div>
-          )}
+          </div>
 
-          {/* Footer Save Actions */}
-          <div className="pt-4 border-t border-gray-200 flex items-center justify-end gap-3">
+          {/* 4. OPTIONAL LUXURY SPECIFICATIONS (ACCORDION WITH PRE-FILLED DEFAULTS) */}
+          <div className="border border-gray-200 rounded-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedSpecs(!showAdvancedSpecs)}
+              className="w-full p-3.5 bg-gray-50 hover:bg-gray-100 flex items-center justify-between text-left font-bold text-gray-800 text-xs transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Authentic Saree Specifications (Pre-Filled with Luxury Defaults)</span>
+              </div>
+              {showAdvancedSpecs ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+            </button>
+
+            {showAdvancedSpecs && (
+              <div className="p-4 space-y-3.5 bg-white border-t border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Fabric & Silk Type</label>
+                    <input
+                      type="text"
+                      value={formData.fabric}
+                      onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Zari & Border Work</label>
+                    <input
+                      type="text"
+                      value={formData.material}
+                      onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Blouse Piece Details</label>
+                    <input
+                      type="text"
+                      value={formData.blouse}
+                      onChange={(e) => setFormData({ ...formData, blouse: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Saree Drape Length</label>
+                    <input
+                      type="text"
+                      value={formData.length}
+                      onChange={(e) => setFormData({ ...formData, length: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Occasion / Styling</label>
+                    <input
+                      type="text"
+                      value={formData.occasion}
+                      onChange={(e) => setFormData({ ...formData, occasion: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Care & Preservation</label>
+                    <input
+                      type="text"
+                      value={formData.careInstructions}
+                      onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 5. SHORT DESCRIPTION */}
+          <div>
+            <label className="block font-bold text-gray-800 mb-1">Saree Description / Story (Optional)</label>
+            <textarea
+              rows={3}
+              placeholder="Handcrafted by master weavers with intricate temple borders and rich bridal pallu."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] text-xs leading-relaxed"
+            />
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-100"
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || uploadingImage || uploadingVideo}
-              className="bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-1.5 shadow-md"
+              className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-xs px-8 py-3 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               <Check className="w-4 h-4" />
-              <span>{saving ? 'Saving...' : 'Save & Publish Product'}</span>
+              <span>{saving ? 'Publishing to Cloud...' : initialProduct ? 'Update Saree' : 'Publish Saree to Website'}</span>
             </button>
           </div>
         </form>

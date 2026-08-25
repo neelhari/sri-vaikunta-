@@ -4,6 +4,65 @@ const API_SECRET = import.meta.env.VITE_CLOUDINARY_API_SECRET || 'm3z9WYwxwZBc6Y
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'srivaikuntasarees';
 
 /**
+ * Automatically compresses large high-res DSLR/iPhone photos client-side
+ * before uploading to Cloudinary to ensure ultra-fast uploads and zero failures.
+ */
+export function compressImage(file, maxDimension = 2400, quality = 0.90) {
+  return new Promise((resolve) => {
+    if (!file || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File(
+                [blob],
+                (file.name || 'saree_photo').replace(/\.[^/.]+$/, '') + '.jpg',
+                { type: 'image/jpeg', lastModified: Date.now() }
+              );
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Generates SHA-1 hash for Cloudinary API signed uploads
  */
 async function generateSha1(message) {
@@ -33,18 +92,22 @@ export function buildCloudinaryUrl(publicId, options = {}) {
 
 /**
  * Uploads an image or video directly to Cloudinary.
- * Tries direct Signed Upload via SHA-1 first (zero setup needed on Cloudinary dashboard),
- * and falls back to unsigned preset upload if needed.
+ * 1. Automatically applies client-side intelligent compression for images.
+ * 2. Uploads via Signed SHA-1 directly into Cloudinary account.
+ * 3. Falls back to unsigned preset or Data URL if needed.
  */
-export async function uploadToCloudinary(file) {
+export async function uploadToCloudinary(rawFile) {
   if (!CLOUD_NAME) {
     return { success: false, message: 'Cloudinary is not configured (missing VITE_CLOUDINARY_CLOUD_NAME).' };
   }
 
+  // Compress image client-side if it's an image
+  const file = rawFile.type.startsWith('image/') ? await compressImage(rawFile) : rawFile;
+
   const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
   const timestamp = Math.round(new Date().getTime() / 1000);
 
-  // 1. Try Signed Direct Upload (Highest reliability — works with API Key + Secret without manual preset setup)
+  // 1. Try Signed Direct Upload (Works with API Key + Secret without manual dashboard preset setup)
   if (API_KEY && API_SECRET) {
     try {
       const signatureStr = `timestamp=${timestamp}${API_SECRET}`;
@@ -65,7 +128,7 @@ export async function uploadToCloudinary(file) {
       if (res.ok && data.secure_url) {
         return { success: true, url: data.secure_url, publicId: data.public_id, raw: data };
       }
-      console.warn('Signed upload failed, attempting preset fallback:', data?.error?.message);
+      console.warn('Signed upload response:', data?.error?.message);
     } catch (signedErr) {
       console.warn('Signed upload error:', signedErr);
     }
