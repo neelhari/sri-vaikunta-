@@ -430,35 +430,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 10. HYDERABAD SHOWROOM CARD */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="bg-[#2D030A] rounded-3xl p-6 sm:p-10 text-center text-white space-y-4 shadow-xl border border-[#D4AF37]/30">
-          <div className="max-w-xl mx-auto space-y-3">
-            <div className="w-12 h-12 rounded-full bg-[#FAF5EE] mx-auto flex items-center justify-center p-1 shadow-md">
-              <img src="/logo-circle.png" alt={BRAND.fullName} className="w-full h-full object-cover rounded-full" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37] block">Visit Our Showroom</span>
-            <h3 className="font-serif text-2xl sm:text-3xl font-bold">{BRAND.fullName}</h3>
-            <p className="text-xs text-gray-300 leading-relaxed">{BRAND.address.full}</p>
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <a
-                href={waLink(`Hello ${BRAND.fullName}, I want to visit the showroom.`)}
-                target="_blank"
-                rel="noreferrer"
-                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-bold px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md transition-transform hover:scale-105"
-              >
-                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Video Visit
-              </a>
-              <a
-                href={`tel:${BRAND.phone}`}
-                className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 transition-colors border border-white/20"
-              >
-                <Phone className="w-3.5 h-3.5 text-[#D4AF37]" /> Call Us
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
