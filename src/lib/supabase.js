@@ -475,6 +475,54 @@ export async function deleteBannerFromDb(id) {
 }
 
 // ============================================================================
+// Promotions (Marquee, Savings Cards, Bridal Category Hero)
+// ============================================================================
+export async function fetchPromotions() {
+  if (!supabase) return { success: false, data: null, message: 'Supabase not configured' };
+  try {
+    const { data, error } = await supabase.from('promotions').select('*').eq('id', 'global').maybeSingle();
+    if (error) return { success: false, data: null, message: error.message };
+    if (!data) return { success: true, data: null };
+    return {
+      success: true,
+      data: {
+        marqueeText: data.marquee_text,
+        marqueeActive: data.marquee_active !== false,
+        savingsCards: data.savings_cards || [],
+        categoryHero: data.category_hero || null,
+      },
+    };
+  } catch (err) {
+    return { success: false, data: null, message: err.message };
+  }
+}
+
+export async function updatePromotionsInDb(updates) {
+  if (!supabase) return { success: false, message: 'Supabase not configured' };
+  try {
+    const row = { id: 'global', updated_at: new Date().toISOString() };
+    if (updates.marqueeText !== undefined) row.marquee_text = updates.marqueeText;
+    if (updates.marqueeActive !== undefined) row.marquee_active = updates.marqueeActive;
+    if (updates.savingsCards !== undefined) row.savings_cards = updates.savingsCards;
+    if (updates.categoryHero !== undefined) row.category_hero = updates.categoryHero;
+
+    const { data, error } = await supabase.from('promotions').upsert([row]).select().single();
+    if (error) return { success: false, message: error.message };
+    return {
+      success: true,
+      data: {
+        marqueeText: data.marquee_text,
+        marqueeActive: data.marquee_active !== false,
+        savingsCards: data.savings_cards || [],
+        categoryHero: data.category_hero || null,
+      },
+    };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+// ============================================================================
 // Coupons
 // ============================================================================
 export async function fetchCoupons() {

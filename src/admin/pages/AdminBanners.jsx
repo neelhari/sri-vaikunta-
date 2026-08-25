@@ -647,16 +647,51 @@ export default function AdminBanners() {
             </div>
 
             <div>
-              <label className="block font-bold text-gray-800 mb-1">Banner Image Path / URL</label>
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-900 border border-gray-200 shrink-0">
-                  <img src={catHero.image} alt="" className="w-full h-full object-cover" />
+              <label className="block font-bold text-gray-800 mb-1">
+                Banner Photo (Bridal / Saree Model Photo) *
+              </label>
+              <div className="border-2 border-dashed border-gray-300 hover:border-[#68081C] rounded-2xl p-4 bg-gray-50 text-center transition-all">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative">
+                    <img src={catHero.image || '/slider/hero_saree_model.png'} alt="Bridal Banner" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-center sm:text-left space-y-1.5">
+                    <p className="font-bold text-gray-800 text-xs">
+                      {uploading ? '⏳ Uploading to Cloudinary...' : 'Upload Saree Photo from Device'}
+                    </p>
+                    <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files[0]) {
+                            processBannerFile(e.target.files[0], (newUrl) => setCatHero((prev) => ({ ...prev, image: newUrl })));
+                          }
+                        }}
+                        className="hidden"
+                        id="cat-hero-file-input"
+                      />
+                      <label
+                        htmlFor="cat-hero-file-input"
+                        className="inline-flex items-center gap-1.5 bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-all"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{uploading ? 'Uploading...' : 'Choose Photo from Device'}</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Optional Manual URL */}
+              <div className="mt-2">
                 <input
                   type="text"
                   value={catHero.image}
                   onChange={(e) => setCatHero({ ...catHero, image: e.target.value })}
-                  className="flex-1 p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] font-mono text-[11px]"
+                  placeholder="Or paste image URL (e.g. /slider/hero_saree_model.png)..."
+                  className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-mono text-[11px]"
                 />
               </div>
             </div>

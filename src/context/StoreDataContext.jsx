@@ -3,6 +3,7 @@ import {
   fetchProducts, insertProduct, updateProductInDb, deleteProductFromDb,
   fetchCategories, insertCategory, updateCategoryInDb, deleteCategoryFromDb,
   fetchBanners, insertBanner, updateBannerInDb, deleteBannerFromDb,
+  fetchPromotions, updatePromotionsInDb,
   fetchCoupons, insertCoupon, updateCouponInDb, deleteCouponFromDb,
   fetchOrders, saveOrderToSupabase, updateOrderStatusInDb,
   fetchContactMessages, updateMessageStatusInDb,
@@ -135,7 +136,7 @@ export function StoreDataProvider({ children }) {
   });
   const [loading, setLoading] = useState(false);
 
-  const updatePromotions = (newPromos) => {
+  const updatePromotions = async (newPromos) => {
     setPromotions((prev) => {
       const updated = { ...prev, ...newPromos };
       try {
@@ -143,7 +144,8 @@ export function StoreDataProvider({ children }) {
       } catch (e) {}
       return updated;
     });
-    return { success: true };
+    const res = await updatePromotionsInDb(newPromos);
+    return res;
   };
 
   // Initial load — public-readable data from cloud if available
@@ -151,13 +153,21 @@ export function StoreDataProvider({ children }) {
     let active = true;
     (async () => {
       try {
-        const [p, c, b, cp, s] = await Promise.all([
-          fetchProducts(), fetchCategories(), fetchBanners(), fetchCoupons(), fetchSettings(),
+        const [p, c, b, pr, cp, s] = await Promise.all([
+          fetchProducts(), fetchCategories(), fetchBanners(), fetchPromotions(), fetchCoupons(), fetchSettings(),
         ]);
         if (!active) return;
         if (p.success && p.data && p.data.length > 5) setProducts(p.data);
         if (c.success && c.data && c.data.length > 5) setCategories(c.data);
         if (b.success && b.data && b.data.length > 0) setBanners(b.data);
+        if (pr.success && pr.data) {
+          setPromotions((prev) => ({
+            ...prev,
+            ...pr.data,
+            savingsCards: pr.data.savingsCards?.length > 0 ? pr.data.savingsCards : prev.savingsCards,
+            categoryHero: pr.data.categoryHero || prev.categoryHero,
+          }));
+        }
         if (cp.success && cp.data && cp.data.length > 0) setCoupons(cp.data);
         if (s.success && s.data && s.data.storeName) setSettings(s.data);
       } catch (err) {
