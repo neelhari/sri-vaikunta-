@@ -271,16 +271,64 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-6 text-xs">
           {activeTab === 'basic' && (
             <div className="space-y-4">
+              {/* PRIMARY SAREE PHOTO UPLOADER (DIRECTLY ON TAB 1) */}
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">
+                  Primary Saree Photo (Upload from Device or Drag & Drop) *
+                </label>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all ${
+                    isDragging ? 'border-[#68081C] bg-[#FDF5F6]' : 'border-gray-300 bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="w-20 h-24 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative group">
+                      <img
+                        src={formData.images[0] || '/products/saree-placeholder.png'}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-center sm:text-left space-y-1.5">
+                      <p className="font-bold text-gray-800 text-xs">
+                        {uploadingImage ? '⏳ Uploading Photo to Cloudinary...' : 'Drag & Drop Saree Photo or Browse'}
+                      </p>
+                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="primary-saree-photo-upload"
+                        />
+                        <label
+                          htmlFor="primary-saree-photo-upload"
+                          className="inline-flex items-center gap-1.5 bg-[#68081C] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer hover:bg-[#4A0513] shadow-xs"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingImage ? 'Uploading...' : 'Choose Photo from Device'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold text-gray-800 mb-1">Product Title *</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Mulchanderi 3 Piece Dress With Embroidery"
+                    placeholder="e.g. Royal Dharmavaram Pure Pattu Saree"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-medium text-xs"
                   />
                 </div>
 
