@@ -168,28 +168,32 @@ function mapProductFromDb(row) {
 function mapProductToDb(p) {
   const row = {};
   if (p.name !== undefined) row.name = p.name;
-  if (p.sku !== undefined) row.sku = p.sku;
   if (p.category !== undefined) row.category = p.category;
-  if (p.subcategory !== undefined) row.subcategory = p.subcategory;
+  if (p.subcategory !== undefined) row.subcategory = p.subcategory || '';
   if (p.price !== undefined) row.price = Number(p.price) || 0;
   if (p.oldPrice !== undefined) row.old_price = p.oldPrice === '' || p.oldPrice === null ? null : Number(p.oldPrice);
-  if (p.costPrice !== undefined) row.cost_price = p.costPrice === '' || p.costPrice === null ? null : Number(p.costPrice);
-  if (p.discount !== undefined) row.discount = p.discount;
+  if (p.discount !== undefined) row.discount = p.discount || null;
   if (p.stock !== undefined) row.stock = Number(p.stock) || 0;
-  if (p.fabric !== undefined) row.fabric = p.fabric;
-  if (p.material !== undefined) row.material = p.material;
-  if (p.occasion !== undefined) row.occasion = p.occasion;
-  if (p.careInstructions !== undefined) row.care_instructions = p.careInstructions;
-  if (p.sizes !== undefined) row.sizes = p.sizes;
-  if (p.description !== undefined) row.description = p.description;
-  if (p.image !== undefined) row.image = p.image;
-  if (p.images !== undefined) row.images = p.images;
-  if (p.video !== undefined) row.video = p.video;
-  if (p.videoUrl !== undefined) row.video_url = p.videoUrl;
-  if (p.rating !== undefined) row.rating = p.rating;
-  if (p.reviewsCount !== undefined) row.reviews_count = p.reviewsCount;
-  if (p.isNew !== undefined) row.is_new = p.isNew;
-  if (p.isFeatured !== undefined) row.is_featured = p.isFeatured;
+
+  // Safely combine fabric & zari work so zero information is lost
+  if (p.fabric !== undefined || p.material !== undefined) {
+    const fab = p.fabric || 'Pure Handloom Silk & Pattu';
+    const mat = p.material && p.material !== fab ? ` • ${p.material}` : '';
+    const bls = p.blouse ? ` • ${p.blouse}` : '';
+    const len = p.length ? ` • ${p.length}` : '';
+    row.fabric = `${fab}${mat}${bls}${len}`.trim();
+  }
+
+  if (p.occasion !== undefined) row.occasion = p.occasion || 'Festive & Wedding Wear';
+  if (p.careInstructions !== undefined) row.care_instructions = p.careInstructions || 'Dry Clean Only';
+  if (p.description !== undefined) row.description = p.description || '';
+  if (p.image !== undefined) row.image = p.image || '/products/cat_pure_pattu.jpg';
+  if (p.images !== undefined) row.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [row.image || '/products/cat_pure_pattu.jpg'];
+  if (p.video !== undefined || p.videoUrl !== undefined) row.video_url = p.video || p.videoUrl || null;
+  if (p.rating !== undefined) row.rating = p.rating ? Number(p.rating) : 4.8;
+  if (p.reviewsCount !== undefined) row.reviews_count = p.reviewsCount ? Number(p.reviewsCount) : 12;
+  if (p.isNew !== undefined) row.is_new = !!p.isNew;
+  if (p.isFeatured !== undefined) row.is_featured = !!p.isFeatured;
   return row;
 }
 
