@@ -258,11 +258,12 @@ function mapBannerToDb(b) {
 function mapCouponFromDb(row) {
   if (!row) return row;
   return {
-    id: row.id,
+    id: row.id || row.code,
     code: row.code,
-    type: row.type,
+    type: row.discount_type || row.type || 'percentage',
+    discountType: row.discount_type || row.type || 'percentage',
     discountValue: Number(row.discount_value) || 0,
-    minOrder: Number(row.min_order) || 0,
+    minOrder: Number(row.min_order_value ?? row.min_order ?? 0),
     maxDiscount: row.max_discount !== null && row.max_discount !== undefined ? Number(row.max_discount) : null,
     active: row.active !== false,
   };
@@ -270,12 +271,19 @@ function mapCouponFromDb(row) {
 
 function mapCouponToDb(c) {
   const row = {};
-  if (c.code !== undefined) row.code = c.code;
-  if (c.type !== undefined) row.type = c.type;
-  if (c.discountValue !== undefined) row.discount_value = c.discountValue;
-  if (c.minOrder !== undefined) row.min_order = c.minOrder;
-  if (c.maxDiscount !== undefined) row.max_discount = c.maxDiscount;
-  if (c.active !== undefined) row.active = c.active;
+  row.id = c.id || (c.code ? c.code.toLowerCase().trim() : `cpn_${Date.now()}`);
+  if (c.code !== undefined) row.code = c.code.toUpperCase().trim();
+  if (c.discountType !== undefined || c.type !== undefined) {
+    row.discount_type = c.discountType || c.type || 'percentage';
+  }
+  if (c.discountValue !== undefined) row.discount_value = Number(c.discountValue) || 0;
+  if (c.minOrder !== undefined || c.min_order_value !== undefined) {
+    row.min_order_value = Number(c.minOrder ?? c.min_order_value ?? 0);
+  }
+  if (c.maxDiscount !== undefined) {
+    row.max_discount = c.maxDiscount ? Number(c.maxDiscount) : null;
+  }
+  if (c.active !== undefined) row.active = c.active !== false;
   return row;
 }
 
