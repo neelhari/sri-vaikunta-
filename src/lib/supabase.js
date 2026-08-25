@@ -167,6 +167,11 @@ function mapProductFromDb(row) {
 
 function mapProductToDb(p) {
   const row = {};
+  if (p.id) {
+    row.id = p.id;
+  } else {
+    row.id = `saree_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  }
   if (p.name !== undefined) row.name = p.name;
   if (p.category !== undefined) row.category = p.category;
   if (p.subcategory !== undefined) row.subcategory = p.subcategory || '';
