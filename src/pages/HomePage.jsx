@@ -8,6 +8,37 @@ import { BRAND, waLink } from '../config/brand';
 // Exact 8-Cusped Royal Koskii Scalloped Arch Path (Normalized to 100x100 box)
 const KOSKII_ARCH_PATH = "M 50,4 C 57,4 62,11 68,12 C 74,13 80,8 86,14 C 92,20 87,26 88,32 C 89,38 96,43 96,50 C 96,57 89,62 88,68 C 87,74 92,80 86,86 C 80,92 74,87 68,88 C 62,89 57,96 50,96 C 43,96 38,89 32,88 C 26,87 20,92 14,86 C 8,80 13,74 12,68 C 11,62 4,57 4,50 C 4,43 11,38 12,32 C 13,26 8,20 14,14 C 20,8 26,13 32,12 C 38,11 43,4 50,4 Z";
 
+// Centered Mobile-First Luxury Section Heading (Exact Reference UI)
+function LuxurySectionHeading({ subtitle, title, actionText, onAction }) {
+  return (
+    <div className="text-center space-y-1 py-2">
+      {/* Tapered Gold Lines with Centered Subtitle */}
+      <div className="flex items-center justify-center gap-3 max-w-[280px] sm:max-w-md mx-auto">
+        <span className="h-[1.5px] flex-1 bg-gradient-to-r from-transparent via-[#D4AF37]/80 to-[#D4AF37]" />
+        <span className="text-[10px] sm:text-xs font-bold tracking-[0.22em] uppercase text-[#D4AF37] whitespace-nowrap">
+          {subtitle}
+        </span>
+        <span className="h-[1.5px] flex-1 bg-gradient-to-l from-transparent via-[#D4AF37]/80 to-[#D4AF37]" />
+      </div>
+
+      {/* Main Centered Title in Royal Maroon Serif */}
+      <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-extrabold text-[#68081C] tracking-[0.06em] uppercase leading-tight">
+        {title}
+      </h2>
+
+      {actionText && (
+        <button
+          onClick={onAction}
+          className="text-[11px] font-bold text-[#68081C] hover:text-[#D4AF37] inline-flex items-center gap-1 transition-colors cursor-pointer pt-0.5"
+        >
+          <span>{actionText}</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { products, categories } = useStoreData();
@@ -298,17 +329,16 @@ export default function HomePage() {
       </section>
 
       {/* 4. THE SAVINGS EDIT (EXACT KOSKII 2x2 CURATED PROMO GRID) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
-        {/* Title Lockup */}
-        <div className="text-center space-y-1">
-          <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-extrabold text-[#68081C] tracking-[0.15em] uppercase">
-            THE SAVINGS EDIT
-          </h2>
-          <div className="w-12 h-0.5 bg-[#D4AF37] mx-auto"></div>
-        </div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-3">
+        <LuxurySectionHeading
+          subtitle="Curated Weaver Offers"
+          title="THE SAVINGS EDIT"
+          actionText="View All Offers"
+          onAction={() => navigate('/shop')}
+        />
 
         {/* 2x2 Grid on Mobile & 4-Column on Desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pt-2">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pt-1">
           {savingsEditTiles.map((tile, idx) => (
             <div
               key={idx}
@@ -325,12 +355,12 @@ export default function HomePage() {
               {/* Dark Gradient Overlay for Readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
 
-              {/* Inlaid Gold Filigree Border (Koskii Signature) */}
+              {/* Inlaid Gold Filigree Border */}
               <div className="absolute inset-2.5 rounded-xl border border-[#D4AF37]/80 pointer-events-none group-hover:border-[#F6D55C] transition-colors" />
 
-              {/* Tile Content (Bottom Left) */}
-              <div className="absolute bottom-4 left-4 right-4 text-center z-10 space-y-0.5">
-                <span className="font-serif text-xs sm:text-sm font-bold text-white tracking-wider block drop-shadow-md">
+              {/* Tile Content (Bottom Center) */}
+              <div className="absolute bottom-4 left-3 right-3 text-center z-10 space-y-0.5">
+                <span className="font-serif text-[11px] sm:text-sm font-bold text-white tracking-wider block drop-shadow-md">
                   {tile.title}
                 </span>
                 <span className="font-sans text-xs sm:text-sm font-black text-[#F6D55C] tracking-wide block drop-shadow-lg">
@@ -342,82 +372,50 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. THE ROYAL BRIDAL EDIT (PRODUCTS START IMMEDIATELY) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-4">
-        <div className="flex items-end justify-between border-b border-[#F3E5AB]/60 pb-2.5">
-          <div>
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37] block">
-              Pure Silk Heritage
-            </span>
-            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C] tracking-wide">
-              THE ROYAL BRIDAL EDIT
-            </h2>
-          </div>
-          <button
-            onClick={() => navigate('/shop?category=dharmavaram-pure-pattu')}
-            className="text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer"
-          >
-            See All <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+      {/* 5. THE ROYAL BRIDAL EDIT */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-3">
+        <LuxurySectionHeading
+          subtitle="Pure Silk Heritage"
+          title="ROYAL BRIDAL SAREES"
+          actionText="See All Bridal"
+          onAction={() => navigate('/shop?category=dharmavaram-pure-pattu')}
+        />
 
         {/* 2-Column Mobile Product Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pt-1">
           {bridalPattu.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
 
+      {/* 6. EVERYDAY HANDLOOMS & COTTON EDIT */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-3">
+        <LuxurySectionHeading
+          subtitle="Breathable Comfort"
+          title="HANDLOOM COTTON & KALAMKARI"
+          actionText="See All Cottons"
+          onAction={() => navigate('/shop?category=kalamkari-cotton')}
+        />
 
-
-      {/* 7. EVERYDAY HANDLOOMS & COTTON EDIT */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-        <div className="flex items-end justify-between border-b border-[#F3E5AB]/60 pb-2.5">
-          <div>
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37] block">
-              Breathable Comfort
-            </span>
-            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C] tracking-wide">
-              HANDLOOM COTTON & KALAMKARI
-            </h2>
-          </div>
-          <button
-            onClick={() => navigate('/shop?category=kalamkari-cotton')}
-            className="text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer"
-          >
-            See All <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pt-1">
           {everydayCotton.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
 
-      {/* 8. TRENDING NOW (HORIZONTAL PRODUCT SCROLL) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-4">
-        <div className="flex items-end justify-between border-b border-[#F3E5AB]/60 pb-2.5">
-          <div>
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37] block">
-              Customer Favorites
-            </span>
-            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C] tracking-wide">
-              TRENDING NOW
-            </h2>
-          </div>
-          <button
-            onClick={() => navigate('/shop')}
-            className="text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer"
-          >
-            View All <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+      {/* 7. TRENDING NOW (HORIZONTAL PRODUCT SCROLL) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-3">
+        <LuxurySectionHeading
+          subtitle="Customer Favorites"
+          title="TRENDING NOW"
+          actionText="View All Trending"
+          onAction={() => navigate('/shop')}
+        />
 
         {/* Horizontal Smooth Scroll for Trending Products */}
-        <div className="flex gap-3.5 sm:gap-5 overflow-x-auto pb-4 hide-scroll snap-x items-stretch">
+        <div className="flex gap-3.5 sm:gap-5 overflow-x-auto pb-4 hide-scroll snap-x items-stretch pt-1">
           {trendingSarees.map((product) => (
             <div key={product.id} className="w-[185px] sm:w-[225px] shrink-0 snap-start flex flex-col">
               <ProductCard product={product} />
@@ -426,7 +424,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 9. TRUST BADGES / USP CAPSULE */}
+      {/* 8. TRUST BADGES / USP CAPSULE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 bg-white border border-[#F3E5AB]/70 rounded-3xl p-5 sm:p-7 shadow-xs">
           <div className="flex items-center gap-3">
@@ -470,7 +468,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }
