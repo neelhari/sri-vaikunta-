@@ -16,18 +16,23 @@ import { useStoreData } from '../../context/StoreDataContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
-  const { products, orders, refreshOrders } = useStoreData();
+  const { products = [], orders = [], refreshOrders } = useStoreData();
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('30');
 
   useEffect(() => {
-    refreshOrders();
+    if (typeof refreshOrders === 'function') {
+      refreshOrders();
+    }
   }, [refreshOrders]);
 
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeProducts = Array.isArray(products) ? products : [];
+
   // Compute REAL metrics from StoreDataContext
-  const totalSales = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  const pendingOrders = orders.filter((o) => o.status === 'Pending' || o.status === 'Confirmed').length;
-  const lowStockProducts = products.filter((p) => (p.stock || 5) <= 3);
+  const totalSales = safeOrders.reduce((sum, o) => sum + (o?.totalAmount || 0), 0);
+  const pendingOrders = safeOrders.filter((o) => o?.status === 'Pending' || o?.status === 'Confirmed').length;
+  const lowStockProducts = safeProducts.filter((p) => (p?.stock || 5) <= 3);
 
   const kpis = [
     {

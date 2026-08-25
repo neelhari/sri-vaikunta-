@@ -18,7 +18,7 @@ import { useStoreData } from '../../context/StoreDataContext';
 import ClothingProductModal from '../components/ClothingProductModal';
 
 export default function AdminProducts() {
-  const { products, categories, addProduct, updateProduct, deleteProduct } = useStoreData();
+  const { products = [], categories = [], addProduct, updateProduct, deleteProduct } = useStoreData();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,11 +26,14 @@ export default function AdminProducts() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [saving, setSaving] = useState(false);
 
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   // Filter products
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = safeProducts.filter((p) => {
     const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
+      (p?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (p?.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

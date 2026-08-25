@@ -69,7 +69,16 @@ export function AdminAuthProvider({ children }) {
       if (active) setLoading(false);
     };
 
-    supabase.auth.getSession().then(({ data }) => resolve(data.session));
+    // Safety timeout: ensure loading turns false within 1 second even if network is slow
+    const timer = setTimeout(() => {
+      if (active) setLoading(false);
+    }, 1000);
+
+    supabase.auth.getSession()
+      .then(({ data }) => resolve(data?.session))
+      .catch(() => {
+        if (active) setLoading(false);
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       resolve(newSession);
@@ -77,7 +86,10 @@ export function AdminAuthProvider({ children }) {
 
     return () => {
       active = false;
-      listener.subscription.unsubscribe();
+      clearTimeout(timer);
+      if (listener?.subscription) {
+        listener.subscription.unsubscribe();
+      }
     };
   }, []);
 

@@ -13,7 +13,6 @@ import { UIProvider } from './context/UIContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import MobileBottomNav from './components/MobileBottomNav';
-import WhatsAppFloatingButton from './components/WhatsAppFloatingButton';
 import CartDrawer from './components/CartDrawer';
 import WishlistDrawer from './components/WishlistDrawer';
 import SearchModal from './components/SearchModal';
@@ -118,29 +117,27 @@ function AppContent() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/account" element={<AccountPage />} />
 
-          {/* Admin Panel CMS Shell Routes — gated by real Supabase Auth + admin_users allowlist */}
-          <Route element={<AdminAuthProvider><Outlet /></AdminAuthProvider>}>
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedAdminRoute>
-                  <AdminLayout />
-                </ProtectedAdminRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="products" element={<AdminProducts />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="inventory" element={<AdminInventory />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="customers" element={<AdminCustomers />} />
-              <Route path="coupons" element={<AdminCoupons />} />
-              <Route path="banners" element={<AdminBanners />} />
-              <Route path="messages" element={<AdminMessages />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="*" element={<AdminDashboard />} />
-            </Route>
+          {/* Admin Panel CMS Shell Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedAdminRoute>
+                <AdminLayout />
+              </ProtectedAdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="banners" element={<AdminBanners />} />
+            <Route path="messages" element={<AdminMessages />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="*" element={<AdminDashboard />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
@@ -153,7 +150,6 @@ function AppContent() {
           <CartDrawer />
           <WishlistDrawer />
           <SearchModal />
-          <WhatsAppFloatingButton />
           <Footer />
           <MobileBottomNav />
         </>
@@ -167,13 +163,15 @@ export default function App() {
     <BrowserRouter>
       <StoreDataProvider>
         <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <UIProvider>
-                <AppContent />
-              </UIProvider>
-            </WishlistProvider>
-          </CartProvider>
+          <AdminAuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <UIProvider>
+                  <AppContent />
+                </UIProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </AdminAuthProvider>
         </AuthProvider>
       </StoreDataProvider>
     </BrowserRouter>
