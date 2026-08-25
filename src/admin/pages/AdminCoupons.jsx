@@ -143,20 +143,33 @@ export default function AdminCoupons() {
                       )}
                     </td>
 
-                    {/* Active / Disabled Toggle Switch Button */}
+                    {/* Dynamic Animated Sliding Toggle Switch */}
                     <td className="p-4 text-center">
-                      <button
-                        onClick={() => handleToggleActive(c)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-2xs ${
-                          c.active
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
-                            : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'
-                        }`}
-                        title="Click to toggle status"
-                      >
-                        <span className={`w-2 h-2 rounded-full ${c.active ? 'bg-emerald-600 animate-pulse' : 'bg-gray-400'}`} />
-                        <span>{c.active ? '● Active on Checkout' : '○ Disabled'}</span>
-                      </button>
+                      <div className="inline-flex items-center justify-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(c)}
+                          className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors duration-300 focus:outline-none cursor-pointer p-0.5 shadow-2xs ${
+                            c.active ? 'bg-emerald-600' : 'bg-gray-300'
+                          }`}
+                          title={c.active ? 'Click to Disable Coupon' : 'Click to Activate Coupon'}
+                        >
+                          <span
+                            className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform duration-300 ease-in-out shadow-sm flex items-center justify-center text-[9px] font-black ${
+                              c.active ? 'translate-x-6 text-emerald-600' : 'translate-x-0 text-gray-400'
+                            }`}
+                          >
+                            {c.active ? '✓' : ''}
+                          </span>
+                        </button>
+                        <span
+                          className={`text-xs font-bold min-w-[50px] text-left transition-colors ${
+                            c.active ? 'text-emerald-700 font-extrabold' : 'text-gray-400'
+                          }`}
+                        >
+                          {c.active ? 'Active' : 'Off'}
+                        </span>
+                      </div>
                     </td>
 
                     {/* Actions */}
