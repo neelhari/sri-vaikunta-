@@ -49,18 +49,6 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const getPageTitle = () => {
-    if (location.pathname.startsWith('/categories')) return 'Collections';
-    if (location.pathname.startsWith('/shop')) return 'All Sarees';
-    if (location.pathname.startsWith('/product')) return 'Saree Details';
-    if (location.pathname.startsWith('/cart')) return 'My Bag';
-    if (location.pathname.startsWith('/wishlist')) return 'Wishlist';
-    if (location.pathname.startsWith('/account')) return 'My Account';
-    if (location.pathname.startsWith('/contact')) return 'Contact Us';
-    if (location.pathname.startsWith('/our-story')) return 'Our Story';
-    return 'Sri Vaikunta';
-  };
-
   // Determine if header should be transparent (only on homepage at top on mobile/desktop)
   const isTransparent = isHomePage && !isScrolled;
 
@@ -69,14 +57,14 @@ export default function Navbar() {
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 font-sans ${
         isTransparent
           ? 'bg-gradient-to-b from-black/80 via-black/40 to-transparent text-white border-transparent'
-          : 'bg-white shadow-sm border-b border-gray-100 text-gray-900'
+          : 'bg-white shadow-xs border-b border-gray-100 text-gray-900'
       }`}
     >
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 xl:py-3">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           
-          {/* Left Navigation: Full Brand Lockup on Homepage; Sleek Back Button on Inner Mobile Pages */}
+          {/* Left Navigation: Full Brand Lockup on Homepage; ONLY Back Button on Inner Pages */}
           {isHomePage ? (
             <div
               onClick={() => goTo('/')}
@@ -108,38 +96,15 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            /* Inner Pages Mobile Header Lockup */
-            <div className="flex items-center gap-2.5 shrink-0">
-              {/* Back Arrow Button */}
+            /* Inner Pages Mobile Header: ONLY Back Arrow Button */
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => navigate(-1)}
-                className="p-1.5 -ml-1.5 rounded-full hover:bg-gray-100 text-gray-700 hover:text-[#68081C] transition-colors cursor-pointer"
+                className="p-1.5 -ml-1 rounded-full hover:bg-gray-100 text-gray-800 hover:text-[#68081C] transition-colors cursor-pointer flex items-center gap-1"
                 title="Go Back"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-
-              {/* Compact Logo + Title */}
-              <div
-                onClick={() => goTo('/')}
-                className="cursor-pointer flex items-center gap-2 group"
-              >
-                <div className="h-8 w-8 rounded-full overflow-hidden shrink-0">
-                  <img
-                    src="/logo-circle.png"
-                    alt={BRAND.fullName}
-                    className="h-full w-full object-cover rounded-full"
-                  />
-                </div>
-                <div className="flex flex-col justify-center">
-                  <span className="font-serif font-bold text-sm sm:text-lg text-[#68081C] leading-tight">
-                    {getPageTitle()}
-                  </span>
-                  <span className="text-[7.5px] uppercase tracking-[0.18em] text-[#D4AF37] font-semibold block leading-none">
-                    SRI VAIKUNTA
-                  </span>
-                </div>
-              </div>
             </div>
           )}
 

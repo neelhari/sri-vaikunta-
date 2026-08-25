@@ -133,21 +133,15 @@ export default function ProductDetailPage() {
 
   return (
     <div className="pb-28 xl:pb-12">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-1.5 text-xs text-gray-500 flex-wrap px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-3 pb-2" aria-label="Breadcrumb">
-        <Link to="/" className="hover:text-[#6B1518] transition-colors">Home</Link>
-        <ChevronRight className="w-3 h-3 text-gray-300" />
-        <Link to="/shop" className="hover:text-[#6B1518] transition-colors">Shop</Link>
-        {categoryMeta && (
-          <>
-            <ChevronRight className="w-3 h-3 text-gray-300" />
-            <Link to={`/shop?category=${categoryMeta.id}`} className="hover:text-[#6B1518] transition-colors">
-              {categoryMeta.name}
-            </Link>
-          </>
-        )}
-        <ChevronRight className="w-3 h-3 text-gray-300" />
-        <span className="text-[#6B1518] font-semibold line-clamp-1">{product.name}</span>
+      {/* Clean Single-Line Breadcrumbs */}
+      <nav className="flex items-center gap-1 text-[11px] sm:text-xs text-gray-500 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-2 pb-2" aria-label="Breadcrumb">
+        <Link to="/" className="hover:text-[#68081C] transition-colors shrink-0">Home</Link>
+        <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+        <Link to={`/categories?category=${product.category}`} className="hover:text-[#68081C] transition-colors truncate max-w-[130px] sm:max-w-none">
+          {categoryMeta?.name ? categoryMeta.name.replace(' Sarees', '') : 'Sarees'}
+        </Link>
+        <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+        <span className="text-[#68081C] font-semibold truncate max-w-[140px] sm:max-w-xs">{product.name}</span>
       </nav>
 
       <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -158,7 +152,7 @@ export default function ProductDetailPage() {
               <div
                 ref={galleryRef}
                 onScroll={handleGalleryScroll}
-                className="flex overflow-x-auto snap-x snap-mandatory hide-scroll aspect-[4/5] md:rounded-2xl md:overflow-hidden bg-[#FAF5EE]"
+                className="flex overflow-x-auto snap-x snap-mandatory hide-scroll h-[46vh] sm:h-[520px] md:aspect-[4/5] md:rounded-2xl md:overflow-hidden bg-[#FAF5EE]"
               >
                 {mediaItems.map((item, idx) => (
                   <div key={idx} className="w-full h-full shrink-0 snap-start relative bg-black/5 flex items-center justify-center">
