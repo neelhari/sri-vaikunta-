@@ -8,6 +8,23 @@ import { BRAND, waLink } from '../config/brand';
 // Exact 8-Cusped Royal Koskii Scalloped Arch Path (Normalized to 100x100 box)
 const KOSKII_ARCH_PATH = "M 50,4 C 57,4 62,11 68,12 C 74,13 80,8 86,14 C 92,20 87,26 88,32 C 89,38 96,43 96,50 C 96,57 89,62 88,68 C 87,74 92,80 86,86 C 80,92 74,87 68,88 C 62,89 57,96 50,96 C 43,96 38,89 32,88 C 26,87 20,92 14,86 C 8,80 13,74 12,68 C 11,62 4,57 4,50 C 4,43 11,38 12,32 C 13,26 8,20 14,14 C 20,8 26,13 32,12 C 38,11 43,4 50,4 Z";
 
+const shortCategoryNames = {
+  'dharmavaram-pure-pattu': 'Dharmavaram\nPure Pattu',
+  'dharmavaram-semi-pattu': 'Dharmavaram\nSemi Pattu',
+  'pochampally-pattu': 'Pochampally\nPattu',
+  'banarasi-sarees': 'Banarasi Silk',
+  'semi-gadwal-sarees': 'Semi Gadwal',
+  'mangalgiri-digital-print': 'Mangalgiri',
+  'kalamkari-cotton': 'Kalamkari',
+  'cotton-sarees': 'Handloom Cotton',
+  'kota-sarees': 'Kota Sarees',
+  'mysore-sarees': 'Mysore Silk',
+  'ikkat-sarees': 'Ikkat Sarees',
+  'chinnon-sarees': 'Chinnon',
+  'fancy-sarees': 'Fancy Sarees',
+  'ho-sarees': 'HO Specials',
+};
+
 // Centered Mobile-First Luxury Section Heading (Exact Reference UI)
 function LuxurySectionHeading({ subtitle, title, actionText, onAction }) {
   return (
@@ -289,41 +306,44 @@ export default function HomePage() {
             </div>
 
             {/* Saree Categories in Scalloped Jharokha Frames with Pure Fabric Crops */}
-            {categories.map((cat) => (
-              <div
-                key={cat.id}
-                onClick={() => navigate(`/categories?category=${cat.id}`)}
-                className="flex flex-col items-center shrink-0 w-[88px] sm:w-28 group cursor-pointer snap-start text-center"
-              >
-                <div className="w-[82px] h-[82px] sm:w-[96px] sm:h-[96px] relative group-hover:scale-108 transition-transform drop-shadow-md">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <image
-                      href={cat.image}
-                      clipPath="url(#koskii-scallop-clip)"
-                      width="100"
-                      height="100"
-                      preserveAspectRatio="xMidYMid slice"
-                    />
-                    <path
-                      d={KOSKII_ARCH_PATH}
-                      fill="none"
-                      stroke="#D4AF37"
-                      strokeWidth="2.8"
-                    />
-                    <path
-                      d={KOSKII_ARCH_PATH}
-                      fill="none"
-                      stroke="#FFFDF9"
-                      strokeWidth="1"
-                      opacity="0.7"
-                    />
-                  </svg>
+            {categories.map((cat) => {
+              const shortName = shortCategoryNames[cat.id] || cat.name.replace(' Sarees', '');
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => navigate(`/categories?category=${cat.id}`)}
+                  className="flex flex-col items-center shrink-0 w-[84px] sm:w-28 group cursor-pointer snap-start text-center"
+                >
+                  <div className="w-[78px] h-[78px] sm:w-[96px] sm:h-[96px] relative group-hover:scale-108 transition-transform drop-shadow-md">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <image
+                        href={cat.image}
+                        clipPath="url(#koskii-scallop-clip)"
+                        width="100"
+                        height="100"
+                        preserveAspectRatio="xMidYMid slice"
+                      />
+                      <path
+                        d={KOSKII_ARCH_PATH}
+                        fill="none"
+                        stroke="#D4AF37"
+                        strokeWidth="2.8"
+                      />
+                      <path
+                        d={KOSKII_ARCH_PATH}
+                        fill="none"
+                        stroke="#FFFDF9"
+                        strokeWidth="1"
+                        opacity="0.7"
+                      />
+                    </svg>
+                  </div>
+                  <span className="mt-2 text-[9.5px] sm:text-xs font-bold text-gray-800 line-clamp-2 leading-[1.15] group-hover:text-[#68081C] transition-colors uppercase tracking-tight whitespace-pre-line text-center">
+                    {shortName}
+                  </span>
                 </div>
-                <span className="mt-2 text-[11px] sm:text-xs font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-[#68081C] transition-colors uppercase tracking-tight">
-                  {cat.name.replace(' Sarees', '')}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

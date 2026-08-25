@@ -5,6 +5,23 @@ import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
 import { BRAND } from '../config/brand';
 
+const shortCategoryNames = {
+  'dharmavaram-pure-pattu': 'Dharmavaram\nPure Pattu',
+  'dharmavaram-semi-pattu': 'Dharmavaram\nSemi Pattu',
+  'pochampally-pattu': 'Pochampally\nPattu',
+  'banarasi-sarees': 'Banarasi Silk',
+  'semi-gadwal-sarees': 'Semi Gadwal',
+  'mangalgiri-digital-print': 'Mangalgiri',
+  'kalamkari-cotton': 'Kalamkari',
+  'cotton-sarees': 'Handloom Cotton',
+  'kota-sarees': 'Kota Sarees',
+  'mysore-sarees': 'Mysore Silk',
+  'ikkat-sarees': 'Ikkat Sarees',
+  'chinnon-sarees': 'Chinnon',
+  'fancy-sarees': 'Fancy Sarees',
+  'ho-sarees': 'HO Specials',
+};
+
 export default function CategoriesPage() {
   const navigate = useNavigate();
   const { categories, products } = useStoreData();
@@ -101,18 +118,19 @@ export default function CategoriesPage() {
       {/* 3. HORIZONTAL SQUARE-CURVE (SQUIRCLE) CATEGORY BAR */}
       <div className="sticky top-[58px] z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs py-3">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-3.5 sm:gap-5 overflow-x-auto pb-1 hide-scroll snap-x items-start">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-1 px-1 hide-scroll snap-x items-start">
             {categories.map((cat) => {
               const isSelected = !searchQuery && selectedCatId === cat.id;
+              const shortName = shortCategoryNames[cat.id] || cat.name.replace(' Sarees', '');
               return (
                 <div
                   key={cat.id}
                   onClick={() => handleCategorySelect(cat.id)}
-                  className="flex flex-col items-center shrink-0 w-[74px] sm:w-22 group cursor-pointer snap-start text-center transition-all"
+                  className="flex flex-col items-center shrink-0 w-[82px] sm:w-[92px] group cursor-pointer snap-start text-center transition-all px-0.5"
                 >
                   {/* Clean Rounded-Square (Squircle) Avatar */}
                   <div
-                    className={`w-[66px] h-[66px] sm:w-[78px] sm:h-[78px] rounded-2xl overflow-hidden p-[2px] transition-all duration-300 ${
+                    className={`w-[66px] h-[66px] sm:w-[76px] sm:h-[76px] rounded-2xl overflow-hidden p-[2px] transition-all duration-300 ${
                       isSelected
                         ? 'bg-[#68081C] ring-2 ring-[#D4AF37] scale-105 shadow-md'
                         : 'bg-[#FAF5EE] border border-gray-200 opacity-90 hover:opacity-100 hover:scale-103'
@@ -127,13 +145,13 @@ export default function CategoriesPage() {
                     </div>
                   </div>
 
-                  {/* Clean Category Label */}
+                  {/* Clean Non-Overlapping Category Label (Formatted across 2 lines) */}
                   <span
-                    className={`mt-1.5 text-[10px] sm:text-[11px] font-bold line-clamp-2 leading-tight uppercase transition-colors ${
+                    className={`mt-1.5 text-[9.5px] sm:text-[10.5px] font-bold text-center leading-[1.15] uppercase tracking-tight whitespace-pre-line transition-colors ${
                       isSelected ? 'text-[#68081C] font-extrabold' : 'text-gray-700'
                     }`}
                   >
-                    {cat.name.replace(' Sarees', '')}
+                    {shortName}
                   </span>
                 </div>
               );
