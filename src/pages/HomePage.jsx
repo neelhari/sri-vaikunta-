@@ -12,19 +12,41 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { products, categories } = useStoreData();
 
-  const sliderImages = [
-    '/slider/hero_saree_model.png'
+  const heroSlides = [
+    {
+      image: '/slider/hero_slide_1.png',
+      badge: 'The Grand Festive Heritage Sale',
+      title: 'ROYAL DHARMAVARAM\nPURE PATTU SAREES',
+      offer: 'FLAT 20% - 30% OFF WEAVER PRICES',
+      subtitle: 'Heavy Gold Zari Bridal & Festive Heritage Weaves.',
+      category: 'dharmavaram-pure-pattu',
+    },
+    {
+      image: '/slider/hero_slide_2.png',
+      badge: 'Festive Fashion Collection',
+      title: 'POCHAMPALLY & BRIDAL\nSILK ENSEMBLES',
+      offer: 'UP TO 30% OFF MASTER WEAVES',
+      subtitle: 'Artisan Double Ikkat Silk & Handwoven Drapes.',
+      category: 'pochampally-pattu',
+    },
+    {
+      image: '/slider/hero_slide_3.png',
+      badge: 'Royal Brocade Edition',
+      title: 'BANARASI & GADWAL\nHANDLOOM SAREES',
+      offer: 'DIRECT FROM MASTER WEAVERS',
+      subtitle: 'Kashi Antique Zari & Traditional Temple Borders.',
+      category: 'banarasi-sarees',
+    },
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    if (sliderImages.length <= 1) return;
     const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 4500);
     return () => clearInterval(slideInterval);
-  }, [sliderImages.length]);
+  }, [heroSlides.length]);
 
   // Curated collections for mobile sections
   const bridalPattu = products.filter(p => p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu').slice(0, 4);
@@ -59,6 +81,8 @@ export default function HomePage() {
     },
   ];
 
+  const activeSlide = heroSlides[currentSlide];
+
   return (
     <div className="pb-16 bg-[#FFFDF9] min-h-screen font-sans">
       {/* GLOBAL SVG DEFINITIONS FOR KOSKII SCALLOPED ARCH CLIP */}
@@ -70,16 +94,16 @@ export default function HomePage() {
         </defs>
       </svg>
 
-      {/* 1. FULL-BLEED HERO BANNER */}
+      {/* 1. FULL-BLEED HERO BANNER WITH 3 DISTINCT CATEGORY SLIDES */}
       <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white">
         <div
-          onClick={() => navigate('/shop')}
+          onClick={() => navigate(`/shop?category=${activeSlide.category}`)}
           className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group"
         >
-          {sliderImages.map((src, index) => (
+          {heroSlides.map((slide, index) => (
             <img
               key={index}
-              src={src}
+              src={slide.image}
               alt={`Sri Vaikunta Festive Saree Slide ${index + 1}`}
               className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-1000 ${
                 index === currentSlide ? 'opacity-95 scale-100' : 'opacity-0 scale-105 pointer-events-none'
@@ -93,31 +117,48 @@ export default function HomePage() {
           {/* Hero Festive Text Lockup */}
           <div className="relative z-10 space-y-2.5 max-w-lg mx-auto flex flex-col items-center">
             <span className="text-[10px] sm:text-xs font-serif italic text-[#F3E5AB] tracking-[0.25em] uppercase font-bold drop-shadow-md">
-              The Grand Festive Heritage Sale
+              {activeSlide.badge}
             </span>
 
-            <h1 className="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-xl text-white">
-              ROYAL PATTU <br className="hidden sm:inline" />& FESTIVE SAREES
+            <h1 className="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-xl text-white whitespace-pre-line">
+              {activeSlide.title}
             </h1>
 
             <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] px-3.5 py-1 rounded-full text-[10.5px] sm:text-xs font-black uppercase tracking-wider shadow-lg">
               <Flame className="w-3.5 h-3.5 fill-current" />
-              <span>FLAT 20% - 30% OFF WEAVER PRICES</span>
+              <span>{activeSlide.offer}</span>
             </div>
 
             <p className="text-[11px] sm:text-xs text-gray-200 max-w-xs sm:max-w-md line-clamp-2 drop-shadow">
-              Dharmavaram Pure Pattu, Pochampally Silk, Banarasi Brocade & Handloom Cottons.
+              {activeSlide.subtitle}
             </p>
 
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate('/shop');
+                navigate(`/shop?category=${activeSlide.category}`);
               }}
               className="mt-2 bg-white hover:bg-[#FAF5EE] text-[#68081C] font-extrabold text-xs sm:text-sm tracking-widest uppercase px-9 py-3.5 rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#D4AF37]/40"
             >
               SHOP NOW
             </button>
+
+            {/* Pagination Indicators */}
+            <div className="pt-2 flex items-center justify-center gap-2">
+              {heroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentSlide(idx);
+                  }}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx === currentSlide ? 'w-7 bg-[#D4AF37]' : 'w-2 bg-white/60 hover:bg-white'
+                  }`}
+                  aria-label={`Slide ${idx + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
