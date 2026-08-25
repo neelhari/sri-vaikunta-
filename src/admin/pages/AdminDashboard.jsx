@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
 import { useNavigate } from 'react-router-dom';
+import { BRAND } from '../../config/brand';
 
 export default function AdminDashboard() {
   const { products = [], orders = [], refreshOrders } = useStoreData();

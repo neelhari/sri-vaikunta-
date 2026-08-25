@@ -71,12 +71,18 @@ export default function ProductCard({ product }) {
           <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-red-500' : ''}`} />
         </button>
 
-        {/* Discount Badge */}
-        {product.discount && (
+        {/* Discount / Sold Out Badge */}
+        {product.stock !== undefined && product.stock <= 0 ? (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
+            <span className="bg-red-600 text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+              SOLD OUT
+            </span>
+          </div>
+        ) : product.discount ? (
           <span className="absolute bottom-2 right-2 z-10 bg-[#6B1518] text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
             {product.discount}
           </span>
-        )}
+        ) : null}
       </div>
 
       {/* Product Information */}
@@ -115,23 +121,34 @@ export default function ProductCard({ product }) {
 
         {/* Add to Cart & Buy Now Actions */}
         <div className="flex items-center gap-1.5 pt-1">
-          <button
-            onClick={handleAddToCart}
-            title="Add to Cart"
-            className="flex-1 min-w-0 bg-white hover:bg-gray-50 text-[#6B1518] border border-[#6B1518] text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
-          >
-            <ShoppingBag className="w-3 h-3 shrink-0" />
-            <span className="sm:hidden">Add</span>
-            <span className="hidden sm:inline">Add to Cart</span>
-          </button>
-          <button
-            onClick={handleBuyNow}
-            title="Buy Now"
-            className="flex-1 min-w-0 bg-[#6B1518] hover:bg-[#4B0F11] text-white text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-1.5 rounded-lg flex items-center justify-center gap-1 shadow-2xs transition-colors"
-          >
-            <Zap className="w-3 h-3 shrink-0 fill-current" />
-            <span>Buy Now</span>
-          </button>
+          {product.stock !== undefined && product.stock <= 0 ? (
+            <button
+              disabled
+              className="w-full bg-gray-100 text-gray-400 border border-gray-200 text-[10px] sm:text-xs font-bold py-2 rounded-lg cursor-not-allowed text-center uppercase tracking-wider"
+            >
+              Sold Out
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleAddToCart}
+                title="Add to Cart"
+                className="flex-1 min-w-0 bg-white hover:bg-gray-50 text-[#6B1518] border border-[#6B1518] text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <ShoppingBag className="w-3 h-3 shrink-0" />
+                <span className="sm:hidden">Add</span>
+                <span className="hidden sm:inline">Add to Cart</span>
+              </button>
+              <button
+                onClick={handleBuyNow}
+                title="Buy Now"
+                className="flex-1 min-w-0 bg-[#6B1518] hover:bg-[#4B0F11] text-white text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-1.5 rounded-lg flex items-center justify-center gap-1 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Zap className="w-3 h-3 shrink-0 fill-current" />
+                <span>Buy Now</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

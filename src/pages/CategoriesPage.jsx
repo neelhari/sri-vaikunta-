@@ -23,13 +23,22 @@ const shortCategoryNames = {
 };
 
 export default function CategoriesPage() {
+  const { categories, products, promotions = {} } = useStoreData();
   const navigate = useNavigate();
-  const { categories, products } = useStoreData();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   
-  const [selectedCatId, setSelectedCatId] = useState(categoryParam || (categories[0]?.id || 'dharmavaram-pure-pattu'));
+  const [selectedCatId, setSelectedCatId] = useState(
+    categoryParam || (categories.length > 0 ? categories[0].id : 'dharmavaram-pure-pattu')
+  );
   const [searchQuery, setSearchQuery] = useState('');
+
+  const catHero = promotions?.categoryHero || {
+    image: '/slider/hero_saree_model.png',
+    badge: 'THE HERITAGE EDIT',
+    title: 'Royal Saree Collections',
+    subtitle: '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu',
+  };
 
   // Sync state if URL changes (e.g. from homepage navigation)
   useEffect(() => {
@@ -51,7 +60,7 @@ export default function CategoriesPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const displayProducts = categoryProducts.length > 0 ? categoryProducts : products.slice(0, 6);
+  const displayProducts = categoryProducts;
 
   const handleCategorySelect = (id) => {
     setSelectedCatId(id);
@@ -64,8 +73,8 @@ export default function CategoriesPage() {
       {/* 1. LUXURY MOBILE-FIRST BRIDAL HERO BANNER */}
       <div className="relative w-full h-44 sm:h-60 md:h-72 overflow-hidden bg-[#250208] text-white shadow-md">
         <img
-          src="/slider/hero_saree_model.png"
-          alt="Sri Vaikunta Bridal Saree Collections"
+          src={catHero.image || '/slider/hero_saree_model.png'}
+          alt={catHero.title || 'Sri Vaikunta Bridal Saree Collections'}
           className="absolute inset-0 w-full h-full object-cover object-top opacity-90"
         />
 
@@ -78,17 +87,19 @@ export default function CategoriesPage() {
 
         {/* Text Overlay Content */}
         <div className="relative z-10 h-full max-w-7xl mx-auto px-6 sm:px-10 flex flex-col justify-center items-start space-y-1 sm:space-y-2">
-          <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] text-[9px] sm:text-[11px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full shadow-md">
-            <Flame className="w-3 h-3 fill-current" />
-            <span>THE HERITAGE EDIT</span>
-          </div>
+          {catHero.badge && (
+            <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] text-[9px] sm:text-[11px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full shadow-md">
+              <Flame className="w-3 h-3 fill-current" />
+              <span>{catHero.badge}</span>
+            </div>
+          )}
 
-          <h1 className="font-serif text-2xl sm:text-4xl font-extrabold text-white tracking-wide leading-tight drop-shadow-xl">
-            Royal Saree Collections
+          <h1 className="font-serif text-2xl sm:text-4xl font-extrabold text-white tracking-wide leading-tight drop-shadow-xl whitespace-pre-line">
+            {catHero.title || 'Royal Saree Collections'}
           </h1>
 
           <p className="text-[11px] sm:text-xs text-[#F3E5AB] max-w-xs sm:max-w-md line-clamp-1 font-medium drop-shadow">
-            14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu
+            {catHero.subtitle || '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu'}
           </p>
         </div>
       </div>
@@ -173,25 +184,61 @@ export default function CategoriesPage() {
                 : 'Saree Collection'}
             </h2>
             <span className="text-[10px] sm:text-xs text-[#D4AF37] font-bold shrink-0">
-              ({categoryProducts.length})
+              ({displayProducts.length})
             </span>
           </div>
 
-          <button
-            onClick={() => navigate(`/shop?category=${selectedCategory.id}`)}
-            className="text-[11px] sm:text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap bg-[#FDF5F6] px-3 py-1 rounded-full border border-[#F5D8DD]"
-          >
-            <span>View All</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
+          {displayProducts.length > 0 && (
+            <button
+              onClick={() => navigate(`/shop?category=${selectedCategory.id}`)}
+              className="text-[11px] sm:text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap bg-[#FDF5F6] px-3 py-1 rounded-full border border-[#F5D8DD]"
+            >
+              <span>View All</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          )}
         </div>
 
-        {/* Dynamic 2-Column Mobile Product Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {displayProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {/* Dynamic 2-Column Mobile Product Grid or Honest Empty State */}
+        {displayProducts.length === 0 ? (
+          <div className="text-center py-12 px-4 bg-white rounded-3xl border border-[#F3E5AB]/60 shadow-2xs space-y-3.5 my-4">
+            <div className="w-14 h-14 rounded-full bg-[#FDF5F6] text-[#68081C] flex items-center justify-center mx-auto shadow-2xs border border-[#F5D8DD]">
+              <Sparkles className="w-6 h-6 text-[#D4AF37]" />
+            </div>
+            <div className="space-y-1 max-w-sm mx-auto">
+              <h3 className="font-serif text-lg sm:text-xl font-bold text-[#68081C]">
+                {searchQuery ? 'No Sarees Match Your Search' : 'New Weaves Arriving Soon'}
+              </h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {searchQuery
+                  ? `We couldn't find any sarees matching "${searchQuery}". Try searching for silk, pattu, or color.`
+                  : `Master weavers are crafting fresh ${selectedCategory.name || 'saree'} pieces. In the meantime, explore our other pure silk collections!`}
+              </p>
+            </div>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-2.5">
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="bg-[#FAF5EE] text-[#68081C] hover:bg-[#F3EAE0] px-4 py-2 rounded-full text-xs font-bold transition-all border border-[#D4AF37]/40 cursor-pointer"
+                >
+                  Clear Search
+                </button>
+              )}
+              <button
+                onClick={() => handleCategorySelect('dharmavaram-pure-pattu')}
+                className="bg-[#68081C] text-white hover:bg-[#4A0513] px-5 py-2 rounded-full text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                View Pure Pattu Sarees
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            {displayProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

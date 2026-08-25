@@ -37,8 +37,8 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] flex text-gray-900 font-sans antialiased">
-      {/* Desktop Persistent Sidebar */}
-      <div className="hidden lg:block shrink-0">
+      {/* Desktop Persistent Fixed Sidebar */}
+      <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-40">
         <AdminSidebar />
       </div>
 

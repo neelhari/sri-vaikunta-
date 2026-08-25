@@ -1,24 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Eye, CheckCircle2, Clock, Truck, XCircle, Search, Filter, Loader2 } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
+import { BRAND } from '../../config/brand';
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus, refreshOrders } = useStoreData();
+  const { orders = [], updateOrderStatus, refreshOrders } = useStoreData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    refreshOrders().finally(() => setLoading(false));
+    if (typeof refreshOrders === 'function') {
+      try {
+        const res = refreshOrders();
+        if (res && typeof res.finally === 'function') {
+          res.finally(() => setLoading(false));
+        }
+      } catch (e) {
+        setLoading(false);
+      }
+    }
   }, [refreshOrders]);
 
-  const filteredOrders = orders.filter((o) => {
+  const safeOrders = Array.isArray(orders) ? orders : [];
+
+  const filteredOrders = safeOrders.filter((o) => {
     const matchesSearch =
-      o.id.toLowerCase().includes(search.toLowerCase()) ||
-      o.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      o.customerPhone.includes(search);
-    const matchesStatus = statusFilter === 'all' || o.status === statusFilter;
+      (o?.id || '').toLowerCase().includes(search.toLowerCase()) ||
+      (o?.customerName || '').toLowerCase().includes(search.toLowerCase()) ||
+      (o?.customerPhone || '').includes(search);
+    const matchesStatus = statusFilter === 'all' || o?.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 

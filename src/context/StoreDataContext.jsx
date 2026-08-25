@@ -12,14 +12,111 @@ import { categories as defaultCategories } from '../data/categories';
 import { products as defaultProducts } from '../data/products';
 import { BRAND } from '../config/brand';
 
+const defaultHeroBanners = [
+  {
+    id: 'sv-ban-1',
+    image: '/slider/hero_slide_1.png',
+    badge: 'The Grand Festive Heritage Sale',
+    title: 'ROYAL DHARMAVARAM\nPURE PATTU SAREES',
+    offer: 'FLAT 20% - 30% OFF WEAVER PRICES',
+    subtitle: 'Heavy Gold Zari Bridal & Festive Heritage Weaves.',
+    link: '/categories?category=dharmavaram-pure-pattu',
+    active: true,
+  },
+  {
+    id: 'sv-ban-2',
+    image: '/slider/hero_slide_2.png',
+    badge: 'Festive Fashion Collection',
+    title: 'POCHAMPALLY & BRIDAL\nSILK ENSEMBLES',
+    offer: 'UP TO 30% OFF MASTER WEAVES',
+    subtitle: 'Artisan Double Ikkat Silk & Handwoven Drapes.',
+    link: '/categories?category=pochampally-pattu',
+    active: true,
+  },
+  {
+    id: 'sv-ban-3',
+    image: '/slider/hero_slide_3.png',
+    badge: 'Royal Brocade Edition',
+    title: 'BANARASI & GADWAL\nHANDLOOM SAREES',
+    offer: 'DIRECT FROM MASTER WEAVERS',
+    subtitle: 'Kashi Antique Zari & Traditional Temple Borders.',
+    link: '/categories?category=banarasi-sarees',
+    active: true,
+  },
+];
+
+const defaultPromotions = {
+  marqueeText: '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India',
+  marqueeActive: true,
+  savingsCards: [
+    {
+      id: 'sc-1',
+      title: 'Dharmavaram Pure Pattu',
+      subtitle: 'Royal Silk Weaves',
+      discount: 'UP TO 25% OFF',
+      image: '/products/cat_pure_pattu.jpg',
+      link: '/categories?category=dharmavaram-pure-pattu',
+    },
+    {
+      id: 'sc-2',
+      title: 'Pochampally Ikkat Silk',
+      subtitle: 'Heritage Geometric Drapes',
+      discount: '20% - 30% OFF',
+      image: '/products/cat_pochampally.jpg',
+      link: '/categories?category=pochampally-pattu',
+    },
+    {
+      id: 'sc-3',
+      title: 'Banarasi Brocade Silk',
+      subtitle: 'Intricate Antique Zari',
+      discount: 'FLAT 30% OFF',
+      image: '/products/cat_banarasi.jpg',
+      link: '/categories?category=banarasi-sarees',
+    },
+    {
+      id: 'sc-4',
+      title: 'Handloom Cotton & Silk',
+      subtitle: 'All-Day Festive Comfort',
+      discount: 'STARTING AT ₹1,299',
+      image: '/products/cat_kalamkari.jpg',
+      link: '/categories?category=cotton-sarees',
+    },
+  ],
+  categoryHero: {
+    image: '/slider/hero_saree_model.png',
+    badge: 'THE HERITAGE EDIT',
+    title: 'Royal Saree Collections',
+    subtitle: '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu',
+  },
+};
+
 const StoreDataContext = createContext();
 
 export function StoreDataProvider({ children }) {
   const [products, setProducts] = useState(defaultProducts);
   const [categories, setCategories] = useState(defaultCategories);
-  const [banners, setBanners] = useState([
-    { id: 'sv-ban-1', image: '/brand-splash-logo.jpg', active: true, title: BRAND.fullName }
-  ]);
+  const [banners, setBanners] = useState(defaultHeroBanners);
+  const [promotions, setPromotions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sv_promotions_cms');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Auto-heal broken slider/image copy paths
+        if (parsed?.savingsCards && Array.isArray(parsed.savingsCards)) {
+          parsed.savingsCards = parsed.savingsCards.map((sc, i) => {
+            if (sc.image && sc.image.includes('/slider/image copy')) {
+              return { ...sc, image: defaultPromotions.savingsCards[i]?.image || '/products/cat_pure_pattu.jpg' };
+            }
+            return sc;
+          });
+        }
+        return parsed;
+      }
+      return defaultPromotions;
+    } catch (e) {
+      return defaultPromotions;
+    }
+  });
   const [coupons, setCoupons] = useState([
     { id: 'cpn-1', code: 'SV10', type: 'percentage', discountValue: 10, minOrder: 1500, active: true }
   ]);
@@ -37,6 +134,17 @@ export function StoreDataProvider({ children }) {
     currency: '₹',
   });
   const [loading, setLoading] = useState(false);
+
+  const updatePromotions = (newPromos) => {
+    setPromotions((prev) => {
+      const updated = { ...prev, ...newPromos };
+      try {
+        localStorage.setItem('sv_promotions_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return { success: true };
+  };
 
   // Initial load — public-readable data from cloud if available
   useEffect(() => {
@@ -163,7 +271,25 @@ export function StoreDataProvider({ children }) {
   // ---------------- Orders ----------------
   const addOrder = async (orderData) => {
     const res = await saveOrderToSupabase(orderData);
-    if (res.success) setOrders((prev) => [res.data, ...prev]);
+    if (res.success) {
+      setOrders((prev) => [res.data, ...prev]);
+
+      // Automatically deduct purchased quantities from Supabase products & state
+      if (Array.isArray(orderData.items)) {
+        for (const item of orderData.items) {
+          if (item.id) {
+            const current = products.find((p) => p.id === item.id);
+            if (current) {
+              const newQty = Math.max(0, (current.stock ?? 1) - (item.quantity || 1));
+              updateProductInDb(item.id, { stock: newQty, inStock: newQty > 0 });
+              setProducts((prev) =>
+                prev.map((p) => (p.id === item.id ? { ...p, stock: newQty, inStock: newQty > 0 } : p))
+              );
+            }
+          }
+        }
+      }
+    }
     return res;
   };
 
@@ -187,6 +313,7 @@ export function StoreDataProvider({ children }) {
         products,
         categories,
         banners,
+        promotions,
         coupons,
         orders,
         messages,
@@ -201,6 +328,7 @@ export function StoreDataProvider({ children }) {
         addBanner,
         updateBanner,
         deleteBanner,
+        updatePromotions,
         addCoupon,
         updateCoupon,
         deleteCoupon,

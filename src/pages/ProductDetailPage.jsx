@@ -442,25 +442,23 @@ export default function ProductDetailPage() {
         )}
       </div>
 
-      {/* Sticky Mobile Bottom Bar — sits just above the persistent MobileBottomNav
-          (which is also fixed bottom-0 at the same z-index), not on top of it.
-          Offset accounts for the nav's own safe-area-inset-bottom padding too. */}
+      {/* Sticky Mobile Bottom Bar */}
       <div
-        className="fixed left-0 right-0 z-40 bg-white border-t border-gray-200 p-3 sm:hidden shadow-lg flex items-center gap-3"
+        className="fixed left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gray-200/90 p-2.5 sm:hidden shadow-xl flex items-center gap-2.5"
         style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
       >
         <button
           onClick={handleAddToCart}
-          className="flex-1 bg-white text-[#6B1518] border-2 border-[#6B1518] py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"
+          className="flex-1 bg-[#FAF5EE] hover:bg-[#F3EAE0] text-[#68081C] border border-[#D4AF37]/50 py-2.5 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
         >
           <ShoppingBag className="w-4 h-4" />
-          <span>Add to Cart</span>
+          <span>Add to Bag</span>
         </button>
         <button
           onClick={handleBuyNow}
-          className="flex-1 bg-[#6B1518] text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md"
+          className="flex-1 bg-[#68081C] hover:bg-[#4A0513] text-white py-2.5 rounded-full font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-98 transition-all cursor-pointer"
         >
-          <span>Buy Now</span>
+          <span>⚡ Buy Now</span>
         </button>
       </div>
     </div>

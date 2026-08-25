@@ -58,16 +58,16 @@ function LuxurySectionHeading({ subtitle, title, actionText, onAction }) {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { products, categories } = useStoreData();
+  const { products, categories, banners = [], promotions = {} } = useStoreData();
 
-  const heroSlides = [
+  const defaultHeroSlides = [
     {
       image: '/slider/hero_slide_1.png',
       badge: 'The Grand Festive Heritage Sale',
       title: 'ROYAL DHARMAVARAM\nPURE PATTU SAREES',
       offer: 'FLAT 20% - 30% OFF WEAVER PRICES',
       subtitle: 'Heavy Gold Zari Bridal & Festive Heritage Weaves.',
-      category: 'dharmavaram-pure-pattu',
+      link: '/categories?category=dharmavaram-pure-pattu',
     },
     {
       image: '/slider/hero_slide_2.png',
@@ -75,7 +75,7 @@ export default function HomePage() {
       title: 'POCHAMPALLY & BRIDAL\nSILK ENSEMBLES',
       offer: 'UP TO 30% OFF MASTER WEAVES',
       subtitle: 'Artisan Double Ikkat Silk & Handwoven Drapes.',
-      category: 'pochampally-pattu',
+      link: '/categories?category=pochampally-pattu',
     },
     {
       image: '/slider/hero_slide_3.png',
@@ -83,51 +83,59 @@ export default function HomePage() {
       title: 'BANARASI & GADWAL\nHANDLOOM SAREES',
       offer: 'DIRECT FROM MASTER WEAVERS',
       subtitle: 'Kashi Antique Zari & Traditional Temple Borders.',
-      category: 'banarasi-sarees',
+      link: '/categories?category=banarasi-sarees',
     },
   ];
 
+  const heroSlides = Array.isArray(banners) && banners.filter((b) => b.active).length > 0
+    ? banners.filter((b) => b.active)
+    : defaultHeroSlides;
+
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Auto-advance hero slides every 5.5 seconds
   useEffect(() => {
-    const slideInterval = setInterval(() => {
+    const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 4500);
-    return () => clearInterval(slideInterval);
+    }, 5500);
+    return () => clearInterval(timer);
   }, [heroSlides.length]);
+
+  const defaultSavingsTiles = [
+    {
+      title: 'Dharmavaram Pure Pattu',
+      discount: 'UP TO 25% OFF',
+      image: '/products/cat_pure_pattu.jpg',
+      link: '/categories?category=dharmavaram-pure-pattu',
+    },
+    {
+      title: 'Pochampally Ikkat Silk',
+      discount: '20% - 30% OFF',
+      image: '/products/cat_pochampally.jpg',
+      link: '/categories?category=pochampally-pattu',
+    },
+    {
+      title: 'Banarasi Brocade Silk',
+      discount: 'FLAT 30% OFF',
+      image: '/products/cat_banarasi.jpg',
+      link: '/categories?category=banarasi-sarees',
+    },
+    {
+      title: 'Handloom Cotton & Silk',
+      discount: 'STARTING AT ₹1,299',
+      image: '/products/cat_kalamkari.jpg',
+      link: '/categories?category=cotton-sarees',
+    },
+  ];
+
+  const savingsEditTiles = promotions?.savingsCards && promotions.savingsCards.length > 0
+    ? promotions.savingsCards
+    : defaultSavingsTiles;
 
   // Curated collections for mobile sections
   const bridalPattu = products.filter(p => p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu').slice(0, 4);
   const everydayCotton = products.filter(p => p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print').slice(0, 4);
   const trendingSarees = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8);
-
-  // 4 Featured Offer Tiles for "The Savings Edit"
-  const savingsEditTiles = [
-    {
-      title: "PURE PATTU SAREES",
-      discount: "FLAT 25% OFF",
-      category: "dharmavaram-pure-pattu",
-      image: "/products/cat_pure_pattu.jpg",
-    },
-    {
-      title: "POCHAMPALLY IKKAT",
-      discount: "FLAT 20% - 30% OFF",
-      category: "pochampally-pattu",
-      image: "/products/cat_pochampally.jpg",
-    },
-    {
-      title: "BANARASI SILK",
-      discount: "FLAT 30% OFF",
-      category: "banarasi-sarees",
-      image: "/products/cat_banarasi.jpg",
-    },
-    {
-      title: "HANDLOOM COTTONS",
-      discount: "FLAT 25% OFF",
-      category: "kalamkari-cotton",
-      image: "/products/cat_kalamkari.jpg",
-    },
-  ];
 
   const activeSlide = heroSlides[currentSlide];
 
@@ -145,7 +153,7 @@ export default function HomePage() {
       {/* 1. FULL-BLEED HERO BANNER WITH 3 DISTINCT CATEGORY SLIDES */}
       <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white">
         <div
-          onClick={() => navigate(`/shop?category=${activeSlide.category}`)}
+          onClick={() => navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'))}
           className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group"
         >
           {heroSlides.map((slide, index) => (
@@ -184,7 +192,7 @@ export default function HomePage() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/shop?category=${activeSlide.category}`);
+                navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
               }}
               className="mt-2 bg-white hover:bg-[#FAF5EE] text-[#68081C] font-extrabold text-xs sm:text-sm tracking-widest uppercase px-9 py-3.5 rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#D4AF37]/40"
             >
@@ -212,40 +220,40 @@ export default function HomePage() {
       </section>
 
       {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER */}
-      <div className="bg-[#FFE4DF] text-[#7E0C23] py-2 px-2 text-[11px] sm:text-xs font-medium tracking-wide border-y border-[#FBC8BE] overflow-hidden shadow-2xs">
-        <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
-          <div className="flex items-center gap-8 shrink-0">
-            <span className="flex items-center gap-1.5">
-              <strong className="font-extrabold text-[#E01E5A]">FIRST ORDER</strong> & Get extra 15% Off |
-            </span>
-            <span className="flex items-center gap-1.5">
-              Get extra 10% off Use: <strong className="font-extrabold text-[#E01E5A] bg-[#FFD0D6] px-2 py-0.5 rounded-sm tracking-wider font-mono">SV10</strong> |
-            </span>
-            <span className="flex items-center gap-1.5">
-              🚚 <strong>FREE EXPRESS SHIPPING</strong> on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')} |
-            </span>
-            <span className="flex items-center gap-1.5">
-              ✨ <strong>100% PURE SILK</strong> Certified Dharmavaram & Pochampally Weaves |
-            </span>
-          </div>
+      {promotions?.marqueeActive !== false && (
+        <div className="bg-[#FFE4DF] text-[#7E0C23] py-2 px-2 text-[11px] sm:text-xs font-medium tracking-wide border-y border-[#FBC8BE] overflow-hidden shadow-2xs">
+          <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
+            <div className="flex items-center gap-8 shrink-0">
+              <span className="font-extrabold text-[#7E0C23] tracking-wide">
+                {promotions?.marqueeText || '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India'}
+              </span>
+              <span className="text-[#E01E5A] font-extrabold">✦</span>
+              <span className="font-extrabold text-[#7E0C23] tracking-wide">
+                🚚 FREE EXPRESS SHIPPING on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}
+              </span>
+              <span className="text-[#E01E5A] font-extrabold">✦</span>
+              <span className="font-extrabold text-[#7E0C23] tracking-wide">
+                ✨ 100% PURE SILK Certified Dharmavaram & Pochampally Weaves
+              </span>
+            </div>
 
-          {/* Seamless loop duplication */}
-          <div className="flex items-center gap-8 shrink-0" aria-hidden="true">
-            <span className="flex items-center gap-1.5">
-              <strong className="font-extrabold text-[#E01E5A]">FIRST ORDER</strong> & Get extra 15% Off |
-            </span>
-            <span className="flex items-center gap-1.5">
-              Get extra 10% off Use: <strong className="font-extrabold text-[#E01E5A] bg-[#FFD0D6] px-2 py-0.5 rounded-sm tracking-wider font-mono">SV10</strong> |
-            </span>
-            <span className="flex items-center gap-1.5">
-              🚚 <strong>FREE EXPRESS SHIPPING</strong> on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')} |
-            </span>
-            <span className="flex items-center gap-1.5">
-              ✨ <strong>100% PURE SILK</strong> Certified Dharmavaram & Pochampally Weaves |
-            </span>
+            {/* Seamless loop duplication */}
+            <div className="flex items-center gap-8 shrink-0" aria-hidden="true">
+              <span className="font-extrabold text-[#7E0C23] tracking-wide">
+                {promotions?.marqueeText || '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India'}
+              </span>
+              <span className="text-[#E01E5A] font-extrabold">✦</span>
+              <span className="font-extrabold text-[#7E0C23] tracking-wide">
+                🚚 FREE EXPRESS SHIPPING on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}
+              </span>
+              <span className="text-[#E01E5A] font-extrabold">✦</span>
+              <span className="font-extrabold text-[#7E0C23] tracking-wide">
+                ✨ 100% PURE SILK Certified Dharmavaram & Pochampally Weaves
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 3. EXACT KOSKII SCALLOPED JHAROKHA CATEGORY STORIES */}
       <section className="py-6 bg-white border-b border-gray-100 shadow-2xs">

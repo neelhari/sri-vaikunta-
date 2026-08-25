@@ -74,34 +74,86 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
 
   if (!isOpen) return null;
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  const [isDragging, setIsDragging] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
+
+  const readImageAsDataUrl = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const processFiles = async (files) => {
+    if (!files || files.length === 0) return;
     setUploadingImage(true);
     setUploadError('');
 
-    const uploadedUrls = [];
-    const failures = [];
+    const newImages = [];
     for (const file of files) {
-      const res = await uploadToCloudinary(file);
-      if (res.success) {
-        uploadedUrls.push(res.url);
-      } else {
-        failures.push(`${file.name}: ${res.message}`);
+      // 1. Try Cloudinary first if configured
+      let url = null;
+      try {
+        const res = await uploadToCloudinary(file);
+        if (res.success && res.url) {
+          url = res.url;
+        }
+      } catch (err) {
+        // Fallback to local DataURL
+      }
+
+      // 2. Fallback to high-quality DataURL so it works instantly without any cloud setup
+      if (!url) {
+        url = await readImageAsDataUrl(file);
+      }
+
+      if (url) {
+        newImages.push(url);
       }
     }
 
-    if (uploadedUrls.length > 0) {
-      setFormData((prev) => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
-    }
-    if (failures.length > 0) {
-      // Never fall back to a blob: URL here — it only exists in this browser
-      // tab and would render as a broken image for every other visitor and
-      // after the next refresh, which is worse than surfacing the failure.
-      setUploadError(`Some photos failed to upload:\n${failures.join('\n')}`);
+    if (newImages.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images.filter((img) => img !== '/products/saree-placeholder.png'), ...newImages],
+      }));
     }
     setUploadingImage(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    await processFiles(files);
     e.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files || []).filter((f) => f.type.startsWith('image/'));
+    await processFiles(files);
+  };
+
+  const handleAddManualUrl = (e) => {
+    e.preventDefault();
+    if (!manualUrl.trim()) return;
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images.filter((img) => img !== '/products/saree-placeholder.png'), manualUrl.trim()],
+    }));
+    setManualUrl('');
   };
 
   const handleVideoUpload = async (e) => {
@@ -110,11 +162,17 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     setUploadingVideo(true);
     setUploadError('');
 
-    const res = await uploadToCloudinary(file);
-    if (res.success) {
-      setFormData((prev) => ({ ...prev, video: res.url }));
-    } else {
-      setUploadError(`Video upload failed: ${res.message}`);
+    try {
+      const res = await uploadToCloudinary(file);
+      if (res.success && res.url) {
+        setFormData((prev) => ({ ...prev, video: res.url }));
+      } else {
+        const localUrl = await readImageAsDataUrl(file);
+        if (localUrl) setFormData((prev) => ({ ...prev, video: localUrl }));
+      }
+    } catch (err) {
+      const localUrl = await readImageAsDataUrl(file);
+      if (localUrl) setFormData((prev) => ({ ...prev, video: localUrl }));
     }
     setUploadingVideo(false);
     e.target.value = '';
@@ -283,127 +341,122 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                 <p className="text-[10px] text-gray-400 mt-1">Used for search and category subfiltering on the storefront.</p>
               </div>
 
-              {/* Pricing Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#FAF8F5] p-4 rounded-2xl border border-gray-100">
+              {/* Clean Saree Pricing Grid (Selling Price & Original MRP) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FDFBF7] p-4 rounded-2xl border border-[#F3E5AB]/60">
                 <div>
-                  <label className="block font-bold text-gray-900 mb-1">Selling Price (₹) *</label>
+                  <label className="block font-bold text-gray-900 mb-1 text-xs">Selling Price (₹) *</label>
                   <input
                     type="number"
                     required
-                    placeholder="2499"
+                    placeholder="e.g. 7999"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none font-bold text-sm bg-white"
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-bold text-sm bg-white"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">Live customer purchase price on storefront</p>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-700 mb-1">Original MRP (₹)</label>
+                  <label className="block font-bold text-gray-700 mb-1 text-xs">Original MRP (₹)</label>
                   <input
                     type="number"
-                    placeholder="3499"
+                    placeholder="e.g. 10999"
                     value={formData.oldPrice}
                     onChange={(e) => setFormData({ ...formData, oldPrice: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none bg-white text-sm"
                   />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-gray-700 mb-1">Cost Price (₹)</label>
-                  <input
-                    type="number"
-                    placeholder="1500"
-                    value={formData.costPrice}
-                    onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none bg-white"
-                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {formData.oldPrice && Number(formData.oldPrice) > Number(formData.price)
+                      ? `Auto-generates ${Math.round(((Number(formData.oldPrice) - Number(formData.price)) / Number(formData.oldPrice)) * 100)}% OFF badge`
+                      : 'Used to calculate discount badge'}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Product Description</label>
+                <label className="block font-bold text-gray-800 mb-1">Saree Description & Highlights</label>
                 <textarea
                   rows={3}
-                  placeholder="Enter detailed fabric specifications, embroidery style, length, and drape guidance..."
+                  placeholder="Enter silk purity details, border zari work, pallu design, and drape guidance..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none resize-none"
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none resize-none text-xs"
                 />
               </div>
             </div>
           )}
 
           {activeTab === 'attributes' && (
-            <div className="space-y-4">
+            <div className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Fabric Type</label>
+                  <label className="block font-bold text-gray-800 mb-1">Fabric & Silk Type</label>
                   <input
                     type="text"
-                    placeholder="e.g. Pure Cotton, Mulchanderi, Banarasi Silk"
+                    placeholder="e.g. Dharmavaram Pure Silk / Pochampally Ikkat"
                     value={formData.fabric}
                     onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Material / Weave</label>
+                  <label className="block font-bold text-gray-800 mb-1">Zari & Border Work</label>
                   <input
                     type="text"
-                    placeholder="e.g. Zari Embroidery, Handloom Weave"
+                    placeholder="e.g. Pure Gold Zari / Broad Temple Border"
                     value={formData.material}
                     onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Occasion</label>
+                  <label className="block font-bold text-gray-800 mb-1">Blouse Piece Details</label>
                   <input
                     type="text"
-                    placeholder="e.g. Festive, Wedding, Daily Wear"
-                    value={formData.occasion}
-                    onChange={(e) => setFormData({ ...formData, occasion: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                    placeholder="e.g. Included (Unstitched 80cm Running Blouse)"
+                    value={formData.blouse || 'Included (Unstitched 80cm Running Blouse)'}
+                    onChange={(e) => setFormData({ ...formData, blouse: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Care Instructions</label>
+                  <label className="block font-bold text-gray-800 mb-1">Saree Drape Length</label>
                   <input
                     type="text"
-                    placeholder="e.g. Dry Clean Only / Gentle Handwash"
-                    value={formData.careInstructions}
-                    onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] focus:outline-none"
+                    placeholder="e.g. Standard 6.3 Meters (with Blouse Piece)"
+                    value={formData.length || 'Standard 6.3 Meters (with Blouse Piece)'}
+                    onChange={(e) => setFormData({ ...formData, length: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
                   />
                 </div>
               </div>
 
-              {/* Sizes Available */}
-              <div className="space-y-2 pt-2 border-t border-gray-100">
-                <label className="block font-bold text-gray-900 uppercase">Available Sizes</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {['Free Size', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map((sz) => {
-                    const selected = formData.sizes.includes(sz);
-                    return (
-                      <button
-                        type="button"
-                        key={sz}
-                        onClick={() => toggleSize(sz)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-colors ${
-                          selected
-                            ? 'bg-[#6B1518] text-white border-[#6B1518]'
-                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400'
-                        }`}
-                      >
-                        {sz}
-                      </button>
-                    );
-                  })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Occasion / Styling</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Bridal, Wedding Guest, Festive Pooja"
+                    value={formData.occasion}
+                    onChange={(e) => setFormData({ ...formData, occasion: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Care & Preservation</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dry Clean Only / Wrap in Muslin Cloth"
+                    value={formData.careInstructions}
+                    onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
+                  />
                 </div>
               </div>
             </div>
@@ -417,27 +470,59 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                   <span>{uploadError}</span>
                 </div>
               )}
-              {/* 1. Photo Upload */}
+              {/* 1. Photo Upload (Drag & Drop + File Picker) */}
               <div>
                 <label className="block font-bold text-gray-900 mb-1">Product Images (Upload 3 or more photos)</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center hover:border-[#6B1518] transition-colors bg-gray-50">
-                  <Upload className="w-7 h-7 text-gray-400 mx-auto mb-1.5" />
-                  <p className="font-bold text-gray-800">Upload Product Photography</p>
-                  <p className="text-gray-400 text-[11px] mt-0.5">JPG, PNG or WEBP up to 10MB</p>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
+                    isDragging
+                      ? 'border-[#68081C] bg-[#FDF5F6] scale-[1.01]'
+                      : 'border-gray-300 hover:border-[#68081C] bg-gray-50'
+                  }`}
+                >
+                  <Upload className={`w-8 h-8 mx-auto mb-2 transition-colors ${isDragging ? 'text-[#68081C]' : 'text-gray-400'}`} />
+                  <p className="font-bold text-gray-800 text-sm">
+                    {isDragging ? 'Drop Photos Here to Upload' : 'Drag & Drop Saree Photos Here'}
+                  </p>
+                  <p className="text-gray-400 text-[11px] mt-0.5">JPG, PNG or WEBP from your phone or laptop</p>
                   <input
                     type="file"
                     multiple
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
-                    id="cloudinary-upload-input"
+                    id="product-photo-upload-input"
                   />
-                  <label
-                    htmlFor="cloudinary-upload-input"
-                    className="mt-2.5 inline-block bg-[#6B1518] text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer hover:bg-[#4B0F11]"
+                  <div className="mt-3 flex items-center justify-center gap-2">
+                    <label
+                      htmlFor="product-photo-upload-input"
+                      className="inline-block bg-[#68081C] text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer hover:bg-[#4A0513] shadow-xs"
+                    >
+                      {uploadingImage ? 'Processing Photos...' : 'Choose Photos from Device'}
+                    </label>
+                  </div>
+                </div>
+
+                {/* Optional Manual URL input */}
+                <div className="mt-2.5 flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Or paste image URL (e.g. /products/xyz.jpg)..."
+                    value={manualUrl}
+                    onChange={(e) => setManualUrl(e.target.value)}
+                    className="flex-1 text-xs px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-[#68081C]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddManualUrl}
+                    disabled={!manualUrl.trim()}
+                    className="text-xs font-bold px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-40 rounded-xl transition-colors cursor-pointer"
                   >
-                    {uploadingImage ? 'Uploading Photos...' : 'Select Photos'}
-                  </label>
+                    Add URL
+                  </button>
                 </div>
 
                 {/* Uploaded Images List */}

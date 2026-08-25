@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useStoreData } from '../context/StoreDataContext';
 import { BRAND, waLink } from '../config/brand';
+import { openRazorpayCheckout } from '../lib/razorpay';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function CheckoutPage() {
         <p className="text-xs text-gray-500">Please add items to your cart before proceeding to checkout.</p>
         <button
           onClick={() => navigate('/shop')}
-          className="bg-[#6B1518] text-white px-6 py-2.5 rounded-xl text-xs font-bold"
+          className="bg-[#6B1518] text-white px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
         >
           Return to Shop
         </button>
@@ -78,14 +79,7 @@ export default function CheckoutPage() {
     window.open(waLink(text), '_blank');
   };
 
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault();
-    if (!validate() || placingOrder) return;
-
-    setOrderError('');
-    setPlacingOrder(true);
-
-    const orderId = `AV-${Math.floor(100000 + Math.random() * 900000)}`;
+  const finalizeOrder = async (orderId, paymentStatus = 'Pending', paymentDetails = null) => {
     const orderData = {
       orderId,
       date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -95,6 +89,8 @@ export default function CheckoutPage() {
       deliveryCharge,
       totalAmount,
       paymentMethod: formData.paymentMethod,
+      paymentStatus,
+      paymentDetails,
     };
 
     const result = await addOrder({
@@ -118,9 +114,10 @@ export default function CheckoutPage() {
       deliveryCharge,
       totalAmount,
       paymentMethod: formData.paymentMethod.toUpperCase(),
-      paymentStatus: 'Pending',
+      paymentStatus,
       status: 'Pending',
       couponCode: appliedCoupon?.code || null,
+      transactionId: paymentDetails?.razorpayPaymentId || null,
     });
 
     setPlacingOrder(false);
@@ -139,6 +136,36 @@ export default function CheckoutPage() {
 
     clearCart();
     navigate('/order-success', { state: { orderData } });
+  };
+
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
+    if (!validate() || placingOrder) return;
+
+    setOrderError('');
+    setPlacingOrder(true);
+
+    const orderId = `SV-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // 1. ONLINE RAZORPAY PAYMENT (UPI, Cards, NetBanking)
+    if (formData.paymentMethod === 'upi') {
+      await openRazorpayCheckout({
+        orderId,
+        amount: totalAmount,
+        customer: formData,
+        onSuccess: async (paymentResponse) => {
+          await finalizeOrder(orderId, 'Paid', paymentResponse);
+        },
+        onFailure: (errMsg) => {
+          setPlacingOrder(false);
+          setOrderError(`Payment could not be completed: ${errMsg}. You can retry or choose Cash on Delivery.`);
+        },
+      });
+      return;
+    }
+
+    // 2. CASH ON DELIVERY / WHATSAPP ORDER
+    await finalizeOrder(orderId, formData.paymentMethod === 'cod' ? 'COD (Pending)' : 'WhatsApp Order');
   };
 
   return (
