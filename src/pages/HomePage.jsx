@@ -292,7 +292,7 @@ export default function HomePage() {
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                onClick={() => navigate(`/shop?category=${cat.id}`)}
+                onClick={() => navigate(`/categories?category=${cat.id}`)}
                 className="flex flex-col items-center shrink-0 w-[88px] sm:w-28 group cursor-pointer snap-start text-center"
               >
                 <div className="w-[82px] h-[82px] sm:w-[96px] sm:h-[96px] relative group-hover:scale-108 transition-transform drop-shadow-md">
@@ -342,7 +342,7 @@ export default function HomePage() {
           {savingsEditTiles.map((tile, idx) => (
             <div
               key={idx}
-              onClick={() => navigate(`/shop?category=${tile.category}`)}
+              onClick={() => navigate(`/categories?category=${tile.category}`)}
               className="relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               {/* Saree Image */}

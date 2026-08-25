@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Sparkles, ArrowRight, ChevronRight, ShoppingBag, Flame } from 'lucide-react';
+import { Sparkles, ArrowRight, ChevronRight, ShoppingBag, Flame, Search, X } from 'lucide-react';
 import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
 import { BRAND } from '../config/brand';
@@ -9,17 +9,36 @@ export default function CategoriesPage() {
   const navigate = useNavigate();
   const { categories, products } = useStoreData();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialCategory = searchParams.get('category') || (categories[0]?.id || 'dharmavaram-pure-pattu');
-  const [selectedCatId, setSelectedCatId] = useState(initialCategory);
+  const categoryParam = searchParams.get('category');
+  
+  const [selectedCatId, setSelectedCatId] = useState(categoryParam || (categories[0]?.id || 'dharmavaram-pure-pattu'));
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Sync state if URL changes (e.g. from homepage navigation)
+  useEffect(() => {
+    if (categoryParam && categoryParam !== selectedCatId) {
+      setSelectedCatId(categoryParam);
+    }
+  }, [categoryParam]);
 
   const selectedCategory = categories.find((c) => c.id === selectedCatId) || categories[0] || {};
   
-  // Filter products for the active selected category
-  const categoryProducts = products.filter((p) => p.category === selectedCatId);
+  // Filter products by selected category and live search query
+  const categoryProducts = products.filter((p) => {
+    const matchesCategory = searchQuery ? true : p.category === selectedCatId;
+    const matchesSearch = searchQuery
+      ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.categoryName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.fabric?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    return matchesCategory && matchesSearch;
+  });
+
   const displayProducts = categoryProducts.length > 0 ? categoryProducts : products.slice(0, 6);
 
   const handleCategorySelect = (id) => {
     setSelectedCatId(id);
+    setSearchQuery('');
     setSearchParams({ category: id });
   };
 
@@ -57,12 +76,34 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* 2. HORIZONTAL SQUARE-CURVE (SQUIRCLE) CATEGORY BAR */}
-      <div className="sticky top-[58px] z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs py-3.5">
+      {/* 2. REAL-TIME SEARCH FIELD BELOW BANNER */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3.5 pb-1">
+        <div className="relative max-w-md mx-auto">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search sarees by name, silk, or weave..."
+            className="w-full bg-white border border-gray-200 rounded-full pl-10 pr-9 py-2 text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#68081C] focus:ring-1 focus:ring-[#68081C] shadow-2xs transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 3. HORIZONTAL SQUARE-CURVE (SQUIRCLE) CATEGORY BAR */}
+      <div className="sticky top-[58px] z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs py-3">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-3.5 sm:gap-5 overflow-x-auto pb-1 hide-scroll snap-x items-start">
             {categories.map((cat) => {
-              const isSelected = selectedCatId === cat.id;
+              const isSelected = !searchQuery && selectedCatId === cat.id;
               return (
                 <div
                   key={cat.id}
@@ -101,13 +142,17 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* 3. CLEAN PRODUCTS GRID (ZERO CLUTTER, DIRECT TO SAREES) */}
+      {/* 4. CLEAN PRODUCTS GRID */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-4">
         {/* Simple & Clean Single-Line Header */}
         <div className="flex items-center justify-between gap-2 border-b border-[#F3E5AB]/70 pb-2.5">
           <div className="flex items-baseline gap-1.5 min-w-0">
             <h2 className="font-serif text-sm sm:text-lg md:text-xl font-bold text-[#68081C] uppercase tracking-wider truncate">
-              {selectedCategory.name ? selectedCategory.name.replace(' Sarees', '') : 'Saree Collection'}
+              {searchQuery
+                ? `Results for "${searchQuery}"`
+                : selectedCategory.name
+                ? selectedCategory.name.replace(' Sarees', '')
+                : 'Saree Collection'}
             </h2>
             <span className="text-[10px] sm:text-xs text-[#D4AF37] font-bold shrink-0">
               ({categoryProducts.length})
