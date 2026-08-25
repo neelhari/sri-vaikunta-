@@ -25,15 +25,35 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-[#FFFDF9] min-h-screen font-sans pb-16">
-      {/* 1. TOP SLEEK PROMO BANNER */}
-      <div className="bg-gradient-to-r from-[#4A0513] via-[#68081C] to-[#4A0513] text-white py-4 px-4 sm:px-8 text-center shadow-xs">
-        <div className="max-w-4xl mx-auto space-y-0.5">
-          <span className="inline-flex items-center gap-1 text-[#F3E5AB] text-[9.5px] sm:text-[10px] font-bold uppercase tracking-widest">
-            <Flame className="w-3 h-3 text-[#D4AF37] fill-current" /> 14 HERITAGE SAREE WEAVES
-          </span>
-          <h1 className="font-serif text-xl sm:text-3xl font-bold tracking-wide text-white">
-            Explore Saree Collections
+      {/* 1. LUXURY MOBILE-FIRST BRIDAL HERO BANNER */}
+      <div className="relative w-full h-44 sm:h-60 md:h-72 overflow-hidden bg-[#250208] text-white shadow-md">
+        <img
+          src="/slider/hero_saree_model.png"
+          alt="Sri Vaikunta Bridal Saree Collections"
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-90"
+        />
+
+        {/* Ambient Dark Gradient Vignette for Text Contrast */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+        {/* Delicate Inlaid Gold Border */}
+        <div className="absolute inset-2 sm:inset-3 rounded-2xl border border-[#D4AF37]/50 pointer-events-none" />
+
+        {/* Text Overlay Content */}
+        <div className="relative z-10 h-full max-w-7xl mx-auto px-6 sm:px-10 flex flex-col justify-center items-start space-y-1 sm:space-y-2">
+          <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] text-[9px] sm:text-[11px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full shadow-md">
+            <Flame className="w-3 h-3 fill-current" />
+            <span>THE HERITAGE EDIT</span>
+          </div>
+
+          <h1 className="font-serif text-2xl sm:text-4xl font-extrabold text-white tracking-wide leading-tight drop-shadow-xl">
+            Royal Saree Collections
           </h1>
+
+          <p className="text-[11px] sm:text-xs text-[#F3E5AB] max-w-xs sm:max-w-md line-clamp-1 font-medium drop-shadow">
+            14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu
+          </p>
         </div>
       </div>
 
