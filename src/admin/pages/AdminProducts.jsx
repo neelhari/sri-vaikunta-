@@ -194,8 +194,8 @@ export default function AdminProducts() {
                     </td>
                     <td className="p-4 font-mono text-gray-500 text-[11px]">{p.sku || 'SKU-1001'}</td>
                     <td className="p-4">
-                      <span className="bg-gray-100 text-gray-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                        {p.category}
+                      <span className="bg-[#FAF5EE] text-[#68081C] border border-[#D4AF37]/30 text-[10.5px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
+                        {categories.find((c) => c.id === p.category || c.name === p.category)?.name || p.category || 'General Saree'}
                       </span>
                     </td>
                     <td className="p-4 font-bold text-gray-900 text-sm">₹{p.price.toLocaleString('en-IN')}</td>
