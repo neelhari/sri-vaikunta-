@@ -168,10 +168,10 @@ export default function LoginModal() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Harini Jupudy"
+                  placeholder="e.g. Sowmya Rao"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3.5 py-3 text-xs rounded-xl border border-gray-300 focus:border-[#6B1518] focus:outline-none"
+                  className="w-full px-3.5 py-3 text-xs rounded-xl border border-gray-300 focus:border-[#68081C] focus:outline-none"
                 />
               </div>
 

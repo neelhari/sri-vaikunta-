@@ -1,364 +1,464 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, ShieldCheck, Truck, Tag, Heart, Award, CheckCircle2, ShoppingBag, Star, TrendingUp } from 'lucide-react';
-import { InstagramIcon } from '../components/BrandIcons';
+import { ArrowRight, Sparkles, ShieldCheck, Truck, Tag, Heart, Award, CheckCircle2, ShoppingBag, Star, TrendingUp, ChevronRight, Phone, MessageCircle, Flame } from 'lucide-react';
 import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
-import CategoryTile from '../components/CategoryTile';
-import { BRAND } from '../config/brand';
+import { BRAND, waLink } from '../config/brand';
+
+// Exact 8-Cusped Royal Koskii Scalloped Arch Path (Normalized to 100x100 box)
+const KOSKII_ARCH_PATH = "M 50,4 C 57,4 62,11 68,12 C 74,13 80,8 86,14 C 92,20 87,26 88,32 C 89,38 96,43 96,50 C 96,57 89,62 88,68 C 87,74 92,80 86,86 C 80,92 74,87 68,88 C 62,89 57,96 50,96 C 43,96 38,89 32,88 C 26,87 20,92 14,86 C 8,80 13,74 12,68 C 11,62 4,57 4,50 C 4,43 11,38 12,32 C 13,26 8,20 14,14 C 20,8 26,13 32,12 C 38,11 43,4 50,4 Z";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { products, categories, banners } = useStoreData();
+  const { products, categories } = useStoreData();
 
-  const activeBanners = banners.filter((b) => b.active);
-  const sliderImages = activeBanners.length > 0
-    ? activeBanners.map((b) => b.image)
-    : ['/slider/image.png', '/slider/image copy 2.png'];
+  const sliderImages = [
+    '/slider/hero_saree_model.png'
+  ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
+    if (sliderImages.length <= 1) return;
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 4500);
     return () => clearInterval(slideInterval);
   }, [sliderImages.length]);
 
-  const featuredProducts = products.filter(p => p.isFeatured || p.isNew).slice(0, 4);
-  const bestSellers = products.filter(p => p.rating >= 4.5 && !p.isNew).slice(0, 4);
-  const trendingProducts = [...products].sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0)).slice(0, 4);
+  // Curated collections for mobile sections
+  const bridalPattu = products.filter(p => p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu').slice(0, 4);
+  const everydayCotton = products.filter(p => p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print').slice(0, 4);
+  const trendingSarees = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8);
 
-  const instagramPosts = [
-    { id: 1, image: "/products/generic-product.png" },
-    { id: 2, image: "/products/generic-product.png" },
-    { id: 3, image: "/products/generic-product.png" },
-    { id: 4, image: "/products/generic-product.png" },
-    { id: 5, image: "/products/generic-product.png" },
-    { id: 6, image: "/products/generic-product.png" },
-    { id: 7, image: "/products/generic-product.png" }
-  ];
-
-  const customerReviews = [
-    { id: 1, name: "Sneha Reddy", location: "Hyderabad", text: "Absolutely loved the Banarasi tissue saree! The quality is amazing for the price.", rating: 5 },
-    { id: 2, name: "Priya Kumar", location: "Bangalore", text: "The sarees are so elegant and affordable. Fast delivery too!", rating: 5 },
-    { id: 3, name: "Anjali Rao", location: "Chennai", text: "Best place to buy fabric for custom stitching. Very unique collections.", rating: 4 },
-    { id: 4, name: "Kavya Menon", location: "Kochi", text: "I bought a Manipuri kota saree and it looks so premium. Highly recommended.", rating: 5 },
-    { id: 5, name: "Divya Sharma", location: "Mumbai", text: "Great customer service on WhatsApp. They helped me choose the right fit.", rating: 5 },
-    { id: 6, name: "Meera Patel", location: "Ahmedabad", text: "The dress collection has so many cute options! Will definitely shop again.", rating: 4 },
-    { id: 7, name: "Lakshmi Iyer", location: "Pune", text: "Very happy with the jandani pure cotton set. It looks exactly like the pictures.", rating: 5 },
-    { id: 8, name: "Shruti Desai", location: "Delhi", text: "The dresses are very comfortable and stylish. Perfect for daily wear.", rating: 5 },
-    { id: 9, name: "Nandini Verma", location: "Jaipur", text: "Good quality materials and honest pricing just like they promised.", rating: 4 },
-    { id: 10, name: "Geetha Krishnan", location: "Vijayawada", text: `${BRAND.name} never disappoints. My go-to store for affordable fashion.`, rating: 5 },
+  // 4 Featured Offer Tiles for "The Savings Edit"
+  const savingsEditTiles = [
+    {
+      title: "PURE PATTU SAREES",
+      discount: "FLAT 25% OFF",
+      category: "dharmavaram-pure-pattu",
+      image: "/products/cat_pure_pattu.jpg",
+    },
+    {
+      title: "POCHAMPALLY IKKAT",
+      discount: "FLAT 20% - 30% OFF",
+      category: "pochampally-pattu",
+      image: "/products/cat_pochampally.jpg",
+    },
+    {
+      title: "BANARASI SILK",
+      discount: "FLAT 30% OFF",
+      category: "banarasi-sarees",
+      image: "/products/cat_banarasi.jpg",
+    },
+    {
+      title: "HANDLOOM COTTONS",
+      discount: "FLAT 25% OFF",
+      category: "kalamkari-cotton",
+      image: "/products/cat_kalamkari.jpg",
+    },
   ];
 
   return (
-    <div className="pb-12 space-y-8 sm:space-y-12">
-      {/* 1. HERO SECTION (IMAGE SLIDER) */}
-      <section className="w-full">
+    <div className="pb-16 bg-[#FFFDF9] min-h-screen font-sans">
+      {/* GLOBAL SVG DEFINITIONS FOR KOSKII SCALLOPED ARCH CLIP */}
+      <svg width="0" height="0" className="absolute pointer-events-none">
+        <defs>
+          <clipPath id="koskii-scallop-clip" clipPathUnits="userSpaceOnUse">
+            <path d={KOSKII_ARCH_PATH} />
+          </clipPath>
+        </defs>
+      </svg>
+
+      {/* 1. FULL-BLEED HERO BANNER */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white">
         <div
           onClick={() => navigate('/shop')}
-          className="relative overflow-hidden w-full aspect-[1.85/1] sm:aspect-auto sm:h-[480px] md:h-[560px] lg:h-[640px] bg-[#FAF5EE] cursor-pointer group"
+          className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group"
         >
           {sliderImages.map((src, index) => (
             <img
               key={index}
               src={src}
-              alt={`Slide ${index + 1}`}
-              className={`absolute inset-0 w-full h-full object-contain sm:object-cover transition-opacity duration-1000 ${
-                index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              alt={`Sri Vaikunta Festive Saree Slide ${index + 1}`}
+              className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-1000 ${
+                index === currentSlide ? 'opacity-95 scale-100' : 'opacity-0 scale-105 pointer-events-none'
               }`}
             />
           ))}
-          {/* Slider Indicators */}
-          <div className="absolute bottom-3 sm:bottom-6 left-0 right-0 z-20 flex justify-center items-center gap-2">
-            {sliderImages.map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-1.5 rounded-full transition-all duration-500 ${idx === currentSlide ? 'w-6 bg-[#D3923A]' : 'w-2 bg-white/70'}`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* 3. SHOP BY CATEGORY ("EXPLORE OUR COLLECTIONS") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 mb-12 sm:mb-16" data-aos="fade-up">
-        {/* Centered Premium Header with Side Lines (Always Visible on Mobile) */}
-        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
-              <Sparkles className="w-3.5 h-3.5" /> BROWSE BY CATEGORY
+          {/* Seamless Top & Bottom Shadow Gradients for Readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85 pointer-events-none" />
+
+          {/* Hero Festive Text Lockup */}
+          <div className="relative z-10 space-y-2.5 max-w-lg mx-auto flex flex-col items-center">
+            <span className="text-[10px] sm:text-xs font-serif italic text-[#F3E5AB] tracking-[0.25em] uppercase font-bold drop-shadow-md">
+              The Grand Festive Heritage Sale
             </span>
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-          </div>
-          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
-            EXPLORE OUR COLLECTIONS
-          </h2>
-        </div>
 
-        {/* 2-column grid, wraps inline — no horizontal scroll */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {categories.map((cat) => (
-            <CategoryTile
-              key={cat.id}
-              category={cat}
-              variant="compact"
-              onClick={() => navigate(`/shop?category=${cat.id}`)}
-            />
-          ))}
-        </div>
+            <h1 className="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-xl text-white">
+              ROYAL PATTU <br className="hidden sm:inline" />& FESTIVE SAREES
+            </h1>
 
-        <div className="flex justify-center pt-1">
-          <button
-            onClick={() => navigate('/categories')}
-            className="bg-[#F8F0F0] hover:bg-[#EADEDF] text-[#6B1518] text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 transition-colors"
-          >
-            View All Categories →
-          </button>
-        </div>
-      </section>
-
-      <div className="space-y-12 sm:space-y-16">
-      {/* 4. FEATURED PRODUCTS / NEW ARRIVALS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8" data-aos="fade-up">
-        {/* Centered Premium Header with Side Lines */}
-        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
-              Fresh Styles Just Added
-            </span>
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-          </div>
-          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
-            New Arrivals
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        <div className="flex justify-center pt-1">
-          <button
-            onClick={() => navigate('/shop')}
-            className="bg-[#F8F0F0] hover:bg-[#EADEDF] text-[#6B1518] text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 transition-colors"
-          >
-            View All New Arrivals →
-          </button>
-        </div>
-      </section>
-
-      {/* 4.5 BEST SELLERS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" data-aos="fade-up">
-        {/* Centered Premium Header with Side Lines */}
-        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
-              <Award className="w-3.5 h-3.5" /> Customer Favourites
-            </span>
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-          </div>
-          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
-            Best Sellers
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {bestSellers.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* 4.7 TRENDING PRODUCTS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8" data-aos="fade-up">
-        {/* Centered Premium Header with Side Lines */}
-        <div className="text-center space-y-1.5 max-w-2xl mx-auto px-4">
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3">
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-r from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A] shrink-0">
-              <TrendingUp className="w-3.5 h-3.5" /> Trending Now
-            </span>
-            <span className="w-8 sm:w-16 h-px bg-gradient-to-l from-transparent via-[#D3923A]/60 to-[#D3923A] shrink-0"></span>
-          </div>
-          <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-[#6B1518] uppercase tracking-wider">
-            Trending Products
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {trendingProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* 5. BRAND INTRODUCTION */}
-      <section className="max-w-4xl mx-auto text-center px-4 space-y-4" data-aos="fade-up">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A]">Welcome to {BRAND.name}</span>
-        <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-          Bringing You Elegance, Quality & Honest Pricing
-        </h2>
-        <p className="text-gray-600 text-xs sm:text-base leading-relaxed">
-          Founded by <strong className="text-gray-900">{BRAND.ownerFullName}</strong>, {BRAND.name} was built on a simple belief: <em>everyone deserves to wear beautiful, high-quality fashion without paying high prices.</em> From graceful sarees and beautiful ethnic wear to stylish contemporary outfits, we curate every piece with care.
-        </p>
-      </section>
-
-      {/* 7. WHY CHOOSE SRI VASTRALAYA */}
-      <section className="bg-[#FAF8F5] py-12 border-y border-gray-100" data-aos="fade-up">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-10">
-          <div className="flex items-center justify-center gap-3 w-full max-w-2xl mx-auto px-4">
-            <span className="flex-1 h-px bg-gradient-to-r from-transparent via-[#D3923A]/50 to-[#D3923A]"></span>
-            <div className="text-center shrink-0 space-y-0.5">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#D3923A] block">The {BRAND.name} Promise</span>
-              <h2 className="font-serif text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 uppercase tracking-wider">WHY SHOP WITH US?</h2>
-            </div>
-            <span className="flex-1 h-px bg-gradient-to-l from-transparent via-[#D3923A]/50 to-[#D3923A]"></span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
-                01
-              </div>
-              <h4 className="font-serif font-bold text-lg text-gray-900">Quality Products</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                We select fabrics and accessories combining everyday durability, elegance, and soft comfort.
-              </p>
+            <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] px-3.5 py-1 rounded-full text-[10.5px] sm:text-xs font-black uppercase tracking-wider shadow-lg">
+              <Flame className="w-3.5 h-3.5 fill-current" />
+              <span>FLAT 20% - 30% OFF WEAVER PRICES</span>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
-                02
-              </div>
-              <h4 className="font-serif font-bold text-lg text-gray-900">Affordable Prices</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Fashion should be accessible. We offer honest, direct pricing without high retail markups.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
-                03
-              </div>
-              <h4 className="font-serif font-bold text-lg text-gray-900">Elegant Designs</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Carefully picked traditional motifs, modern colors, and trendy accessories to make you shine.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-lg bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold">
-                04
-              </div>
-              <h4 className="font-serif font-bold text-lg text-gray-900">For Every Occasion</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Whether for daily wear, festive poojas, weddings, or gifting, find perfect picks right here.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. INSTAGRAM SHOWCASE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6" data-aos="fade-up">
-        <div className="text-center space-y-1">
-          <InstagramIcon className="w-6 h-6 text-[#6B1518] mx-auto" />
-          <h3 className="font-serif text-2xl font-bold text-gray-900">FOLLOW US ON INSTAGRAM</h3>
-          <p className="text-xs font-semibold text-[#D3923A]">{BRAND.instagramHandle}</p>
-        </div>
-
-        <div className="flex overflow-x-auto gap-3 pb-4 hide-scroll snap-x">
-          {instagramPosts.map((post) => (
-            <div key={post.id} className="relative aspect-square w-40 sm:w-48 lg:w-56 shrink-0 snap-start rounded-xl overflow-hidden group">
-              <img src={post.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                <InstagramIcon className="w-6 h-6" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 9. CUSTOMER REVIEWS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6" data-aos="fade-up">
-        <div className="text-center space-y-1">
-          <h2 className="font-serif text-3xl font-bold text-[#1a202c]">WHAT OUR CUSTOMERS SAY</h2>
-          <div className="w-16 h-0.5 bg-gray-800 mx-auto mt-2"></div>
-        </div>
-
-        <div className="overflow-hidden relative w-full pt-2 pb-6">
-          <div className="animate-marquee gap-4 sm:gap-6 pb-2">
-            {/* First Set */}
-            {customerReviews.map((review) => (
-              <div key={`set1-${review.id}`} className="w-72 sm:w-80 shrink-0 bg-white p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col space-y-4 hover:shadow-md transition-shadow">
-                <div className="flex gap-1 text-amber-400">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-current text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 italic flex-1">"{review.text}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
-                  <div className="w-10 h-10 rounded-full bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold text-lg">
-                    {review.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">{review.name}</h4>
-                    <p className="text-xs text-gray-500">{review.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {/* Duplicate Set for infinite loop */}
-            {customerReviews.map((review) => (
-              <div key={`set2-${review.id}`} className="w-72 sm:w-80 shrink-0 bg-white p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col space-y-4 hover:shadow-md transition-shadow">
-                <div className="flex gap-1 text-amber-400">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-current text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 italic flex-1">"{review.text}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
-                  <div className="w-10 h-10 rounded-full bg-[#F8F0F0] text-[#6B1518] flex items-center justify-center font-bold text-lg">
-                    {review.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">{review.name}</h4>
-                    <p className="text-xs text-gray-500">{review.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 10. FINAL MAROON CTA */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-aos="fade-up">
-        <div className="bg-[#6B1518] rounded-3xl p-8 sm:p-12 text-center text-white space-y-4 shadow-xl relative overflow-hidden">
-          <div className="relative z-10 max-w-2xl mx-auto space-y-4">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#D3923A]">Discover Your Style</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white">Find Your Perfect Style Today</h2>
-            <p className="text-gray-200 text-xs sm:text-sm leading-relaxed">
-              Explore our latest saree drapings, womenswear, and fabrics. Simple ordering and direct WhatsApp assistance!
+            <p className="text-[11px] sm:text-xs text-gray-200 max-w-xs sm:max-w-md line-clamp-2 drop-shadow">
+              Dharmavaram Pure Pattu, Pochampally Silk, Banarasi Brocade & Handloom Cottons.
             </p>
+
             <button
-              onClick={() => navigate('/shop')}
-              className="bg-[#D3923A] hover:bg-[#B37C31] text-[#6B1518] px-8 py-3.5 rounded-xl font-extrabold text-sm shadow-md transition-all inline-flex items-center gap-2 transform hover:scale-105"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/shop');
+              }}
+              className="mt-2 bg-white hover:bg-[#FAF5EE] text-[#68081C] font-extrabold text-xs sm:text-sm tracking-widest uppercase px-9 py-3.5 rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#D4AF37]/40"
             >
-              <ShoppingBag className="w-4 h-4" />
-              <span>SHOP NOW</span>
+              SHOP NOW
             </button>
           </div>
         </div>
       </section>
+
+      {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER */}
+      <div className="bg-[#FFE4DF] text-[#7E0C23] py-2 px-2 text-[11px] sm:text-xs font-medium tracking-wide border-y border-[#FBC8BE] overflow-hidden shadow-2xs">
+        <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
+          <div className="flex items-center gap-8 shrink-0">
+            <span className="flex items-center gap-1.5">
+              <strong className="font-extrabold text-[#E01E5A]">FIRST ORDER</strong> & Get extra 15% Off |
+            </span>
+            <span className="flex items-center gap-1.5">
+              Get extra 10% off Use: <strong className="font-extrabold text-[#E01E5A] bg-[#FFD0D6] px-2 py-0.5 rounded-sm tracking-wider font-mono">SV10</strong> |
+            </span>
+            <span className="flex items-center gap-1.5">
+              🚚 <strong>FREE EXPRESS SHIPPING</strong> on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')} |
+            </span>
+            <span className="flex items-center gap-1.5">
+              ✨ <strong>100% PURE SILK</strong> Certified Dharmavaram & Pochampally Weaves |
+            </span>
+          </div>
+
+          {/* Seamless loop duplication */}
+          <div className="flex items-center gap-8 shrink-0" aria-hidden="true">
+            <span className="flex items-center gap-1.5">
+              <strong className="font-extrabold text-[#E01E5A]">FIRST ORDER</strong> & Get extra 15% Off |
+            </span>
+            <span className="flex items-center gap-1.5">
+              Get extra 10% off Use: <strong className="font-extrabold text-[#E01E5A] bg-[#FFD0D6] px-2 py-0.5 rounded-sm tracking-wider font-mono">SV10</strong> |
+            </span>
+            <span className="flex items-center gap-1.5">
+              🚚 <strong>FREE EXPRESS SHIPPING</strong> on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')} |
+            </span>
+            <span className="flex items-center gap-1.5">
+              ✨ <strong>100% PURE SILK</strong> Certified Dharmavaram & Pochampally Weaves |
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* 3. EXACT KOSKII SCALLOPED JHAROKHA CATEGORY STORIES */}
+      <section className="py-6 bg-white border-b border-gray-100 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h3 className="font-serif text-sm sm:text-base font-bold text-[#68081C] tracking-[0.18em] uppercase">
+              CATEGORIES
+            </h3>
+            <button
+              onClick={() => navigate('/categories')}
+              className="text-xs font-bold text-[#D4AF37] hover:underline flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap"
+            >
+              <span>View All</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Horizontal Smooth Scroll Bar */}
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-3 hide-scroll snap-x items-start">
+            {/* 1. Koskii Exact Scalloped SALE Burst Badge */}
+            <div
+              onClick={() => navigate('/shop')}
+              className="flex flex-col items-center shrink-0 w-[88px] sm:w-28 group cursor-pointer snap-start text-center"
+            >
+              <div className="w-[82px] h-[82px] sm:w-[96px] sm:h-[96px] relative group-hover:scale-108 transition-transform drop-shadow-md">
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <path d={KOSKII_ARCH_PATH} fill="#C71261" />
+                  <path d={KOSKII_ARCH_PATH} fill="none" stroke="#F6D55C" strokeWidth="2.8" />
+                  <path d={KOSKII_ARCH_PATH} fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.6" />
+                  {[...Array(12)].map((_, i) => (
+                    <line
+                      key={i}
+                      x1="50"
+                      y1="50"
+                      x2={50 + 40 * Math.cos((i * Math.PI) / 6)}
+                      y2={50 + 40 * Math.sin((i * Math.PI) / 6)}
+                      stroke="#E82378"
+                      strokeWidth="1.5"
+                    />
+                  ))}
+                  <text
+                    x="50"
+                    y="56"
+                    fontFamily="serif"
+                    fontSize="20"
+                    fontWeight="bold"
+                    fill="#F6D55C"
+                    textAnchor="middle"
+                    letterSpacing="1"
+                  >
+                    SALE
+                  </text>
+                </svg>
+              </div>
+              <span className="mt-2 text-[11px] sm:text-xs font-black text-[#C71261] uppercase tracking-wide group-hover:text-[#A00E36] transition-colors">
+                FESTIVE SALE
+              </span>
+            </div>
+
+            {/* Saree Categories in Scalloped Jharokha Frames with Pure Fabric Crops */}
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                onClick={() => navigate(`/shop?category=${cat.id}`)}
+                className="flex flex-col items-center shrink-0 w-[88px] sm:w-28 group cursor-pointer snap-start text-center"
+              >
+                <div className="w-[82px] h-[82px] sm:w-[96px] sm:h-[96px] relative group-hover:scale-108 transition-transform drop-shadow-md">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <image
+                      href={cat.image}
+                      clipPath="url(#koskii-scallop-clip)"
+                      width="100"
+                      height="100"
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                    <path
+                      d={KOSKII_ARCH_PATH}
+                      fill="none"
+                      stroke="#D4AF37"
+                      strokeWidth="2.8"
+                    />
+                    <path
+                      d={KOSKII_ARCH_PATH}
+                      fill="none"
+                      stroke="#FFFDF9"
+                      strokeWidth="1"
+                      opacity="0.7"
+                    />
+                  </svg>
+                </div>
+                <span className="mt-2 text-[11px] sm:text-xs font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-[#68081C] transition-colors uppercase tracking-tight">
+                  {cat.name.replace(' Sarees', '')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. THE SAVINGS EDIT (EXACT KOSKII 2x2 CURATED PROMO GRID) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
+        {/* Title Lockup */}
+        <div className="text-center space-y-1">
+          <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-extrabold text-[#68081C] tracking-[0.15em] uppercase">
+            THE SAVINGS EDIT
+          </h2>
+          <div className="w-12 h-0.5 bg-[#D4AF37] mx-auto"></div>
+        </div>
+
+        {/* 2x2 Grid on Mobile & 4-Column on Desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pt-2">
+          {savingsEditTiles.map((tile, idx) => (
+            <div
+              key={idx}
+              onClick={() => navigate(`/shop?category=${tile.category}`)}
+              className="relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              {/* Saree Image */}
+              <img
+                src={tile.image}
+                alt={tile.title}
+                className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+              />
+
+              {/* Dark Gradient Overlay for Readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+
+              {/* Inlaid Gold Filigree Border (Koskii Signature) */}
+              <div className="absolute inset-2.5 rounded-xl border border-[#D4AF37]/80 pointer-events-none group-hover:border-[#F6D55C] transition-colors" />
+
+              {/* Tile Content (Bottom Left) */}
+              <div className="absolute bottom-4 left-4 right-4 text-center z-10 space-y-0.5">
+                <span className="font-serif text-xs sm:text-sm font-bold text-white tracking-wider block drop-shadow-md">
+                  {tile.title}
+                </span>
+                <span className="font-sans text-xs sm:text-sm font-black text-[#F6D55C] tracking-wide block drop-shadow-lg">
+                  {tile.discount}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 5. THE ROYAL BRIDAL EDIT (PRODUCTS START IMMEDIATELY) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 space-y-4">
+        <div className="flex items-end justify-between border-b border-[#F3E5AB]/60 pb-2.5">
+          <div>
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37] block">
+              Pure Silk Heritage
+            </span>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C] tracking-wide">
+              THE ROYAL BRIDAL EDIT
+            </h2>
+          </div>
+          <button
+            onClick={() => navigate('/shop?category=dharmavaram-pure-pattu')}
+            className="text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer"
+          >
+            See All <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 2-Column Mobile Product Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          {bridalPattu.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+
+
+      {/* 7. EVERYDAY HANDLOOMS & COTTON EDIT */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+        <div className="flex items-end justify-between border-b border-[#F3E5AB]/60 pb-2.5">
+          <div>
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37] block">
+              Breathable Comfort
+            </span>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C] tracking-wide">
+              HANDLOOM COTTON & KALAMKARI
+            </h2>
+          </div>
+          <button
+            onClick={() => navigate('/shop?category=kalamkari-cotton')}
+            className="text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer"
+          >
+            See All <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          {everydayCotton.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      {/* 8. TRENDING NOW (HORIZONTAL PRODUCT SCROLL) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-4">
+        <div className="flex items-end justify-between border-b border-[#F3E5AB]/60 pb-2.5">
+          <div>
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37] block">
+              Customer Favorites
+            </span>
+            <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C] tracking-wide">
+              TRENDING NOW
+            </h2>
+          </div>
+          <button
+            onClick={() => navigate('/shop')}
+            className="text-xs font-bold text-[#68081C] hover:text-[#D4AF37] flex items-center gap-1 cursor-pointer"
+          >
+            View All <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Horizontal Smooth Scroll for Trending Products */}
+        <div className="flex gap-3.5 sm:gap-5 overflow-x-auto pb-4 hide-scroll snap-x items-stretch">
+          {trendingSarees.map((product) => (
+            <div key={product.id} className="w-[185px] sm:w-[225px] shrink-0 snap-start flex flex-col">
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 9. TRUST BADGES / USP CAPSULE */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 bg-white border border-[#F3E5AB]/70 rounded-3xl p-5 sm:p-7 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FDF5F6] text-[#68081C] flex items-center justify-center shrink-0 shadow-2xs">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-gray-900">100% Pure Silk</h4>
+              <p className="text-[10px] sm:text-xs text-gray-500">Certified Weaves</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FDF5F6] text-[#68081C] flex items-center justify-center shrink-0 shadow-2xs">
+              <Truck className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-gray-900">Free Express Shipping</h4>
+              <p className="text-[10px] sm:text-xs text-gray-500">Orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FDF5F6] text-[#68081C] flex items-center justify-center shrink-0 shadow-2xs">
+              <Tag className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-gray-900">Direct Weaver Prices</h4>
+              <p className="text-[10px] sm:text-xs text-gray-500">Zero Middleman Markup</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#FDF5F6] text-[#68081C] flex items-center justify-center shrink-0 shadow-2xs">
+              <Sparkles className="w-5 h-5 text-[#D4AF37]" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-gray-900">WhatsApp Video Assist</h4>
+              <p className="text-[10px] sm:text-xs text-gray-500">Live Saree Draping View</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 10. HYDERABAD SHOWROOM CARD */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="bg-[#2D030A] rounded-3xl p-6 sm:p-10 text-center text-white space-y-4 shadow-xl border border-[#D4AF37]/30">
+          <div className="max-w-xl mx-auto space-y-3">
+            <div className="w-12 h-12 rounded-full bg-[#FAF5EE] mx-auto flex items-center justify-center p-1 shadow-md">
+              <img src="/logo-circle.png" alt={BRAND.fullName} className="w-full h-full object-cover rounded-full" />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37] block">Visit Our Showroom</span>
+            <h3 className="font-serif text-2xl sm:text-3xl font-bold">{BRAND.fullName}</h3>
+            <p className="text-xs text-gray-300 leading-relaxed">{BRAND.address.full}</p>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <a
+                href={waLink(`Hello ${BRAND.fullName}, I want to visit the showroom.`)}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-bold px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 shadow-md transition-transform hover:scale-105"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Video Visit
+              </a>
+              <a
+                href={`tel:${BRAND.phone}`}
+                className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-5 py-2.5 rounded-full inline-flex items-center gap-1.5 transition-colors border border-white/20"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#D4AF37]" /> Call Us
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

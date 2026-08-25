@@ -69,9 +69,9 @@ export default function AdminDashboard() {
       {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-2xs">
         <div>
-          <h2 className="font-serif text-2xl font-bold text-gray-900">Welcome Back, Harini! 👋</h2>
+          <h2 className="font-serif text-2xl font-bold text-gray-900">Welcome Back, Store Admin! 👋</h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            Here is what's happening with Aalaya Vastra store today.
+            Here is what's happening with {BRAND.fullName} store today.
           </p>
         </div>
 

@@ -1,48 +1,52 @@
-// Central brand config — edit here, not in components.
-// Source: client requirement form + WhatsApp message, 2026-08-14.
+// Central brand config for Sri Vaikunta Premium Sarees
+// All store info, address, contact, and highlights configured here.
 
 export const BRAND = {
-  name: "Aalaya Vastra",
-  tagline: "Tradition for Every Generation",
-  subTagline: "Timeless. Tradition. Modern You.",
-  motto: "Wear the tradition. Own the style. Celebrate YOU.",
+  name: "Sri Vaikunta",
+  fullName: "Sri Vaikunta Premium Sarees",
+  tagline: "Sacred Weaves, Royal Elegance",
+  subTagline: "Authentic Handloom & Heritage Pattu Sarees",
+  motto: "Wear the legacy of timeless Indian craftsmanship.",
 
-  ownerName: "Harini",
-  ownerFullName: "Jupudy Harini",
-
-  phone: "7989222233",
+  phone: "+91 99899 99999",
   // wa.me requires country code, no + or spaces
-  whatsappNumber: "917989222233",
-  email: "aalayavastra2026@gmail.com",
+  whatsappNumber: "919989999999",
+  email: "srivaikuntasarees@gmail.com",
 
   address: {
-    line1: "Vidyuth Colony, 3rd Street",
-    line2: "Venkateshwara Nagar, Beside BJP Office",
-    line3: "Turtle Wax (Upstairs)",
-    city: "Rajahmundry",
-    full: "Vidyuth Colony, 3rd Street, Venkateshwara Nagar, Beside BJP Office, Turtle Wax (Upstairs), Rajahmundry",
+    line1: "25-32/10/4/1, Mallikarjuna Nagar",
+    line2: "Near Beeramguda Main Road",
+    line3: "Ramachandrapuram",
+    city: "Hyderabad",
+    state: "Telangana",
+    pincode: "502032",
+    full: "25-32/10/4/1, Mallikarjuna Nagar, near Beeramguda Main Road, Ramachandrapuram, Hyderabad, Telangana 502032",
   },
 
-  // TODO: client hasn't shared social handles yet — replace when available
-  instagramHandle: "@aalayavastra",
+  instagramHandle: "@srivaikuntasarees",
 
-  about: `Aalaya Vastra is a destination for women's fashion where timeless tradition meets modern elegance. From graceful sarees and beautiful ethnic wear to stylish contemporary outfits, our collection is thoughtfully chosen to suit every generation and every occasion.
+  about: `Sri Vaikunta Premium Sarees is Hyderabad's premier destination for authentic, handcrafted traditional sarees. Sourced directly from renowned artisan weaving clusters across India, our collections honor the rich heritage of Indian handlooms.
 
-Whether it's a festival, wedding, celebration, or an everyday look, Aalaya Vastra brings you style, quality, comfort, and elegance — all under one roof.`,
+From the opulent silk lustre of Dharmavaram Pure Pattu and Pochampally Ikkat to the delicate grace of Mangalgiri prints, Banarasi weaves, and Kota cottons, every drape at Sri Vaikunta is a celebration of purity, quality, and timeless royal splendor.`,
 
-  // From the client's "Our Collection" graphic
   collectionHighlights: [
-    "Handloom Sarees",
-    "Handpicked Collection",
-    "Premium Cotton Sarees",
-    "Two Cut Piece Sarees",
-    "Blouse Pieces",
-    "Dress Collections",
-    "Petticoats",
-    "Towels",
+    "Dharmavaram Pure Pattu",
+    "Dharmavaram Semi Pattu",
+    "Pochampally Pattu",
+    "Banarasi Sarees",
+    "Semi Gadwal Sarees",
+    "Mangalgiri Digital Print",
+    "Kalamkari Cotton",
+    "Pure Cotton Sarees",
+    "Kota Sarees",
+    "Mysore Silk Sarees",
+    "Ikkat Sarees",
+    "Chinnon Sarees",
+    "Fancy Sarees",
+    "HO Sarees",
   ],
 
-  freeShippingThreshold: 2000,
+  freeShippingThreshold: 2500,
 };
 
 export function waLink(message) {

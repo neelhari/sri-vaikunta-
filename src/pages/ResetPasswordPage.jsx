@@ -82,10 +82,10 @@ export default function ResetPasswordPage() {
 
       // Also update local registered user records if email exists
       try {
-        const registered = JSON.parse(localStorage.getItem('aalaya_registered_users') || '[]');
+        const registered = JSON.parse(localStorage.getItem('srivaikunta_registered_users') || '[]');
         if (registered.length > 0) {
           const updated = registered.map((u) => ({ ...u, password: newPassword }));
-          localStorage.setItem('aalaya_registered_users', JSON.stringify(updated));
+          localStorage.setItem('srivaikunta_registered_users', JSON.stringify(updated));
         }
       } catch (err) {
         console.warn('Local password update:', err);
@@ -204,7 +204,7 @@ export default function ResetPasswordPage() {
               <div className="space-y-2">
                 <h2 className="font-serif text-2xl font-bold text-gray-900">Password Changed!</h2>
                 <p className="text-xs sm:text-sm text-gray-600 max-w-sm mx-auto">
-                  Your new password has been saved. You can now sign in to your Aalaya Vastra account.
+                  Your new password has been saved. You can now sign in to your {BRAND.fullName} account.
                 </p>
               </div>
 

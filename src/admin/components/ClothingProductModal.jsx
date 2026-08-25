@@ -172,7 +172,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
               {initialProduct ? 'Edit Clothing Product' : 'Add New Clothing Product'}
             </h3>
             <p className="text-[11px] text-gray-300">
-              Aalaya Vastra Clothing CMS • Live Storefront & Video Synchronization
+              {BRAND.fullName} CMS • Live Storefront & Saree Catalog Synchronization
             </p>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-white">

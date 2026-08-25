@@ -84,7 +84,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder="Enter your registered email (e.g. harini@aalayavastra.com)"
+                  placeholder="Enter your registered email (e.g. name@example.com)"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full py-4 text-sm sm:text-base font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-normal focus:outline-none"

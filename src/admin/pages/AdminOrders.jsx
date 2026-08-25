@@ -172,7 +172,7 @@ export default function AdminOrders() {
             <div className="pt-2 flex items-center justify-between gap-3">
               <a
                 href={`https://wa.me/91${selectedOrder.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
-                  `Hello ${selectedOrder.customerName}, this is regarding your order ${selectedOrder.id} at Aalaya Vastra. Your order status is currently: ${selectedOrder.status}.`
+                  `Hello ${selectedOrder.customerName}, this is regarding your order ${selectedOrder.id} at ${BRAND.fullName}. Your order status is currently: ${selectedOrder.status}.`
                 )}`}
                 target="_blank"
                 rel="noreferrer"

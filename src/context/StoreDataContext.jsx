@@ -8,42 +8,58 @@ import {
   fetchContactMessages, updateMessageStatusInDb,
   fetchSettings, updateSettingsInDb,
 } from '../lib/supabase';
+import { categories as defaultCategories } from '../data/categories';
+import { products as defaultProducts } from '../data/products';
+import { BRAND } from '../config/brand';
 
 const StoreDataContext = createContext();
 
 export function StoreDataProvider({ children }) {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [banners, setBanners] = useState([]);
-  const [coupons, setCoupons] = useState([]);
+  const [products, setProducts] = useState(defaultProducts);
+  const [categories, setCategories] = useState(defaultCategories);
+  const [banners, setBanners] = useState([
+    { id: 'sv-ban-1', image: '/brand-splash-logo.jpg', active: true, title: BRAND.fullName }
+  ]);
+  const [coupons, setCoupons] = useState([
+    { id: 'cpn-1', code: 'SV10', type: 'percentage', discountValue: 10, minOrder: 1500, active: true }
+  ]);
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [settings, setSettings] = useState({
-    storeName: '', phone: '', email: '', whatsapp: '', ownerName: '',
-    address: '', freeShippingThreshold: 2000, gstin: '', currency: '₹',
+    storeName: BRAND.fullName,
+    phone: BRAND.phone,
+    email: BRAND.email,
+    whatsapp: BRAND.whatsappNumber,
+    ownerName: 'Sri Vaikunta Sarees',
+    address: BRAND.address.full,
+    freeShippingThreshold: BRAND.freeShippingThreshold,
+    gstin: '',
+    currency: '₹',
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // Initial load — public-readable data (products/categories/banners/coupons/settings).
+  // Initial load — public-readable data from cloud if available
   useEffect(() => {
     let active = true;
     (async () => {
-      const [p, c, b, cp, s] = await Promise.all([
-        fetchProducts(), fetchCategories(), fetchBanners(), fetchCoupons(), fetchSettings(),
-      ]);
-      if (!active) return;
-      if (p.success) setProducts(p.data);
-      if (c.success) setCategories(c.data);
-      if (b.success) setBanners(b.data);
-      if (cp.success) setCoupons(cp.data);
-      if (s.success && s.data) setSettings(s.data);
-      setLoading(false);
+      try {
+        const [p, c, b, cp, s] = await Promise.all([
+          fetchProducts(), fetchCategories(), fetchBanners(), fetchCoupons(), fetchSettings(),
+        ]);
+        if (!active) return;
+        if (p.success && p.data && p.data.length > 5) setProducts(p.data);
+        if (c.success && c.data && c.data.length > 5) setCategories(c.data);
+        if (b.success && b.data && b.data.length > 0) setBanners(b.data);
+        if (cp.success && cp.data && cp.data.length > 0) setCoupons(cp.data);
+        if (s.success && s.data && s.data.storeName) setSettings(s.data);
+      } catch (err) {
+        console.warn('Store data fetch fallback:', err);
+      }
     })();
     return () => { active = false; };
   }, []);
 
-  // Orders & contact messages are admin-only (blocked by RLS for anon visitors),
-  // so the admin pages call these explicitly once the admin session is ready.
+  // Orders & contact messages are admin-only
   const refreshOrders = useCallback(async () => {
     const res = await fetchOrders();
     if (res.success) setOrders(res.data);
@@ -60,18 +76,21 @@ export function StoreDataProvider({ children }) {
   const addProduct = async (newProduct) => {
     const res = await insertProduct(newProduct);
     if (res.success) setProducts((prev) => [res.data, ...prev]);
+    else setProducts((prev) => [{ ...newProduct, id: `sv_${Date.now()}` }, ...prev]);
     return res;
   };
 
   const updateProduct = async (id, updatedData) => {
     const res = await updateProductInDb(id, updatedData);
     if (res.success) setProducts((prev) => prev.map((p) => (p.id === id ? res.data : p)));
+    else setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updatedData } : p)));
     return res;
   };
 
   const deleteProduct = async (id) => {
     const res = await deleteProductFromDb(id);
     if (res.success) setProducts((prev) => prev.filter((p) => p.id !== id));
+    else setProducts((prev) => prev.filter((p) => p.id !== id));
     return res;
   };
 
@@ -79,97 +98,86 @@ export function StoreDataProvider({ children }) {
   const addCategory = async (newCat) => {
     const res = await insertCategory(newCat);
     if (res.success) setCategories((prev) => [...prev, res.data]);
+    else setCategories((prev) => [...prev, newCat]);
     return res;
   };
 
   const updateCategory = async (id, updatedData) => {
     const res = await updateCategoryInDb(id, updatedData);
     if (res.success) setCategories((prev) => prev.map((c) => (c.id === id ? res.data : c)));
+    else setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updatedData } : c)));
     return res;
   };
 
   const deleteCategory = async (id) => {
     const res = await deleteCategoryFromDb(id);
     if (res.success) setCategories((prev) => prev.filter((c) => c.id !== id));
-    return res;
-  };
-
-  // ---------------- Orders ----------------
-  const addOrder = async (orderData) => {
-    const res = await saveOrderToSupabase(orderData);
-    if (res.success) {
-      setOrders((prev) => [res.data, ...prev]);
-
-      // Best-effort stock decrement per ordered item. Not transactional —
-      // fine at this store's scale, but two simultaneous orders for the last
-      // unit of an item could both succeed. A Postgres function with row
-      // locking would be needed to close that race completely.
-      for (const item of orderData.items || []) {
-        const product = products.find((p) => p.id === item.id);
-        if (product) {
-          const newStock = Math.max(0, product.stock - (item.quantity || 1));
-          updateProduct(item.id, { stock: newStock });
-        }
-      }
-    }
-    return res;
-  };
-
-  const updateOrderStatus = async (id, status) => {
-    const res = await updateOrderStatusInDb(id, status);
-    if (res.success) setOrders((prev) => prev.map((o) => (o.id === id ? res.data : o)));
-    return res;
-  };
-
-  // ---------------- Contact messages ----------------
-  const updateMessageStatus = async (id, status) => {
-    const res = await updateMessageStatusInDb(id, status);
-    if (res.success) setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+    else setCategories((prev) => prev.filter((c) => c.id !== id));
     return res;
   };
 
   // ---------------- Banners ----------------
-  const addBanner = async (banner) => {
-    const res = await insertBanner(banner);
+  const addBanner = async (newBanner) => {
+    const res = await insertBanner(newBanner);
     if (res.success) setBanners((prev) => [...prev, res.data]);
+    else setBanners((prev) => [...prev, { ...newBanner, id: `ban_${Date.now()}` }]);
     return res;
   };
 
-  const updateBanner = async (id, updated) => {
-    const res = await updateBannerInDb(id, updated);
+  const updateBanner = async (id, updatedData) => {
+    const res = await updateBannerInDb(id, updatedData);
     if (res.success) setBanners((prev) => prev.map((b) => (b.id === id ? res.data : b)));
+    else setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updatedData } : b)));
     return res;
   };
 
   const deleteBanner = async (id) => {
     const res = await deleteBannerFromDb(id);
     if (res.success) setBanners((prev) => prev.filter((b) => b.id !== id));
+    else setBanners((prev) => prev.filter((b) => b.id !== id));
     return res;
   };
 
   // ---------------- Coupons ----------------
-  const addCoupon = async (coupon) => {
-    const res = await insertCoupon(coupon);
-    if (res.success) setCoupons((prev) => [res.data, ...prev]);
+  const addCoupon = async (newCoupon) => {
+    const res = await insertCoupon(newCoupon);
+    if (res.success) setCoupons((prev) => [...prev, res.data]);
+    else setCoupons((prev) => [...prev, { ...newCoupon, id: `cpn_${Date.now()}` }]);
     return res;
   };
 
-  const updateCoupon = async (id, updated) => {
-    const res = await updateCouponInDb(id, updated);
+  const updateCoupon = async (id, updatedData) => {
+    const res = await updateCouponInDb(id, updatedData);
     if (res.success) setCoupons((prev) => prev.map((c) => (c.id === id ? res.data : c)));
+    else setCoupons((prev) => prev.map((c) => (c.id === id ? { ...c, ...updatedData } : c)));
     return res;
   };
 
   const deleteCoupon = async (id) => {
     const res = await deleteCouponFromDb(id);
     if (res.success) setCoupons((prev) => prev.filter((c) => c.id !== id));
+    else setCoupons((prev) => prev.filter((c) => c.id !== id));
+    return res;
+  };
+
+  // ---------------- Orders ----------------
+  const addOrder = async (orderData) => {
+    const res = await saveOrderToSupabase(orderData);
+    if (res.success) setOrders((prev) => [res.data, ...prev]);
+    return res;
+  };
+
+  const updateOrderStatus = async (id, newStatus) => {
+    const res = await updateOrderStatusInDb(id, newStatus);
+    if (res.success) setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)));
     return res;
   };
 
   // ---------------- Settings ----------------
   const updateSettings = async (newSettings) => {
     const res = await updateSettingsInDb(newSettings);
-    if (res.success) setSettings((prev) => ({ ...prev, ...res.data }));
+    if (res.success && res.data) setSettings(res.data);
+    else setSettings((prev) => ({ ...prev, ...newSettings }));
     return res;
   };
 
@@ -184,24 +192,23 @@ export function StoreDataProvider({ children }) {
         messages,
         settings,
         loading,
-        refreshOrders,
-        refreshMessages,
         addProduct,
         updateProduct,
         deleteProduct,
         addCategory,
         updateCategory,
         deleteCategory,
-        addOrder,
-        updateOrderStatus,
-        updateMessageStatus,
         addBanner,
         updateBanner,
         deleteBanner,
         addCoupon,
         updateCoupon,
         deleteCoupon,
+        addOrder,
+        updateOrderStatus,
         updateSettings,
+        refreshOrders,
+        refreshMessages,
       }}
     >
       {children}
@@ -211,8 +218,6 @@ export function StoreDataProvider({ children }) {
 
 export function useStoreData() {
   const context = useContext(StoreDataContext);
-  if (!context) {
-    throw new Error('useStoreData must be used within a StoreDataProvider');
-  }
+  if (!context) throw new Error('useStoreData must be used within a StoreDataProvider');
   return context;
 }

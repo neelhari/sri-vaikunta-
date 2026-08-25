@@ -37,8 +37,8 @@ export default function AccountPage() {
     name: user?.name || '',
     phone: user?.phone || '',
     addressLine: '',
-    city: 'Rajahmundry',
-    state: 'Andhra Pradesh',
+    city: 'Hyderabad',
+    state: 'Telangana',
     pincode: '',
     type: 'Home',
   });
@@ -69,8 +69,8 @@ export default function AccountPage() {
       name: user?.name || '',
       phone: user?.phone || '',
       addressLine: '',
-      city: 'Rajahmundry',
-      state: 'Andhra Pradesh',
+      city: 'Hyderabad',
+      state: 'Telangana',
       pincode: '',
       type: 'Home',
     });

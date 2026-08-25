@@ -67,11 +67,11 @@ export default function SignupPage() {
               Create Your Account
             </h1>
             <p className="text-xs sm:text-sm text-gray-200 leading-relaxed">
-              Join Aalaya Vastra to track orders, save delivery addresses & access exclusive offers.
+              Join {BRAND.fullName} to track orders, save delivery addresses & access exclusive offers.
             </p>
           </div>
 
-          <div className="absolute -right-10 -bottom-10 w-36 h-36 rounded-full bg-[#D3923A]/15 pointer-events-none" />
+          <div className="absolute -right-10 -bottom-10 w-36 h-36 rounded-full bg-[#D4AF37]/15 pointer-events-none" />
         </div>
 
         {/* Form Body */}
@@ -88,12 +88,12 @@ export default function SignupPage() {
               <label className="block text-xs sm:text-sm font-bold text-gray-800 mb-2">
                 Full Name <span className="text-red-500">*</span>
               </label>
-              <div className="flex items-center rounded-2xl border-2 border-gray-200 focus-within:border-[#6B1518] focus-within:ring-4 focus-within:ring-[#6B1518]/10 transition-all px-4 bg-white">
+              <div className="flex items-center rounded-2xl border-2 border-gray-200 focus-within:border-[#68081C] focus-within:ring-4 focus-within:ring-[#68081C]/10 transition-all px-4 bg-white">
                 <User className="w-5 h-5 text-gray-400 shrink-0 mr-3" />
                 <input
                   type="text"
                   required
-                  placeholder="Enter your full name (e.g. Harini Jupudy)"
+                  placeholder="Enter your full name (e.g. Sowmya Rao)"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full py-4 text-sm sm:text-base font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-normal focus:outline-none"

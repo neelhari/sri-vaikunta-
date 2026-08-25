@@ -19,9 +19,9 @@ export default function CheckoutPage() {
     phone: user?.phone || '',
     email: user?.email || '',
     address: defaultAddr?.addressLine || '',
-    city: defaultAddr?.city || 'Rajahmundry',
+    city: defaultAddr?.city || 'Hyderabad',
     pincode: defaultAddr?.pincode || '',
-    state: defaultAddr?.state || 'Andhra Pradesh',
+    state: defaultAddr?.state || 'Telangana',
     paymentMethod: 'upi', // 'upi' | 'cod' | 'whatsapp'
   });
 

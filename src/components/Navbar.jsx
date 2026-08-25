@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingBag, Heart, Menu, X, Phone, MapPin, ChevronRight, MessageCircle, User } from 'lucide-react';
-import { InstagramIcon } from './BrandIcons';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useUI } from '../context/UIContext';
@@ -11,81 +10,90 @@ import { BRAND, waLink } from '../config/brand';
 const navLinks = [
   { path: '/', label: 'HOME' },
   { path: '/categories', label: 'CATEGORIES' },
-  { path: '/shop', label: 'ALL PRODUCTS' },
-  { path: '/shop?category=sarees', label: 'SAREES' },
-  { path: '/shop?category=dresses', label: 'DRESSES' },
-  { path: '/faqs', label: 'FAQS' },
+  { path: '/shop', label: 'ALL SAREES' },
+  { path: '/shop?category=dharmavaram-pure-pattu', label: 'PURE PATTU' },
+  { path: '/shop?category=pochampally-pattu', label: 'POCHAMPALLY' },
+  { path: '/shop?category=banarasi-sarees', label: 'BANARASI' },
+  { path: '/shop?category=kalamkari-cotton', label: 'KALAMKARI' },
   { path: '/our-story', label: 'OUR STORY' },
   { path: '/contact', label: 'CONTACT' },
 ];
 
 export default function Navbar() {
-  const { totalItemsCount, setIsCartOpen, subtotal } = useCart();
+  const { totalItemsCount, setIsCartOpen } = useCart();
   const { wishlistCount, setIsWishlistOpen } = useWishlist();
   const { setIsSearchOpen } = useUI();
-  const { user, isAuthenticated, openLoginModal } = useAuth();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const currentUrl = location.pathname + location.search;
+  const isHomePage = location.pathname === '/';
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const goTo = (path) => {
     navigate(path);
     setMobileMenuOpen(false);
   };
 
+  // Determine if header should be transparent (only on homepage at top on mobile/desktop)
+  const isTransparent = isHomePage && !isScrolled;
+
   return (
-    <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100 font-sans">
-      {/* Top Announcement Bar */}
-      <div className="bg-[#6B1518] text-white text-[11px] sm:text-xs py-1.5 px-3 border-b border-[#4B0F11]">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 font-medium tracking-wide truncate">
-            <span className="hidden sm:inline-block bg-[#D3923A] text-[#6B1518] text-[9px] uppercase font-bold px-1.5 py-0.5 rounded shrink-0">Special Offer</span>
-            <span className="truncate">🚚 FREE SHIPPING on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}</span>
-          </div>
-
-          <div className="flex items-center gap-2.5 text-gray-200 text-[11px] shrink-0">
-            <a href={`tel:${BRAND.phone}`} className="hover:text-[#D3923A] transition-colors flex items-center gap-1">
-              <Phone className="w-3 h-3 text-[#D3923A]" />
-              <span className="hidden sm:inline">+91 {BRAND.phone}</span>
-            </a>
-            <span className="hidden sm:inline text-[#831A1D]">|</span>
-            <div className="hidden sm:flex items-center gap-2">
-              <span>Follow us:</span>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-[#D3923A] transition-colors" title="Instagram">
-                <InstagramIcon className="w-3.5 h-3.5" />
-              </a>
-              <a href={waLink(`Hello ${BRAND.name}, I have an inquiry.`)} target="_blank" rel="noreferrer" className="hover:text-[#D3923A] transition-colors" title="WhatsApp">
-                <MessageCircle className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <header
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 font-sans ${
+        isTransparent
+          ? 'bg-gradient-to-b from-black/80 via-black/40 to-transparent text-white border-transparent'
+          : 'bg-white shadow-sm border-b border-gray-100 text-gray-900'
+      }`}
+    >
       {/* Main Header / Brand Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 xl:py-3">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
-          {/* Logo — real brand asset, sized by height so it never stretches or crops.
-              Compact (no tagline) below xl where the header is narrow; full lockup
-              with tagline at xl+ where there's room for it to stay legible. */}
+          {/* Brand Logo & Typography Lockup */}
           <div
             onClick={() => goTo('/')}
-            className="cursor-pointer flex items-center shrink-0 group"
+            className="cursor-pointer flex items-center gap-2.5 sm:gap-3 shrink-0 group"
           >
-            <img
-              src="/logo-nav-compact.png"
-              alt={BRAND.name}
-              className="xl:hidden h-9 sm:h-10 w-auto max-w-[160px] object-contain transition-transform group-hover:scale-105"
-            />
-            <img
-              src="/logo-nav-full.png"
-              alt={BRAND.name}
-              className="hidden xl:block h-[52px] w-auto object-contain transition-transform group-hover:scale-105"
-            />
+            <div className="h-10 sm:h-12 w-10 sm:w-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden transition-transform group-hover:scale-105">
+              <img
+                src="/logo-circle.png"
+                alt={BRAND.fullName}
+                className="h-full w-full object-cover rounded-full"
+                style={{ imageRendering: '-webkit-optimize-contrast' }}
+              />
+            </div>
+            <div className="flex flex-col justify-center">
+              <span
+                className={`font-serif font-extrabold text-base sm:text-xl lg:text-2xl tracking-wide leading-tight transition-colors ${
+                  isTransparent ? 'text-white drop-shadow-md' : 'text-[#68081C]'
+                }`}
+              >
+                SRI VAIKUNTA
+              </span>
+              <span
+                className={`text-[8px] sm:text-[9px] uppercase tracking-[0.22em] font-bold block leading-none ${
+                  isTransparent ? 'text-[#F3E5AB] drop-shadow' : 'text-[#D4AF37]'
+                }`}
+              >
+                PREMIUM SAREES
+              </span>
+            </div>
           </div>
 
-          {/* Desktop Navigation Links directly in header */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden xl:flex flex-nowrap justify-center items-center gap-x-3 2xl:gap-x-4 text-[10px] 2xl:text-[11px] font-bold tracking-wider flex-1 min-w-0">
             {navLinks.map((link) => {
               const isActive = currentUrl === link.path || (link.path === '/' && currentUrl === '');
@@ -93,15 +101,23 @@ export default function Navbar() {
                 <button
                   key={link.path}
                   onClick={() => goTo(link.path)}
-                  className={`relative py-1.5 transition-colors duration-200 ${
-                    isActive
-                      ? 'text-[#6B1518] font-bold'
-                      : 'text-gray-700 hover:text-[#6B1518]'
+                  className={`relative py-1.5 transition-colors duration-200 cursor-pointer ${
+                    isTransparent
+                      ? isActive
+                        ? 'text-[#F3E5AB] font-bold'
+                        : 'text-white/90 hover:text-[#F3E5AB]'
+                      : isActive
+                      ? 'text-[#68081C] font-bold'
+                      : 'text-gray-700 hover:text-[#68081C]'
                   }`}
                 >
                   {link.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#6B1518] rounded-full animate-fadeIn" />
+                    <span
+                      className={`absolute bottom-0 left-0 w-full h-0.5 rounded-full ${
+                        isTransparent ? 'bg-[#F3E5AB]' : 'bg-[#68081C]'
+                      }`}
+                    />
                   )}
                 </button>
               );
@@ -109,37 +125,36 @@ export default function Navbar() {
           </nav>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Search */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="p-2 text-gray-700 hover:text-[#6B1518] hover:bg-gray-100 rounded-full transition-colors relative"
-              title="Search products"
+              className={`p-2 rounded-full transition-colors cursor-pointer ${
+                isTransparent
+                  ? 'text-white hover:bg-white/20'
+                  : 'text-gray-700 hover:text-[#68081C] hover:bg-gray-100'
+              }`}
+              title="Search sarees"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-5 h-5 drop-shadow" />
             </button>
 
-            {/* Wishlist Clean Icon */}
+            {/* Wishlist / Like Icon */}
             <button
               onClick={() => setIsWishlistOpen(true)}
-              className="p-2 text-gray-700 hover:text-[#6B1518] hover:bg-gray-100 rounded-full transition-colors relative"
+              className={`p-2 rounded-full transition-colors relative cursor-pointer ${
+                isTransparent
+                  ? 'text-white hover:bg-white/20'
+                  : 'text-gray-700 hover:text-[#68081C] hover:bg-gray-100'
+              }`}
               title="My Wishlist"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-5 h-5 drop-shadow" />
               {wishlistCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-[#6B1518] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                <span className="absolute -top-0.5 -right-0.5 bg-[#D4AF37] text-[#4A0513] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                   {wishlistCount}
                 </span>
               )}
-            </button>
-
-            {/* Mobile Hamburger */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 text-gray-700 hover:text-[#6B1518] focus:outline-none"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -148,17 +163,21 @@ export default function Navbar() {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="xl:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
           <div
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
           />
 
-          {/* Drawer content */}
           <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 animate-slideRight">
-            <div className="p-3 bg-[#6B1518] text-white flex items-center justify-between">
-              <div className="bg-white rounded-lg px-2.5 py-1.5">
-                <img src="/logo-nav-compact.png" alt={BRAND.name} className="h-8 w-auto max-w-[150px] object-contain" />
+            <div className="p-3 bg-[#68081C] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-full overflow-hidden shrink-0">
+                  <img src="/logo-circle.png" alt={BRAND.fullName} className="h-full w-full object-cover" />
+                </div>
+                <div>
+                  <span className="font-serif font-bold text-base text-white block leading-tight">SRI VAIKUNTA</span>
+                  <span className="text-[8px] uppercase tracking-[0.2em] text-[#D4AF37] font-semibold block leading-none">PREMIUM SAREES</span>
+                </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -177,12 +196,12 @@ export default function Navbar() {
                     onClick={() => goTo(link.path)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left text-sm font-semibold transition-colors ${
                       isActive
-                        ? 'bg-[#F8F0F0] text-[#6B1518]'
+                        ? 'bg-[#FDF5F6] text-[#68081C]'
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <span>{link.label}</span>
-                    <ChevronRight className={`w-4 h-4 ${isActive ? 'text-[#6B1518]' : 'text-gray-400'}`} />
+                    <ChevronRight className={`w-4 h-4 ${isActive ? 'text-[#68081C]' : 'text-gray-400'}`} />
                   </button>
                 );
               })}
@@ -196,11 +215,11 @@ export default function Navbar() {
                   className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-[#6B1518]" />
+                    <Heart className="w-5 h-5 text-[#68081C]" />
                     <span>My Wishlist</span>
                   </div>
                   {wishlistCount > 0 && (
-                    <span className="bg-[#6B1518] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="bg-[#68081C] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                       {wishlistCount} items
                     </span>
                   )}
@@ -210,27 +229,27 @@ export default function Navbar() {
                   onClick={() => goTo('/account')}
                   className="w-full flex items-center gap-2 px-4 py-3 rounded-lg text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <User className="w-5 h-5 text-[#6B1518]" />
+                  <User className="w-5 h-5 text-[#68081C]" />
                   <span>My Account</span>
                 </button>
               </div>
 
               <div className="pt-4 border-t border-gray-100 mt-4 px-4 space-y-3 text-xs text-gray-600">
-                <p className="font-bold uppercase tracking-wider text-[#6B1518]">Contact Us</p>
-                <a href={`tel:${BRAND.phone}`} className="flex items-center gap-2 hover:text-[#6B1518]">
-                  <Phone className="w-4 h-4 text-[#6B1518]" />
-                  <span>+91 {BRAND.phone}</span>
-                </a>
-                <a href={`mailto:${BRAND.email}`} className="flex items-center gap-2 hover:text-[#6B1518]">
-                  <span className="font-semibold text-[#6B1518]">@</span>
-                  <span>{BRAND.email}</span>
+                <p className="font-bold uppercase tracking-wider text-[#68081C]">Hyderabad Store Location</p>
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-[#68081C] shrink-0 mt-0.5" />
+                  <span>{BRAND.address.full}</span>
+                </div>
+                <a href={`tel:${BRAND.phone}`} className="flex items-center gap-2 hover:text-[#68081C]">
+                  <Phone className="w-4 h-4 text-[#68081C]" />
+                  <span>{BRAND.phone}</span>
                 </a>
               </div>
             </div>
 
             <div className="p-4 border-t border-gray-100 bg-[#FAF8F5] text-center">
               <a
-                href={waLink(`Hello ${BRAND.name}, I have an inquiry.`)}
+                href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-[#25D366] text-white py-2.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-sm text-sm"

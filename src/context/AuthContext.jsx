@@ -12,7 +12,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('aalaya_user');
+      const saved = localStorage.getItem('srivaikunta_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -21,24 +21,24 @@ export function AuthProvider({ children }) {
 
   const [registeredUsers, setRegisteredUsers] = useState(() => {
     try {
-      const saved = localStorage.getItem('aalaya_registered_users');
+      const saved = localStorage.getItem('srivaikunta_registered_users');
       return saved ? JSON.parse(saved) : [
         {
-          id: 'usr_harini',
-          name: 'Harini Jupudy',
-          email: 'harini@aalayavastra.com',
-          phone: '9390299611',
+          id: 'usr_demo',
+          name: 'Store Customer',
+          email: 'customer@srivaikuntasarees.com',
+          phone: '9989999999',
           password: 'password123',
           addresses: [
             {
               id: 'addr_1',
               type: 'Home',
-              name: 'Harini Jupudy',
-              phone: '9390299611',
-              addressLine: 'Door No 4-12, Main Bazaar Road',
-              city: 'Rajahmundry',
-              state: 'Andhra Pradesh',
-              pincode: '533101',
+              name: 'Customer',
+              phone: '9989999999',
+              addressLine: '25-32/10/4/1, Mallikarjuna Nagar, Beeramguda',
+              city: 'Hyderabad',
+              state: 'Telangana',
+              pincode: '502032',
               isDefault: true,
             }
           ],
@@ -52,14 +52,14 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('aalaya_user', JSON.stringify(user));
+      localStorage.setItem('srivaikunta_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('aalaya_user');
+      localStorage.removeItem('srivaikunta_user');
     }
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem('aalaya_registered_users', JSON.stringify(registeredUsers));
+    localStorage.setItem('srivaikunta_registered_users', JSON.stringify(registeredUsers));
   }, [registeredUsers]);
 
   // Listen to Supabase Auth State Changes
@@ -137,11 +137,11 @@ export function AuthProvider({ children }) {
           id: `addr_${Date.now()}`,
           type: 'Home',
           name: name.trim(),
-          phone: cleanPhone || '9390299611',
-          addressLine: 'Main Bazaar',
-          city: 'Rajahmundry',
-          state: 'Andhra Pradesh',
-          pincode: '533101',
+          phone: cleanPhone || '9989999999',
+          addressLine: 'Mallikarjuna Nagar',
+          city: 'Hyderabad',
+          state: 'Telangana',
+          pincode: '502032',
           isDefault: true,
         }
       ],
@@ -274,7 +274,7 @@ export function AuthProvider({ children }) {
   // 7. Logout
   const logout = async () => {
     setUser(null);
-    localStorage.removeItem('aalaya_user');
+    localStorage.removeItem('srivaikunta_user');
     try {
       if (supabase) {
         await supabase.auth.signOut();

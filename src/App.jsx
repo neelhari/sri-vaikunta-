@@ -93,7 +93,7 @@ function AppContent() {
       {!isAdminRoute && <Navbar />}
 
       {/* Main Dynamic View */}
-      <main className="flex-1">
+      <main className={`flex-1 ${!isAdminRoute && location.pathname !== '/' ? 'pt-16 sm:pt-20' : ''}`}>
         <Routes>
           {/* Storefront Routes */}
           <Route path="/" element={<HomePage />} />

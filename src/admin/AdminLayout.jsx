@@ -68,7 +68,7 @@ export default function AdminLayout() {
                 {getPageTitle()}
               </h1>
               <p className="text-[11px] text-gray-500 hidden sm:block">
-                Aalaya Vastra Production CMS • Store Status: <span className="text-emerald-600 font-bold inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3 inline" /> Live</span>
+                {BRAND.fullName} Production CMS • Store Status: <span className="text-emerald-600 font-bold inline-flex items-center gap-1"><CheckCircle2 className="w-3 h-3 inline" /> Live</span>
               </p>
             </div>
           </div>
