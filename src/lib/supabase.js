@@ -371,6 +371,16 @@ function mapCouponToDb(c) {
 
 function mapOrderFromDb(row) {
   if (!row) return row;
+  let tracking = null;
+  let cleanItems = row.items || [];
+  if (Array.isArray(row.items)) {
+    const trackingObj = row.items.find((i) => i && i._tracking);
+    if (trackingObj) {
+      tracking = trackingObj._tracking;
+      cleanItems = row.items.filter((i) => i && !i._tracking);
+    }
+  }
+
   return {
     id: row.id,
     userId: row.user_id || null,
@@ -381,8 +391,9 @@ function mapOrderFromDb(row) {
     city: row.city || '',
     state: row.state || '',
     pincode: row.pincode || '',
-    items: row.items || [],
-    itemsCount: (row.items || []).reduce((sum, i) => sum + (i.quantity || 1), 0),
+    items: cleanItems,
+    tracking: tracking,
+    itemsCount: cleanItems.reduce((sum, i) => sum + (i.quantity || 1), 0),
     subtotal: Number(row.subtotal) || 0,
     deliveryCharge: Number(row.delivery_charge) || 0,
     totalAmount: Number(row.total_amount) || 0,
@@ -833,12 +844,35 @@ export async function fetchOrdersByPhone(phone) {
   }
 }
 
-export async function updateOrderStatusInDb(id, status) {
+export async function updateOrderStatusInDb(id, status, trackingData = null) {
   if (!supabase) return { success: false, message: 'Supabase not configured' };
   try {
-    const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select().single();
+    const updatePayload = { status };
+    if (trackingData !== undefined && trackingData !== null) {
+      const { data: currentOrder } = await supabase.from('orders').select('items').eq('id', id).single();
+      let items = currentOrder?.items || [];
+      if (Array.isArray(items)) {
+        items = items.filter((i) => i && !i._tracking);
+        if (trackingData.trackingId) {
+          items.push({ _tracking: trackingData });
+        }
+        updatePayload.items = items;
+      }
+    }
+    const { data, error } = await supabase.from('orders').update(updatePayload).eq('id', id).select().single();
     if (error) return { success: false, message: error.message };
     return { success: true, data: mapOrderFromDb(data) };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function deleteOrderFromDb(id) {
+  if (!supabase) return { success: false, message: 'Supabase not configured' };
+  try {
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) return { success: false, message: error.message };
+    return { success: true };
   } catch (err) {
     return { success: false, message: err.message };
   }

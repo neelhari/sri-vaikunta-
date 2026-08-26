@@ -413,6 +413,31 @@ export default function AccountPage() {
                       ))}
                     </div>
 
+                    {/* DTDC Courier Tracking Badge */}
+                    {ord.tracking?.trackingId && (
+                      <div className="bg-blue-50/90 border border-blue-200 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Truck className="w-4 h-4 text-blue-600 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-blue-700 font-extrabold uppercase block">
+                              {ord.tracking.courier || 'DTDC Express'}
+                            </span>
+                            <span className="font-mono font-bold text-xs text-blue-900 truncate block">
+                              AWB: {ord.tracking.trackingId}
+                            </span>
+                          </div>
+                        </div>
+                        <a
+                          href="https://www.dtdc.in/tracking.asp"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg shrink-0 flex items-center gap-1 shadow-2xs"
+                        >
+                          <span>Track on DTDC ↗</span>
+                        </a>
+                      </div>
+                    )}
+
                     <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-xs">
                       <span className="text-gray-500 font-medium">Total: <strong className="text-gray-900 font-extrabold">₹{ord.totalAmount.toLocaleString('en-IN')}</strong></span>
                       <a

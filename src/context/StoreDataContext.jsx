@@ -5,7 +5,7 @@ import {
   fetchBanners, insertBanner, updateBannerInDb, deleteBannerFromDb,
   fetchPromotions, updatePromotionsInDb,
   fetchCoupons, insertCoupon, updateCouponInDb, deleteCouponFromDb,
-  fetchOrders, saveOrderToSupabase, updateOrderStatusInDb,
+  fetchOrders, saveOrderToSupabase, updateOrderStatusInDb, deleteOrderFromDb,
   fetchContactMessages, updateMessageStatusInDb,
   fetchSettings, updateSettingsInDb,
 } from '../lib/supabase';
@@ -362,9 +362,29 @@ export function StoreDataProvider({ children }) {
     return res;
   };
 
-  const updateOrderStatus = async (id, newStatus) => {
-    const res = await updateOrderStatusInDb(id, newStatus);
-    if (res.success) setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)));
+  const updateOrderStatus = async (id, newStatus, trackingData = null) => {
+    const res = await updateOrderStatusInDb(id, newStatus, trackingData);
+    if (res.success) {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === id
+            ? {
+                ...o,
+                status: newStatus,
+                ...(trackingData ? { tracking: trackingData } : {}),
+              }
+            : o
+        )
+      );
+    }
+    return res;
+  };
+
+  const deleteOrder = async (id) => {
+    const res = await deleteOrderFromDb(id);
+    if (res.success) {
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    }
     return res;
   };
 
@@ -406,6 +426,7 @@ export function StoreDataProvider({ children }) {
         deleteCoupon,
         addOrder,
         updateOrderStatus,
+        deleteOrder,
         updateSettings,
         refreshOrders,
         refreshMessages,
