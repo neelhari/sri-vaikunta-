@@ -475,8 +475,9 @@ function mapSettingsToDb(s) {
   if (s.pincode !== undefined) row.pincode = s.pincode;
   if (s.freeShippingThreshold !== undefined) row.free_shipping_threshold = Number(s.freeShippingThreshold);
   if (s.deliveryCharge !== undefined) row.shipping_fee = Number(s.deliveryCharge);
-  if (s.codEnabled !== undefined) row.cod_enabled = Boolean(s.codEnabled);
-  if (s.enableCod !== undefined) row.cod_enabled = Boolean(s.enableCod);
+  
+  const codVal = s.codEnabled !== undefined ? s.codEnabled : s.enableCod;
+  if (codVal !== undefined) row.cod_enabled = Boolean(codVal);
   return row;
 }
 

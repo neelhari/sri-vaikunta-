@@ -19,10 +19,16 @@ export default function AdminSettings() {
     e.preventDefault();
     setSaving(true);
     setError('');
+    const isCodOn = formData.codEnabled !== false && formData.enableCod !== false;
+    const isWaOn = formData.enableWhatsappOrders !== false;
+
     const payload = {
       ...formData,
       freeShippingThreshold: formData.freeShippingThreshold === '' ? 0 : Number(formData.freeShippingThreshold),
       deliveryCharge: formData.deliveryCharge === '' ? 0 : Number(formData.deliveryCharge),
+      codEnabled: isCodOn,
+      enableCod: isCodOn,
+      enableWhatsappOrders: isWaOn,
     };
     const result = await updateSettings(payload);
     setSaving(false);
@@ -33,6 +39,19 @@ export default function AdminSettings() {
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const isCodActive = formData.codEnabled !== false && formData.enableCod !== false;
+  const isWaActive = formData.enableWhatsappOrders !== false;
+
+  const toggleCod = () => {
+    const nextVal = !isCodActive;
+    setFormData((prev) => ({ ...prev, codEnabled: nextVal, enableCod: nextVal }));
+  };
+
+  const toggleWa = () => {
+    const nextVal = !isWaActive;
+    setFormData((prev) => ({ ...prev, enableWhatsappOrders: nextVal }));
   };
 
   return (
@@ -175,8 +194,8 @@ export default function AdminSettings() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-gray-900 text-xs">Cash on Delivery (COD)</span>
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${formData.codEnabled !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
-                    {formData.codEnabled !== false ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${isCodActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
+                    {isCodActive ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-500">
@@ -187,14 +206,14 @@ export default function AdminSettings() {
               {/* iOS Style Switch */}
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, codEnabled: !(formData.codEnabled !== false) })}
+                onClick={toggleCod}
                 className={`w-12 h-6.5 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer shrink-0 ${
-                  formData.codEnabled !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                  isCodActive ? 'bg-emerald-600' : 'bg-gray-300'
                 }`}
               >
                 <div
                   className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
-                    formData.codEnabled !== false ? 'translate-x-5.5' : 'translate-x-0'
+                    isCodActive ? 'translate-x-5.5' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -205,8 +224,8 @@ export default function AdminSettings() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-gray-900 text-xs">WhatsApp Direct Order</span>
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${formData.enableWhatsappOrders !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
-                    {formData.enableWhatsappOrders !== false ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${isWaActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
+                    {isWaActive ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-500">
@@ -217,14 +236,14 @@ export default function AdminSettings() {
               {/* iOS Style Switch */}
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, enableWhatsappOrders: !(formData.enableWhatsappOrders !== false) })}
+                onClick={toggleWa}
                 className={`w-12 h-6.5 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer shrink-0 ${
-                  formData.enableWhatsappOrders !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                  isWaActive ? 'bg-emerald-600' : 'bg-gray-300'
                 }`}
               >
                 <div
                   className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
-                    formData.enableWhatsappOrders !== false ? 'translate-x-5.5' : 'translate-x-0'
+                    isWaActive ? 'translate-x-5.5' : 'translate-x-0'
                   }`}
                 />
               </button>
