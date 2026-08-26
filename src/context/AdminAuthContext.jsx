@@ -99,8 +99,11 @@ export function AdminAuthProvider({ children }) {
 
     // 1. Try master admin credentials first
     if (
-      (cleanEmail === 'admin@srivaikuntasarees.com' || cleanEmail === 'admin@srivaikunta.com') &&
-      cleanPassword === 'admin123'
+      (cleanEmail === 'admin@srivaikuntasarees.com' || 
+       cleanEmail === 'admin@srivaikunta.com' ||
+       cleanEmail.includes('admin') ||
+       cleanEmail.endsWith('@srivaikuntasarees.com')) &&
+      cleanPassword === 'aishushiva@900'
     ) {
       const mockAdminSession = {
         user: {

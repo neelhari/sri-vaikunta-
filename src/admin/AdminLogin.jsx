@@ -64,7 +64,7 @@ export default function AdminLogin() {
                 autoCorrect="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@srivaikuntasarees.com"
+                placeholder="e.g. store@company.com"
                 className="w-full pl-9 pr-3 py-3 text-xs sm:text-sm font-semibold text-gray-900 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
               />
             </div>
@@ -80,7 +80,7 @@ export default function AdminLogin() {
                 autoCapitalize="none"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Enter admin password"
                 className="w-full pl-9 pr-3 py-3 text-xs sm:text-sm font-semibold text-gray-900 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none"
               />
             </div>
