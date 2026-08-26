@@ -19,7 +19,12 @@ export default function AdminSettings() {
     e.preventDefault();
     setSaving(true);
     setError('');
-    const result = await updateSettings(formData);
+    const payload = {
+      ...formData,
+      freeShippingThreshold: formData.freeShippingThreshold === '' ? 0 : Number(formData.freeShippingThreshold),
+      deliveryCharge: formData.deliveryCharge === '' ? 0 : Number(formData.deliveryCharge),
+    };
+    const result = await updateSettings(payload);
     setSaving(false);
 
     if (!result.success) {
@@ -130,19 +135,22 @@ export default function AdminSettings() {
             <div>
               <label className="block font-bold text-gray-800 mb-1">Free Shipping Threshold (₹)</label>
               <input
-                type="number"
-                value={formData.freeShippingThreshold}
-                onChange={(e) => setFormData({ ...formData, freeShippingThreshold: Number(e.target.value) })}
-                className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518]"
+                type="text"
+                inputMode="numeric"
+                value={formData.freeShippingThreshold !== undefined && formData.freeShippingThreshold !== null ? formData.freeShippingThreshold : ''}
+                onChange={(e) => setFormData({ ...formData, freeShippingThreshold: e.target.value.replace(/\D/g, '') })}
+                placeholder="e.g. 3000"
+                className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] font-bold"
               />
             </div>
 
             <div>
               <label className="block font-bold text-gray-800 mb-1">Standard Delivery Charge (₹)</label>
               <input
-                type="number"
-                value={formData.deliveryCharge !== undefined ? formData.deliveryCharge : 100}
-                onChange={(e) => setFormData({ ...formData, deliveryCharge: Number(e.target.value) })}
+                type="text"
+                inputMode="numeric"
+                value={formData.deliveryCharge !== undefined && formData.deliveryCharge !== null ? formData.deliveryCharge : ''}
+                onChange={(e) => setFormData({ ...formData, deliveryCharge: e.target.value.replace(/\D/g, '') })}
                 placeholder="e.g. 100"
                 className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] font-bold"
               />
