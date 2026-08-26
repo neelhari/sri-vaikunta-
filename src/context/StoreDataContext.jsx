@@ -165,7 +165,12 @@ export function StoreDataProvider({ children }) {
         if (!active) return;
         if (p.success && p.data && p.data.length > 5) setProducts(p.data);
         if (c.success && c.data && c.data.length > 5) setCategories(c.data);
-        if (b.success && b.data && b.data.length > 0) setBanners(b.data);
+        if (b.success && Array.isArray(b.data)) {
+          setBanners(b.data);
+          try {
+            localStorage.setItem('sv_banners_cms', JSON.stringify(b.data));
+          } catch (e) {}
+        }
         if (pr.success && pr.data) {
           setPromotions((prev) => ({
             ...prev,

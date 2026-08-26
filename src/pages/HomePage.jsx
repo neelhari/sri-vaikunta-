@@ -60,36 +60,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { products, categories, banners = [], promotions = {} } = useStoreData();
 
-  const defaultHeroSlides = [
-    {
-      image: '/slider/hero_slide_1.png',
-      badge: 'The Grand Festive Heritage Sale',
-      title: 'ROYAL DHARMAVARAM\nPURE PATTU SAREES',
-      offer: 'FLAT 20% - 30% OFF WEAVER PRICES',
-      subtitle: 'Heavy Gold Zari Bridal & Festive Heritage Weaves.',
-      link: '/categories?category=dharmavaram-pure-pattu',
-    },
-    {
-      image: '/slider/hero_slide_2.png',
-      badge: 'Festive Fashion Collection',
-      title: 'POCHAMPALLY & BRIDAL\nSILK ENSEMBLES',
-      offer: 'UP TO 30% OFF MASTER WEAVES',
-      subtitle: 'Artisan Double Ikkat Silk & Handwoven Drapes.',
-      link: '/categories?category=pochampally-pattu',
-    },
-    {
-      image: '/slider/hero_slide_3.png',
-      badge: 'Royal Brocade Edition',
-      title: 'BANARASI & GADWAL\nHANDLOOM SAREES',
-      offer: 'DIRECT FROM MASTER WEAVERS',
-      subtitle: 'Kashi Antique Zari & Traditional Temple Borders.',
-      link: '/categories?category=banarasi-sarees',
-    },
-  ];
-
-  const heroSlides = Array.isArray(banners) && banners.filter((b) => b.active).length > 0
-    ? banners.filter((b) => b.active)
-    : defaultHeroSlides;
+  const heroSlides = Array.isArray(banners) ? banners.filter((b) => b.active !== false) : [];
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
@@ -191,80 +162,90 @@ export default function HomePage() {
         </defs>
       </svg>
 
-      {/* 1. FULL-BLEED HERO BANNER WITH 3 DISTINCT CATEGORY SLIDES */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={() => {
-            if (isSwiping) return;
-            navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
-          }}
-          className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group touch-pan-y"
-        >
-          {heroSlides.map((slide, index) => (
-            <img
-              key={slide.image || slide.id || index}
-              src={slide.image}
-              alt={`Sri Vaikunta Festive Saree Slide ${index + 1}`}
-              className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-1000 ${
-                index === currentSlide ? 'opacity-95 scale-100' : 'opacity-0 scale-105 pointer-events-none'
-              }`}
-            />
-          ))}
+      {/* 1. FULL-BLEED HERO BANNER WITH DYNAMIC BANNER SLIDES (NO HARDCODED FALLBACKS) */}
+      {heroSlides.length > 0 && activeSlide && (
+        <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={() => {
+              if (isSwiping) return;
+              navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
+            }}
+            className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group touch-pan-y"
+          >
+            {heroSlides.map((slide, index) => (
+              <img
+                key={slide.image || slide.id || index}
+                src={slide.image}
+                alt={`Sri Vaikunta Festive Saree Slide ${index + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-1000 ${
+                  index === currentSlide ? 'opacity-95 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                }`}
+              />
+            ))}
 
-          {/* Seamless Top & Bottom Shadow Gradients for Readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85 pointer-events-none" />
+            {/* Seamless Top & Bottom Shadow Gradients for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85 pointer-events-none" />
 
-          {/* Hero Festive Text Lockup */}
-          <div className="relative z-10 space-y-2.5 max-w-lg mx-auto flex flex-col items-center">
-            <span className="text-[10px] sm:text-xs font-serif italic text-[#F3E5AB] tracking-[0.25em] uppercase font-bold drop-shadow-md">
-              {activeSlide.badge}
-            </span>
+            {/* Hero Festive Text Lockup */}
+            <div className="relative z-10 space-y-2.5 max-w-lg mx-auto flex flex-col items-center">
+              {activeSlide.badge && (
+                <span className="text-[10px] sm:text-xs font-serif italic text-[#F3E5AB] tracking-[0.25em] uppercase font-bold drop-shadow-md">
+                  {activeSlide.badge}
+                </span>
+              )}
 
-            <h1 className="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-xl text-white whitespace-pre-line">
-              {activeSlide.title}
-            </h1>
+              <h1 className="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-xl text-white whitespace-pre-line">
+                {activeSlide.title}
+              </h1>
 
-            <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] px-3.5 py-1 rounded-full text-[10.5px] sm:text-xs font-black uppercase tracking-wider shadow-lg">
-              <Flame className="w-3.5 h-3.5 fill-current" />
-              <span>{activeSlide.offer}</span>
-            </div>
+              {activeSlide.offer && (
+                <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] px-3.5 py-1 rounded-full text-[10.5px] sm:text-xs font-black uppercase tracking-wider shadow-lg">
+                  <Flame className="w-3.5 h-3.5 fill-current" />
+                  <span>{activeSlide.offer}</span>
+                </div>
+              )}
 
-            <p className="text-[11px] sm:text-xs text-gray-200 max-w-xs sm:max-w-md line-clamp-2 drop-shadow">
-              {activeSlide.subtitle}
-            </p>
+              {activeSlide.subtitle && (
+                <p className="text-[11px] sm:text-xs text-gray-200 max-w-xs sm:max-w-md line-clamp-2 drop-shadow">
+                  {activeSlide.subtitle}
+                </p>
+              )}
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
-              }}
-              className="mt-2 bg-white hover:bg-[#FAF5EE] text-[#68081C] font-extrabold text-xs sm:text-sm tracking-widest uppercase px-9 py-3.5 rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#D4AF37]/40"
-            >
-              SHOP NOW
-            </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
+                }}
+                className="mt-2 bg-white hover:bg-[#FAF5EE] text-[#68081C] font-extrabold text-xs sm:text-sm tracking-widest uppercase px-9 py-3.5 rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-[#D4AF37]/40"
+              >
+                SHOP NOW
+              </button>
 
-            {/* Pagination Indicators */}
-            <div className="pt-2 flex items-center justify-center gap-2">
-              {heroSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentSlide(idx);
-                  }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    idx === currentSlide ? 'w-7 bg-[#D4AF37]' : 'w-2 bg-white/60 hover:bg-white'
-                  }`}
-                  aria-label={`Slide ${idx + 1}`}
-                />
-              ))}
+              {/* Pagination Indicators */}
+              {heroSlides.length > 1 && (
+                <div className="pt-2 flex items-center justify-center gap-2">
+                  {heroSlides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentSlide(idx);
+                      }}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        idx === currentSlide ? 'w-7 bg-[#D4AF37]' : 'w-2 bg-white/60 hover:bg-white'
+                      }`}
+                      aria-label={`Slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER (100% ADMIN CONTROLLED) */}
       {promotions?.marqueeActive !== false && (

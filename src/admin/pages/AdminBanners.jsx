@@ -106,7 +106,7 @@ export default function AdminBanners() {
     setBadge('Festive Heritage Sale');
     setOffer('FLAT 25% OFF WEAVER PRICES');
     setSubtitle('Pure Handwoven Silk & Zari Weaves');
-    setImage('/slider/hero_slide_1.png');
+    setImage('');
     setLink('/categories?category=dharmavaram-pure-pattu');
     setIsModalOpen(true);
   };
@@ -790,14 +790,18 @@ export default function AdminBanners() {
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <div className="w-20 h-28 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative group">
-                      <img src={image || '/slider/hero_slide_1.png'} alt="Hero Preview" className="w-full h-full object-cover" />
+                    <div className="w-20 h-28 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative group flex items-center justify-center">
+                      {image ? (
+                        <img src={image} alt="Hero Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="w-8 h-8 text-gray-500" />
+                      )}
                     </div>
                     <div className="text-center sm:text-left space-y-1.5">
                       <p className="font-bold text-gray-800 text-xs">
-                        {uploading ? '⏳ Compressing & Uploading to Cloudinary...' : 'Upload Saree Photo from Device'}
+                        {uploading ? '⏳ Compressing & Uploading to Cloud Storage...' : 'Upload Saree Photo from Device'}
                       </p>
-                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Direct Cloud Storage Active)</p>
                       <div>
                         <input
                           type="file"
@@ -825,7 +829,7 @@ export default function AdminBanners() {
                     type="text"
                     value={image}
                     onChange={(e) => setImage(e.target.value)}
-                    placeholder="Or paste image URL (e.g. /slider/hero_slide_1.png)..."
+                    placeholder="Or paste image URL (https://...)..."
                     className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-mono text-[11px]"
                   />
                 </div>
