@@ -69,11 +69,12 @@ export default function HomePage() {
 
   // Auto-advance hero slides every 5.5 seconds
   useEffect(() => {
+    if (!heroSlides || heroSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, [heroSlides.length]);
+  }, [heroSlides?.length]);
 
   const handleTouchStart = (e) => {
     if (!e.targetTouches || e.targetTouches.length === 0) return;
