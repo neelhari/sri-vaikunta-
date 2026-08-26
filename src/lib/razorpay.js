@@ -1,6 +1,8 @@
 import { BRAND } from '../config/brand';
 
-const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TUTTDeUehnBzoZ';
+const RAZORPAY_KEY = (import.meta.env.VITE_RAZORPAY_KEY_ID && !import.meta.env.VITE_RAZORPAY_KEY_ID.startsWith('rzp_test'))
+  ? import.meta.env.VITE_RAZORPAY_KEY_ID
+  : 'rzp_live_TUTTDeUehnBzoZ';
 
 /**
  * Dynamically loads the Razorpay checkout script
