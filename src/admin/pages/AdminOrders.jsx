@@ -20,13 +20,13 @@ import { useStoreData } from '../../context/StoreDataContext';
 import { BRAND } from '../../config/brand';
 
 const STATUS_CONFIG = {
-  'Order Placed': { bg: 'bg-[#FFF7ED]', text: 'text-[#C2410C]', border: 'border-[#FFEDD5]' },
-  'Order Accepted': { bg: 'bg-[#FEF9C3]', text: 'text-[#A16207]', border: 'border-[#FEF08A]' },
-  'Processing': { bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]', border: 'border-[#DBEAFE]' },
-  'Out for Delivery': { bg: 'bg-[#F3E8FF]', text: 'text-[#7E22CE]', border: 'border-[#E9D5FF]' },
-  'Delivered': { bg: 'bg-[#DCFCE7]', text: 'text-[#15803D]', border: 'border-[#BBF7D0]' },
-  'Cancelled': { bg: 'bg-[#FEE2E2]', text: 'text-[#B91C1C]', border: 'border-[#FECACA]' },
-  'Pending': { bg: 'bg-[#FFF7ED]', text: 'text-[#C2410C]', border: 'border-[#FFEDD5]' },
+  'Out for Delivery': { bg: 'bg-[#FAF5FF]', text: 'text-[#7E22CE]', border: 'border-[#E9D5FF]' },
+  'Order Accepted': { bg: 'bg-[#FEFCE8]', text: 'text-[#854D0E]', border: 'border-[#FEF08A]' },
+  'Order Placed': { bg: 'bg-[#FEFCE8]', text: 'text-[#854D0E]', border: 'border-[#FEF08A]' },
+  'Processing': { bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]', border: 'border-[#BFDBFE]' },
+  'Delivered': { bg: 'bg-[#F0FDF4]', text: 'text-[#15803D]', border: 'border-[#BBF7D0]' },
+  'Cancelled': { bg: 'bg-[#FEF2F2]', text: 'text-[#B91C1C]', border: 'border-[#FECACA]' },
+  'Pending': { bg: 'bg-[#FEFCE8]', text: 'text-[#854D0E]', border: 'border-[#FEF08A]' },
 };
 
 export default function AdminOrders() {
@@ -235,12 +235,14 @@ export default function AdminOrders() {
                       <td className="p-4 text-gray-500 whitespace-nowrap">
                         {ord.date || (ord.createdAt ? new Date(ord.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent')}
                       </td>
-                      <td className="p-4 space-y-1.5 min-w-[200px]">
+                      {/* Status & DTDC Tracking Pill (Matching Image 1) */}
+                      <td className="p-4 space-y-1.5 min-w-[210px]">
+                        {/* Status Dropdown */}
                         <div className="relative">
                           <select
                             value={ord.status || 'Order Placed'}
                             onChange={(e) => handleDirectStatusChange(ord.id, e.target.value)}
-                            className={`w-full text-xs font-bold px-3 py-1.5 rounded-xl border appearance-none cursor-pointer focus:outline-none ${style.bg} ${style.text} ${style.border}`}
+                            className={`w-full text-xs font-bold px-3.5 py-2 rounded-2xl border appearance-none cursor-pointer focus:outline-none ${style.bg} ${style.text} ${style.border}`}
                           >
                             <option value="Order Placed">Order Placed</option>
                             <option value="Order Accepted">Order Accepted</option>
@@ -249,18 +251,20 @@ export default function AdminOrders() {
                             <option value="Delivered">Delivered</option>
                             <option value="Cancelled">Cancelled</option>
                           </select>
-                          <ChevronDown className={`w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${style.text}`} />
+                          <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${style.text}`} />
                         </div>
+
+                        {/* DTDC Tracking Button / Tag */}
                         {ord.tracking?.trackingId ? (
-                          <div className="bg-[#EFF6FF] border border-[#BFDBFE] text-[#1D4ED8] rounded-xl px-2.5 py-1 text-[11px] font-bold flex items-center justify-between gap-1 shadow-2xs">
-                            <div className="flex items-center gap-1 truncate">
-                              <Truck className="w-3.5 h-3.5 shrink-0" />
-                              <span className="truncate">DTDC: {ord.tracking.trackingId}</span>
+                          <div className="bg-[#EFF6FF] border border-[#BFDBFE] text-[#1E40AF] rounded-2xl px-3 py-1.5 text-xs font-bold flex items-center justify-between gap-1 shadow-2xs">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <Truck className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+                              <span className="truncate font-bold">DTDC: {ord.tracking.trackingId}</span>
                             </div>
                             <button
                               type="button"
                               onClick={() => handleOpenTrackingModal(ord)}
-                              className="text-[#2563EB] hover:text-[#1D4ED8] underline text-[10px] font-bold cursor-pointer shrink-0"
+                              className="text-[#2563EB] hover:underline text-xs font-bold cursor-pointer shrink-0 ml-1"
                             >
                               Edit
                             </button>
@@ -269,7 +273,7 @@ export default function AdminOrders() {
                           <button
                             type="button"
                             onClick={() => handleOpenTrackingModal(ord)}
-                            className="w-full bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 text-gray-600 rounded-xl px-2 py-1 text-[10px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                            className="w-full bg-[#EFF6FF]/40 hover:bg-[#EFF6FF] border border-[#BFDBFE]/60 text-[#2563EB] rounded-2xl px-3 py-1 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                           >
                             <span>+ Set DTDC Tracking</span>
                           </button>
