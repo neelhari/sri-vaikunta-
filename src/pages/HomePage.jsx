@@ -162,9 +162,9 @@ export default function HomePage() {
         </defs>
       </svg>
 
-      {/* 1. FULL-BLEED HERO BANNER WITH DYNAMIC BANNER SLIDES (NO HARDCODED FALLBACKS) */}
-      {heroSlides.length > 0 && activeSlide && (
-        <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
+      {/* 1. FULL-BLEED HERO BANNER WITH DYNAMIC BANNER SLIDES */}
+      <section className="relative w-full h-[82vh] sm:h-[580px] md:h-[640px] overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
+        {heroSlides.length > 0 && activeSlide ? (
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -173,7 +173,7 @@ export default function HomePage() {
               if (isSwiping) return;
               navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
             }}
-            className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group touch-pan-y"
+            className="relative h-full w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group touch-pan-y"
           >
             {heroSlides.map((slide, index) => (
               <img
@@ -234,18 +234,27 @@ export default function HomePage() {
                         e.stopPropagation();
                         setCurrentSlide(idx);
                       }}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        idx === currentSlide ? 'w-7 bg-[#D4AF37]' : 'w-2 bg-white/60 hover:bg-white'
+                      className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                        idx === currentSlide ? 'w-6 bg-[#D4AF37]' : 'w-1.5 bg-white/40 hover:bg-white/70'
                       }`}
-                      aria-label={`Slide ${idx + 1}`}
+                      title={`Go to slide ${idx + 1}`}
                     />
                   ))}
                 </div>
               )}
             </div>
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="h-full w-full flex items-center justify-center bg-gradient-to-b from-[#1F0207] to-[#4A0513]">
+            <div className="flex flex-col items-center space-y-3">
+              <span className="text-[10px] sm:text-xs font-serif tracking-[0.25em] text-[#D4AF37] uppercase animate-pulse">
+                Sri Vaikunta Sarees
+              </span>
+              <div className="w-7 h-7 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin" />
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER (100% ADMIN CONTROLLED) */}
       {promotions?.marqueeActive !== false && (
