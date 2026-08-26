@@ -2,8 +2,22 @@ import React, { useState } from 'react';
 import { Phone, Mail, MessageCircle, MapPin, Send, CheckCircle2, User, HelpCircle, ChevronDown, AlertTriangle } from 'lucide-react';
 import { BRAND, waLink } from '../config/brand';
 import { saveContactMessageToSupabase } from '../lib/supabase';
+import { useStoreData } from '../context/StoreDataContext';
 
 export default function ContactPage() {
+  const { settings = {} } = useStoreData();
+
+  const storePhone = settings.phone || BRAND.phone;
+  const storeEmail = settings.supportEmail || BRAND.email;
+  const storeAddress = settings.address
+    ? `${settings.address}, ${settings.city || ''}, ${settings.state || ''} ${settings.pincode || ''}`.replace(/,\s*,/g, ',').trim()
+    : BRAND.address.full;
+  const storeName = settings.storeName || BRAND.fullName;
+  const cleanWhatsappDigits = settings.whatsapp ? settings.whatsapp.replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
+  const whatsappUrl = cleanWhatsappDigits
+    ? `https://wa.me/${cleanWhatsappDigits}?text=${encodeURIComponent(`Hello ${storeName}, I would like to see saree options on WhatsApp.`)}`
+    : waLink(`Hello ${storeName}, I would like to see saree options on WhatsApp.`);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -50,25 +64,25 @@ export default function ContactPage() {
     {
       icon: <Phone className="w-6 h-6 text-[#68081C]" />,
       title: "Direct Store Phone",
-      detail: BRAND.phone,
+      detail: storePhone,
       subdetail: "Available 9:30 AM - 9:00 PM IST",
-      href: `tel:${BRAND.phone}`,
+      href: `tel:${storePhone}`,
       actionText: "Call Us Now"
     },
     {
       icon: <MessageCircle className="w-6 h-6 text-[#25D366]" />,
       title: "WhatsApp Video Assist",
-      detail: BRAND.phone,
+      detail: storePhone,
       subdetail: "Instant live saree draping view",
-      href: waLink(`Hello ${BRAND.fullName}, I would like to see saree options on WhatsApp.`),
+      href: whatsappUrl,
       actionText: "Chat on WhatsApp"
     },
     {
       icon: <Mail className="w-6 h-6 text-[#68081C]" />,
       title: "Email Inquiries",
-      detail: BRAND.email,
+      detail: storeEmail,
       subdetail: "Bulk & bridal orders assistance",
-      href: `mailto:${BRAND.email}`,
+      href: `mailto:${storeEmail}`,
       actionText: "Send Email"
     }
   ];
@@ -76,7 +90,7 @@ export default function ContactPage() {
   const faqs = [
     {
       q: "How do I place an order for pure pattu or handloom sarees?",
-      a: `You can browse sarees on our website, add them to your cart, and click 'Place Order via WhatsApp'. You can also call or message us directly at ${BRAND.phone}.`
+      a: `You can browse sarees on our website, add them to your cart, and click 'Place Order via WhatsApp'. You can also call or message us directly at ${storePhone}.`
     },
     {
       q: "Are the pure pattu sarees 100% authentic pure silk?",
@@ -92,7 +106,7 @@ export default function ContactPage() {
     },
     {
       q: "Where is your store located in Hyderabad?",
-      a: `Our showroom is located at ${BRAND.address.full}. We welcome you to visit us in person to experience the drape and fabric quality firsthand.`
+      a: `Our showroom is located at ${storeAddress}. We welcome you to visit us in person to experience the drape and fabric quality firsthand.`
     }
   ];
 
