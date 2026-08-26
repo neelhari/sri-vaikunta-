@@ -479,7 +479,12 @@ export default function AdminBanners() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setMarqueeActive(!marqueeActive)}
+                onClick={async () => {
+                  const nextActive = !marqueeActive;
+                  setMarqueeActive(nextActive);
+                  await updatePromotions({ marqueeText, marqueeActive: nextActive });
+                  showToast(nextActive ? '✓ Announcement Ticker Activated on Storefront!' : '✓ Announcement Ticker Hidden from Storefront!');
+                }}
                 className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors duration-300 focus:outline-none cursor-pointer p-0.5 shadow-2xs ${
                   marqueeActive ? 'bg-emerald-600' : 'bg-gray-300'
                 }`}
