@@ -204,8 +204,9 @@ function mapProductToDb(p) {
   if (p.occasion !== undefined) row.occasion = p.occasion || 'Festive & Wedding Wear';
   if (p.careInstructions !== undefined) row.care_instructions = p.careInstructions || 'Dry Clean Only';
   if (p.description !== undefined) row.description = p.description || '';
-  if (p.image !== undefined) row.image = p.image || '/products/cat_pure_pattu.jpg';
-  if (p.images !== undefined) row.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [row.image || '/products/cat_pure_pattu.jpg'];
+  const primaryImg = p.image || (Array.isArray(p.images) && p.images[0]) || '/products/cat_pure_pattu.jpg';
+  row.image = primaryImg;
+  row.images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [primaryImg];
   if (p.video !== undefined || p.videoUrl !== undefined) row.video_url = p.video || p.videoUrl || null;
   if (p.rating !== undefined) row.rating = p.rating ? Number(p.rating) : 4.8;
   if (p.reviewsCount !== undefined) row.reviews_count = p.reviewsCount ? Number(p.reviewsCount) : 12;
