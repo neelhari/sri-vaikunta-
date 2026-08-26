@@ -92,6 +92,9 @@ export default function HomePage() {
     : defaultHeroSlides;
 
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
+  const [touchEnd, setTouchEnd] = useState({ x: 0, y: 0 });
+  const [isSwiping, setIsSwiping] = useState(false);
 
   // Auto-advance hero slides every 5.5 seconds
   useEffect(() => {
@@ -100,6 +103,44 @@ export default function HomePage() {
     }, 5500);
     return () => clearInterval(timer);
   }, [heroSlides.length]);
+
+  const handleTouchStart = (e) => {
+    if (!e.targetTouches || e.targetTouches.length === 0) return;
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+    setIsSwiping(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!e.targetTouches || e.targetTouches.length === 0) return;
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    const xDiff = touchStart.x - touchEnd.x;
+    const yDiff = touchStart.y - touchEnd.y;
+    // Trigger if horizontal movement is dominant and exceeds 40px
+    if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 40) {
+      setIsSwiping(true);
+      if (xDiff > 0) {
+        // Swipe left -> Next slide
+        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      } else {
+        // Swipe right -> Previous slide
+        setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+      }
+      setTimeout(() => setIsSwiping(false), 300);
+    }
+  };
 
   const defaultSavingsTiles = [
     {
@@ -151,10 +192,16 @@ export default function HomePage() {
       </svg>
 
       {/* 1. FULL-BLEED HERO BANNER WITH 3 DISTINCT CATEGORY SLIDES */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white">
+      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
         <div
-          onClick={() => navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'))}
-          className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={() => {
+            if (isSwiping) return;
+            navigate(activeSlide.link || (activeSlide.category ? `/categories?category=${activeSlide.category}` : '/categories'));
+          }}
+          className="relative h-[82vh] sm:h-[580px] md:h-[640px] w-full cursor-pointer flex flex-col justify-end pb-8 sm:pb-12 px-6 text-center items-center group touch-pan-y"
         >
           {heroSlides.map((slide, index) => (
             <img
