@@ -126,34 +126,6 @@ export default function CategoriesPage() {
           </p>
         </div>
 
-        {/* Left / Right Arrow Controls */}
-        {allCatBanners.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentSlideIndex((prev) => (prev - 1 + allCatBanners.length) % allCatBanners.length);
-              }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all cursor-pointer font-bold text-lg"
-              title="Previous Banner"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentSlideIndex((prev) => (prev + 1) % allCatBanners.length);
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all cursor-pointer font-bold text-lg"
-              title="Next Banner"
-            >
-              ›
-            </button>
-          </>
-        )}
-
         {/* Multi-banner Navigation Dots */}
         {allCatBanners.length > 1 && (
           <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
@@ -200,31 +172,6 @@ export default function CategoriesPage() {
       <div className="sticky top-[58px] z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-2xs py-3">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-1 px-1 hide-scroll snap-x items-start">
-            {/* All Sarees Tab */}
-            <button
-              onClick={() => handleCategorySelect('all')}
-              className={`group flex flex-col items-center gap-1.5 shrink-0 p-1.5 rounded-2xl transition-all cursor-pointer snap-start ${
-                selectedCatId === 'all'
-                  ? 'bg-[#FAF5EE] text-[#68081C] shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <div
-                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden border-2 transition-all p-0.5 flex items-center justify-center bg-gradient-to-br from-[#FAF5EE] to-[#EADEDF] ${
-                  selectedCatId === 'all'
-                    ? 'border-[#68081C] ring-2 ring-[#68081C]/20 shadow-md'
-                    : 'border-gray-200 group-hover:border-[#68081C]/50'
-                }`}
-              >
-                <Sparkles className="w-6 h-6 text-[#68081C]" />
-              </div>
-              <span className={`text-[10px] sm:text-[11px] font-bold text-center leading-tight whitespace-pre-line ${
-                selectedCatId === 'all' ? 'text-[#68081C] font-extrabold' : 'text-gray-700'
-              }`}>
-                All Sarees
-              </span>
-            </button>
-
             {categories.map((cat) => {
               const isSelected = !searchQuery && selectedCatId === cat.id;
               const shortName = shortCategoryNames[cat.id] || cat.name.replace(' Sarees', '');
@@ -262,6 +209,36 @@ export default function CategoriesPage() {
                 </div>
               );
             })}
+
+            {/* All Sarees Tab at the very end */}
+            <div
+              onClick={() => handleCategorySelect('all')}
+              className="flex flex-col items-center shrink-0 w-[82px] sm:w-[92px] group cursor-pointer snap-start text-center transition-all px-0.5"
+            >
+              <div
+                className={`w-[66px] h-[66px] sm:w-[76px] sm:h-[76px] rounded-2xl overflow-hidden p-[2px] transition-all duration-300 relative ${
+                  selectedCatId === 'all'
+                    ? 'bg-[#68081C] ring-2 ring-[#D4AF37] scale-105 shadow-md'
+                    : 'bg-[#FAF5EE] border border-gray-200 opacity-90 hover:opacity-100 hover:scale-103'
+                }`}
+              >
+                <div className="w-full h-full rounded-[14px] overflow-hidden bg-gradient-to-br from-[#FAF5EE] to-[#EADEDF] flex flex-col items-center justify-center p-1 text-center">
+                  <span className="font-serif font-black text-xs text-[#68081C] tracking-wider uppercase">
+                    ALL
+                  </span>
+                  <span className="text-[8px] font-bold text-[#D4AF37] uppercase tracking-widest">
+                    SAREES
+                  </span>
+                </div>
+              </div>
+              <span
+                className={`mt-1.5 text-[9.5px] sm:text-[10.5px] font-bold text-center leading-[1.15] uppercase tracking-tight whitespace-pre-line transition-colors ${
+                  selectedCatId === 'all' ? 'text-[#68081C] font-extrabold' : 'text-gray-700'
+                }`}
+              >
+                All{'\n'}Sarees
+              </span>
+            </div>
           </div>
         </div>
       </div>
