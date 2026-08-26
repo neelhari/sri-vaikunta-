@@ -43,19 +43,29 @@ export default function ProductCard({ product }) {
           className="w-full h-full object-cover object-center group-hover:scale-106 transition-transform duration-500 ease-out"
         />
 
-        {/* Video Badge */}
-        {product.video && (
-          <span className="absolute top-2 left-2 z-10 bg-[#D3923A] text-[#6B1518] text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
-            ▶ Video
-          </span>
-        )}
-
-        {/* NEW Badge */}
-        {product.isNew && !product.video && (
-          <span className="absolute top-2 left-2 z-10 bg-[#6B1518] text-white text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded shadow-xs">
-            NEW
-          </span>
-        )}
+        {/* Badges Stack */}
+        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
+          {product.video && (
+            <span className="bg-[#D4AF37] text-[#4A0513] text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1">
+              ▶ Video
+            </span>
+          )}
+          {product.isTrending && (
+            <span className="bg-[#E01E5A] text-white text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-xs uppercase tracking-tight">
+              🔥 Trending
+            </span>
+          )}
+          {product.isBestseller && (
+            <span className="bg-[#D4AF37] text-[#4A0513] text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-xs uppercase tracking-tight">
+              ★ Bestseller
+            </span>
+          )}
+          {product.isNew && !product.isTrending && !product.isBestseller && (
+            <span className="bg-[#1B4332] text-white text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-xs uppercase tracking-tight">
+              NEW
+            </span>
+          )}
+        </div>
 
         {/* Wishlist Heart Button */}
         <button

@@ -51,6 +51,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         video: initialProduct.video || '',
         videoUrl: initialProduct.videoUrl || '',
         images: initialProduct.images || (initialProduct.image ? [initialProduct.image] : []),
+        isTrending: initialProduct.isTrending ?? false,
+        isFeatured: initialProduct.isFeatured ?? true,
+        isNew: initialProduct.isNew ?? false,
+        isBestseller: initialProduct.isBestseller ?? false,
       });
     } else {
       setFormData({
@@ -71,6 +75,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         video: '',
         videoUrl: '',
         images: [],
+        isTrending: false,
+        isFeatured: true,
+        isNew: true,
+        isBestseller: false,
       });
     }
     setUploadError('');
@@ -553,7 +561,76 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
             )}
           </div>
 
-          {/* 5. SHORT DESCRIPTION */}
+          {/* 5. STOREFRONT BADGES & PROMOTIONAL FLAGS */}
+          <div className="bg-[#FAF5EE]/70 p-4 sm:p-5 rounded-2xl border border-[#D4AF37]/35 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-[#68081C] text-xs sm:text-sm flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                <span>Storefront Display Badges & Promotional Flags</span>
+              </label>
+              <span className="text-[10px] text-gray-500 font-medium">Select tags to display on website</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {/* Trending Now */}
+              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                formData.isTrending ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={!!formData.isTrending}
+                  onChange={(e) => setFormData({ ...formData, isTrending: e.target.checked })}
+                  className="hidden"
+                />
+                <Flame className={`w-4 h-4 ${formData.isTrending ? 'text-[#F3E5AB]' : 'text-amber-600'}`} />
+                <span className="text-xs font-bold">Trending Now</span>
+              </label>
+
+              {/* Featured on Homepage */}
+              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                formData.isFeatured ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={!!formData.isFeatured}
+                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                  className="hidden"
+                />
+                <Sparkles className={`w-4 h-4 ${formData.isFeatured ? 'text-[#F3E5AB]' : 'text-[#D4AF37]'}`} />
+                <span className="text-xs font-bold">Featured Home</span>
+              </label>
+
+              {/* New Arrival */}
+              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                formData.isNew ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={!!formData.isNew}
+                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+                  className="hidden"
+                />
+                <span className={`text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded ${formData.isNew ? 'bg-emerald-400 text-[#4A0513]' : 'bg-emerald-100 text-emerald-800'}`}>NEW</span>
+                <span className="text-xs font-bold">New Arrival</span>
+              </label>
+
+              {/* Best Seller */}
+              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                formData.isBestseller ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={!!formData.isBestseller}
+                  onChange={(e) => setFormData({ ...formData, isBestseller: e.target.checked })}
+                  className="hidden"
+                />
+                <span className={`text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded ${formData.isBestseller ? 'bg-[#F3E5AB] text-[#68081C]' : 'bg-purple-100 text-purple-800'}`}>HOT</span>
+                <span className="text-xs font-bold">Best Seller</span>
+              </label>
+            </div>
+          </div>
+
+          {/* 6. SHORT DESCRIPTION */}
           <div>
             <label className="block font-bold text-gray-800 mb-1">Saree Description / Story (Optional)</label>
             <textarea
