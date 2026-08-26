@@ -101,7 +101,7 @@ export async function uploadToCloudinary(rawFile, bucket = 'banners') {
   const file = rawFile.type && rawFile.type.startsWith('image/') ? await compressImage(rawFile, 1600, 0.85) : rawFile;
 
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://swzqlrgruidxgmilthig.supabase.co';
-  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_SERVICE_KEY;
+  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   const cleanName = (file.name || 'saree_photo')
     .toLowerCase()
