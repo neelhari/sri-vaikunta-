@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Image as ImageIcon, Plus, Trash2, CheckCircle2, Upload, X, Flame, Megaphone, Sparkles, LayoutGrid, Layers, Edit2, ExternalLink } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
 import { uploadToCloudinary } from '../../lib/cloudinary';
 
 export default function AdminBanners() {
   const { banners = [], addBanner, updateBanner, deleteBanner, categories = [], promotions = {}, updatePromotions } = useStoreData();
-  const [activeTab, setActiveTab] = useState('hero'); // 'hero' | 'marquee' | 'savings' | 'category'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'hero'; // 'hero' | 'marquee' | 'savings' | 'category'
+
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab });
+  };
 
   // Hero banner modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
