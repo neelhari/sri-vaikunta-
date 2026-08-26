@@ -13,7 +13,38 @@ import { categories as defaultCategories } from '../data/categories';
 import { products as defaultProducts } from '../data/products';
 import { BRAND } from '../config/brand';
 
-const defaultHeroBanners = [];
+export const defaultHeroBanners = [
+  {
+    id: 'hero-1',
+    title: 'Dharmavaram Pure Pattu',
+    subtitle: 'AUTHENTIC HANDLOOM SILK',
+    description: 'Direct weaver prices on royal bridal pattu & antique zari weaves.',
+    image: '/slider/hero_saree_model.png',
+    link: '/shop?category=dharmavaram-pure-pattu',
+    buttonText: 'EXPLORE PURE PATTU',
+    active: true,
+  },
+  {
+    id: 'hero-2',
+    title: 'Pochampally Ikkat Silk',
+    subtitle: 'HERITAGE GEOMETRIC WEAVES',
+    description: 'Timeless hand-dyed double ikkat silk sarees crafted by master artisans.',
+    image: '/products/cat_pochampally.jpg',
+    link: '/shop?category=pochampally-pattu',
+    buttonText: 'SHOP POCHAMPALLY',
+    active: true,
+  },
+  {
+    id: 'hero-3',
+    title: 'The Royal Bridal Edit',
+    subtitle: 'EXQUISITE WEDDING COLLECTION',
+    description: 'Opulent Banarasi brocades and rich gold zari silks for memorable celebrations.',
+    image: '/products/cat_banarasi.jpg',
+    link: '/shop?category=banarasi-sarees',
+    buttonText: 'VIEW BRIDAL EDIT',
+    active: true,
+  },
+];
 
 const defaultPromotions = {
   marqueeText: '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India',
@@ -163,7 +194,7 @@ export function StoreDataProvider({ children }) {
             localStorage.setItem('sv_categories_cms', JSON.stringify(c.data));
           } catch (e) {}
         }
-        if (b.success && Array.isArray(b.data)) {
+        if (b.success && Array.isArray(b.data) && b.data.length > 0) {
           setBanners(b.data);
           try {
             localStorage.setItem('sv_banners_cms', JSON.stringify(b.data));

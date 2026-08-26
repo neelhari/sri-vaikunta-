@@ -39,9 +39,16 @@ export default function Footer() {
 
   const storePhone = settings?.phone || BRAND.phone;
   const storeEmail = settings?.supportEmail || BRAND.email;
-  const storeAddress = settings?.address
-    ? `${settings.address}, ${settings.city || ''}, ${settings.state || ''} ${settings.pincode || ''}`.replace(/,\s*,/g, ',').trim()
-    : BRAND.address.full;
+  let storeAddress = BRAND.address.full;
+  if (settings?.address) {
+    storeAddress = settings.address;
+    if (settings.city && !storeAddress.includes(settings.city)) {
+      storeAddress += `, ${settings.city}`;
+    }
+    if (settings.pincode && !storeAddress.includes(settings.pincode)) {
+      storeAddress += ` - ${settings.pincode}`;
+    }
+  }
   const storeName = settings?.storeName || BRAND.fullName;
   const cleanWhatsappDigits = settings?.whatsapp ? String(settings.whatsapp).replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
   const whatsappUrl = cleanWhatsappDigits
