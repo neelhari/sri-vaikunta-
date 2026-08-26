@@ -244,7 +244,6 @@ function mapBannerFromDb(row) {
     image: row.image,
     link: row.link || '/shop',
     active: row.active !== false,
-    sortOrder: row.sort_order ?? 0,
   };
 }
 
@@ -262,7 +261,6 @@ function mapBannerToDb(b) {
   if (b.image !== undefined) row.image = b.image;
   if (b.link !== undefined) row.link = b.link;
   if (b.active !== undefined) row.active = b.active !== false;
-  if (b.sortOrder !== undefined) row.sort_order = b.sortOrder ?? 0;
   return row;
 }
 
@@ -502,7 +500,7 @@ export async function deleteCategoryFromDb(id) {
 export async function fetchBanners() {
   if (!supabase) return { success: false, data: [], message: 'Supabase not configured' };
   try {
-    const { data, error } = await supabase.from('banners').select('*').order('sort_order', { ascending: true });
+    const { data, error } = await supabase.from('banners').select('*').order('created_at', { ascending: true });
     if (error) return { success: false, data: [], message: error.message };
     return { success: true, data: data.map(mapBannerFromDb) };
   } catch (err) {
