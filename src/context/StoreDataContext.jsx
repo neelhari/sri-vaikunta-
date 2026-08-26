@@ -179,7 +179,15 @@ export function StoreDataProvider({ children }) {
           }));
         }
         if (cp.success && Array.isArray(cp.data)) setCoupons(cp.data);
-        if (s.success && s.data && s.data.storeName) setSettings(s.data);
+        if (s.success && s.data) {
+          setSettings((prev) => {
+            const merged = { ...prev, ...s.data };
+            try {
+              localStorage.setItem('sv_settings_cms', JSON.stringify(merged));
+            } catch (e) {}
+            return merged;
+          });
+        }
       } catch (err) {
         console.warn('Store data fetch fallback:', err);
       }
