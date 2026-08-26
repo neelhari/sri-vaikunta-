@@ -370,21 +370,30 @@ export default function AdminBanners() {
                     </td>
 
                     <td className="p-4 sm:p-5 align-top">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const res = await updateBanner(b.id, { active: !b.active });
-                          if (!res.success) window.alert(res.message);
-                        }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-2xs ${
-                          b.active
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
-                            : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'
-                        }`}
-                      >
-                        <span className={`w-2 h-2 rounded-full ${b.active ? 'bg-emerald-600 animate-pulse' : 'bg-gray-400'}`} />
-                        <span>{b.active ? '● Active on Homepage' : '○ Slide Hidden'}</span>
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const res = await updateBanner(b.id, { active: !b.active });
+                            if (!res.success) window.alert(res.message);
+                          }}
+                          className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors duration-300 focus:outline-none cursor-pointer p-0.5 shadow-2xs ${
+                            b.active ? 'bg-emerald-600' : 'bg-gray-300'
+                          }`}
+                          title={b.active ? 'Click to Hide Slide' : 'Click to Show Slide'}
+                        >
+                          <span
+                            className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform duration-300 shadow-sm flex items-center justify-center text-[9px] font-black ${
+                              b.active ? 'translate-x-6 text-emerald-600' : 'translate-x-0 text-gray-400'
+                            }`}
+                          >
+                            {b.active ? '✓' : ''}
+                          </span>
+                        </button>
+                        <span className={`text-xs font-bold ${b.active ? 'text-emerald-700 font-extrabold' : 'text-gray-400'}`}>
+                          {b.active ? 'Active' : 'Off'}
+                        </span>
+                      </div>
                     </td>
 
                     <td className="p-4 sm:p-5 align-top text-right space-x-1.5">
