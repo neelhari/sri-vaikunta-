@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, MessageCircle, Heart, ArrowUp, MapPin } from 'lucide-react';
 import { InstagramIcon, FacebookIcon } from './BrandIcons';
 import { BRAND, waLink } from '../config/brand';
+import { useStoreData } from '../context/StoreDataContext';
 
 const quickLinks = [
   { label: 'Home', path: '/' },
@@ -26,6 +27,15 @@ const policyLinks = [
 
 export default function Footer() {
   const navigate = useNavigate();
+  const { settings } = useStoreData();
+
+  const phone = settings?.phone || BRAND.phone;
+  const email = settings?.supportEmail || settings?.email || BRAND.email;
+  const address = settings?.address || BRAND.address.full;
+  const whatsappDigits = settings?.whatsapp ? String(settings.whatsapp).replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
+  const whatsappUrl = whatsappDigits
+    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(`Hello ${BRAND.fullName}, I have an inquiry.`)}`
+    : waLink(`Hello ${BRAND.fullName}, I have an inquiry.`);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -59,7 +69,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
-              Hyderabad's trusted destination for authentic handloom silk, Dharmavaram pure pattu, Pochampally ikkat, and artisan cotton sarees at honest, direct-from-weaver prices.
+              {BRAND.description || "Hyderabad's trusted destination for authentic handloom silk, Dharmavaram pure pattu, Pochampally ikkat, and artisan cotton sarees at honest, direct-from-weaver prices."}
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a href="https://instagram.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#68081C] transition-colors">
@@ -68,7 +78,7 @@ export default function Footer() {
               <a href="https://facebook.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#68081C] transition-colors">
                 <FacebookIcon className="w-4 h-4" />
               </a>
-              <a href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#25D366] transition-colors">
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#25D366] transition-colors">
                 <MessageCircle className="w-4 h-4" />
               </a>
             </div>
@@ -136,24 +146,24 @@ export default function Footer() {
             <div className="space-y-3 text-xs sm:text-sm text-gray-300">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{BRAND.address.full}</span>
+                <span className="leading-relaxed">{address}</span>
               </div>
               <p className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                <a href={`tel:${BRAND.phone}`} className="hover:text-white transition-colors">
-                  {BRAND.phone}
+                <a href={`tel:${phone}`} className="hover:text-white transition-colors">
+                  {phone}
                 </a>
               </p>
               <p className="flex items-start gap-2.5">
                 <MessageCircle className="w-4 h-4 text-[#25D366] shrink-0 mt-0.5" />
-                <a href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
                   WhatsApp Support
                 </a>
               </p>
               <p className="flex items-start gap-2.5">
                 <Mail className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                <a href={`mailto:${BRAND.email}`} className="hover:text-white transition-colors break-all">
-                  {BRAND.email}
+                <a href={`mailto:${email}`} className="hover:text-white transition-colors break-all">
+                  {email}
                 </a>
               </p>
             </div>
