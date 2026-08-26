@@ -540,8 +540,9 @@ export async function insertBanner(banner) {
 export async function updateBannerInDb(id, updates) {
   if (!supabase) return { success: true, data: { id, ...updates } };
   try {
-    const row = mapBannerToDb({ ...updates, id });
-    const { data, error } = await supabase.from('banners').upsert([row]).select().maybeSingle();
+    const row = mapBannerToDb(updates);
+    delete row.id; // Don't overwrite id in update payload
+    const { data, error } = await supabase.from('banners').update(row).eq('id', id).select().maybeSingle();
     if (error) {
       console.warn('Banner update error:', error.message);
       return { success: true, data: { id, ...updates } };

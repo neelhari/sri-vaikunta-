@@ -149,7 +149,7 @@ export default function HomePage() {
   const everydayCotton = products.filter(p => p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print').slice(0, 4);
   const trendingSarees = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8);
 
-  const activeSlide = heroSlides[currentSlide];
+  const activeSlide = heroSlides.length > 0 ? heroSlides[currentSlide % heroSlides.length] : null;
 
   return (
     <div className="pb-16 bg-[#FFFDF9] min-h-screen font-sans">
