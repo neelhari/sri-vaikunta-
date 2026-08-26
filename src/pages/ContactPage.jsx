@@ -4,12 +4,6 @@ import { BRAND, waLink } from '../config/brand';
 import { saveContactMessageToSupabase } from '../lib/supabase';
 
 export default function ContactPage() {
-  const storePhone = BRAND.phone;
-  const storeEmail = BRAND.email;
-  const storeAddress = BRAND.address.full;
-  const storeName = BRAND.fullName;
-  const whatsappUrl = waLink(`Hello ${storeName}, I would like to see saree options on WhatsApp.`);
-
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -56,25 +50,25 @@ export default function ContactPage() {
     {
       icon: <Phone className="w-6 h-6 text-[#68081C]" />,
       title: "Direct Store Phone",
-      detail: storePhone,
+      detail: BRAND.phone,
       subdetail: "Available 9:30 AM - 9:00 PM IST",
-      href: `tel:${storePhone}`,
+      href: `tel:${BRAND.phone}`,
       actionText: "Call Us Now"
     },
     {
       icon: <MessageCircle className="w-6 h-6 text-[#25D366]" />,
       title: "WhatsApp Video Assist",
-      detail: storePhone,
+      detail: BRAND.phone,
       subdetail: "Instant live saree draping view",
-      href: whatsappUrl,
+      href: waLink(`Hello ${BRAND.fullName}, I would like to see saree options on WhatsApp.`),
       actionText: "Chat on WhatsApp"
     },
     {
       icon: <Mail className="w-6 h-6 text-[#68081C]" />,
       title: "Email Inquiries",
-      detail: storeEmail,
+      detail: BRAND.email,
       subdetail: "Bulk & bridal orders assistance",
-      href: `mailto:${storeEmail}`,
+      href: `mailto:${BRAND.email}`,
       actionText: "Send Email"
     }
   ];
@@ -82,7 +76,7 @@ export default function ContactPage() {
   const faqs = [
     {
       q: "How do I place an order for pure pattu or handloom sarees?",
-      a: `You can browse sarees on our website, add them to your cart, and click 'Place Order via WhatsApp'. You can also call or message us directly at ${storePhone}.`
+      a: `You can browse sarees on our website, add them to your cart, and click 'Place Order via WhatsApp'. You can also call or message us directly at ${BRAND.phone}.`
     },
     {
       q: "Are the pure pattu sarees 100% authentic pure silk?",
@@ -98,7 +92,7 @@ export default function ContactPage() {
     },
     {
       q: "Where is your store located in Hyderabad?",
-      a: `Our showroom is located at ${storeAddress}. We welcome you to visit us in person to experience the drape and fabric quality firsthand.`
+      a: `Our showroom is located at ${BRAND.address.full}. We welcome you to visit us in person to experience the drape and fabric quality firsthand.`
     }
   ];
 

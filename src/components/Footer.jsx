@@ -50,43 +50,25 @@ export default function Footer() {
                 <img src="/logo-icon.png" alt={BRAND.fullName} className="h-full w-full object-contain" />
               </div>
               <div>
-                <span className="font-serif text-lg font-bold text-[#F3E5AB] tracking-wide block">
+                <div className="font-serif font-bold text-xl sm:text-2xl text-white tracking-wide group-hover:text-[#D4AF37] transition-colors">
                   {BRAND.fullName}
-                </span>
-                <span className="text-[10px] tracking-widest text-[#D4AF37] uppercase block font-semibold">
+                </div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-[#D4AF37] font-semibold">
                   {BRAND.tagline}
-                </span>
+                </div>
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-              {BRAND.description}
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
+              Hyderabad's trusted destination for authentic handloom silk, Dharmavaram pure pattu, Pochampally ikkat, and artisan cotton sarees at honest, direct-from-weaver prices.
             </p>
             <div className="flex items-center gap-3 pt-2">
-              <a
-                href={BRAND.socials.instagram}
-                target="_blank"
-                rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-[#4A0513] hover:bg-[#D4AF37] hover:text-[#4A0513] text-gray-200 flex items-center justify-center transition-all duration-300 shadow-xs"
-                title="Follow on Instagram"
-              >
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#68081C] transition-colors">
                 <InstagramIcon className="w-4 h-4" />
               </a>
-              <a
-                href={BRAND.socials.facebook}
-                target="_blank"
-                rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-[#4A0513] hover:bg-[#D4AF37] hover:text-[#4A0513] text-gray-200 flex items-center justify-center transition-all duration-300 shadow-xs"
-                title="Follow on Facebook"
-              >
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#68081C] transition-colors">
                 <FacebookIcon className="w-4 h-4" />
               </a>
-              <a
-                href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)}
-                target="_blank"
-                rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-[#4A0513] hover:bg-[#25D366] hover:text-white text-gray-200 flex items-center justify-center transition-all duration-300 shadow-xs"
-                title="Chat on WhatsApp"
-              >
+              <a href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-[#4A0513] flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#25D366] transition-colors">
                 <MessageCircle className="w-4 h-4" />
               </a>
             </div>
@@ -95,42 +77,50 @@ export default function Footer() {
           {/* Column 2: Quick Links */}
           <div>
             <h4 className="font-serif text-lg font-semibold text-white tracking-wider mb-4 border-b border-[#68081C] pb-2 inline-block">
-              EXPLORE WEAVES
+              SAREE COLLECTIONS
             </h4>
-            <ul className="space-y-2 text-xs sm:text-sm text-gray-300">
-              {quickLinks.slice(0, 5).map((link) => (
-                <li key={link.label}>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              {quickLinks.slice(0, 7).map((item) => (
+                <li key={item.path}>
                   <button
-                    onClick={() => handleNav(link.path)}
-                    className="hover:text-[#D4AF37] hover:translate-x-1 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
+                    onClick={() => handleNav(item.path)}
+                    className="text-gray-300 hover:text-[#D4AF37] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                   >
-                    <span className="text-[#D4AF37]">›</span> {link.label}
+                    <span className="text-[#D4AF37]">›</span> {item.label}
                   </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Column 3: Customer Care & Policies */}
+          {/* Column 3: Customer Policies */}
           <div>
             <h4 className="font-serif text-lg font-semibold text-white tracking-wider mb-4 border-b border-[#68081C] pb-2 inline-block">
-              CUSTOMER CARE
+              HELP & POLICIES
             </h4>
-            <ul className="space-y-2 text-xs sm:text-sm text-gray-300">
-              {policyLinks.map((link) => (
-                <li key={link.label}>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              {policyLinks.map((policy) => (
+                <li key={policy.path}>
                   <button
-                    onClick={() => handleNav(link.path)}
-                    className="hover:text-[#D4AF37] hover:translate-x-1 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
+                    onClick={() => handleNav(policy.path)}
+                    className="text-gray-300 hover:text-[#D4AF37] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                   >
-                    <span className="text-[#D4AF37]">›</span> {link.label}
+                    <span className="text-[#D4AF37]">›</span> {policy.label}
                   </button>
                 </li>
               ))}
               <li>
                 <button
+                  onClick={() => handleNav('/our-story')}
+                  className="text-gray-300 hover:text-[#D4AF37] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
+                >
+                  <span className="text-[#D4AF37]">›</span> Our Heritage Story
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => handleNav('/contact')}
-                  className="hover:text-[#D4AF37] hover:translate-x-1 transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-bold text-[#F3E5AB]"
+                  className="text-gray-300 hover:text-[#D4AF37] transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                 >
                   <span className="text-[#D4AF37]">›</span> Visit Hyderabad Store
                 </button>

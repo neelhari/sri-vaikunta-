@@ -13,7 +13,7 @@ import { categories as defaultCategories } from '../data/categories';
 import { products as defaultProducts } from '../data/products';
 import { BRAND } from '../config/brand';
 
-export const defaultHeroBanners = [];
+const defaultHeroBanners = [];
 
 const defaultPromotions = {
   marqueeText: '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India',
@@ -163,7 +163,7 @@ export function StoreDataProvider({ children }) {
             localStorage.setItem('sv_categories_cms', JSON.stringify(c.data));
           } catch (e) {}
         }
-        if (b.success && Array.isArray(b.data) && b.data.length > 0) {
+        if (b.success && Array.isArray(b.data)) {
           setBanners(b.data);
           try {
             localStorage.setItem('sv_banners_cms', JSON.stringify(b.data));

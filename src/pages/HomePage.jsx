@@ -60,7 +60,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { products, categories, banners = [], promotions = {} } = useStoreData();
 
-  const heroSlides = Array.isArray(banners) ? banners.filter((b) => b && b.active !== false) : [];
+  const heroSlides = Array.isArray(banners) ? banners.filter((b) => b.active !== false) : [];
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
@@ -69,12 +69,11 @@ export default function HomePage() {
 
   // Auto-advance hero slides every 5.5 seconds
   useEffect(() => {
-    if (!heroSlides || heroSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, [heroSlides?.length]);
+  }, [heroSlides.length]);
 
   const handleTouchStart = (e) => {
     if (!e.targetTouches || e.targetTouches.length === 0) return;
@@ -146,20 +145,19 @@ export default function HomePage() {
     : defaultSavingsTiles;
 
   // Curated collections for mobile/desktop showcase sections
-  const allProducts = Array.isArray(products) ? products : [];
-  const bridalPattu = allProducts
-    .filter((p) => p && (p.isRoyalBridal || p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu'))
+  const bridalPattu = products
+    .filter((p) => p.isRoyalBridal || p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu')
     .slice(0, 4);
 
-  const everydayCotton = allProducts
-    .filter((p) => p && (p.isCottonKalamkari || p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print'))
+  const everydayCotton = products
+    .filter((p) => p.isCottonKalamkari || p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print')
     .slice(0, 4);
 
-  const markedTrending = allProducts.filter((p) => p && p.isTrending);
-  const trendingSarees = (markedTrending.length >= 4 ? markedTrending : [...allProducts].sort((a, b) => ((b && b.rating) || 0) - ((a && a.rating) || 0))).slice(0, 8);
+  const markedTrending = products.filter((p) => p.isTrending);
+  const trendingSarees = (markedTrending.length >= 4 ? markedTrending : [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0))).slice(0, 8);
 
-  const featuredSarees = allProducts
-    .filter((p) => p && p.isFeatured !== false)
+  const featuredSarees = products
+    .filter((p) => p.isFeatured !== false)
     .slice(0, 4);
 
   const activeSlide = heroSlides.length > 0 ? heroSlides[currentSlide % heroSlides.length] : null;

@@ -7,13 +7,12 @@ import { useAuth } from '../context/AuthContext';
 import { BRAND } from '../config/brand';
 
 export default function ProductCard({ product }) {
-  if (!product) return null;
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { isAuthenticated, openLoginModal } = useAuth();
 
-  const isLiked = isInWishlist ? isInWishlist(product.id) : false;
+  const isLiked = isInWishlist(product.id);
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
