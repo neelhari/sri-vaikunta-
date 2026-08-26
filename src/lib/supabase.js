@@ -89,6 +89,66 @@ export async function signInCustomer({ email, password }) {
   }
 }
 
+export async function fetchUserProfile(userId) {
+  if (!supabase || !userId) return { success: false, data: null };
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (error) return { success: false, data: null, message: error.message };
+    return {
+      success: true,
+      data: data ? {
+        id: data.id,
+        name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        addresses: Array.isArray(data.addresses) ? data.addresses : [],
+        createdAt: data.created_at,
+      } : null,
+    };
+  } catch (err) {
+    return { success: false, data: null, message: err.message };
+  }
+}
+
+export async function updateUserProfileInDb(userId, updates) {
+  if (!supabase || !userId) return { success: false };
+  try {
+    const row = {};
+    if (updates.name !== undefined) row.full_name = updates.name;
+    if (updates.email !== undefined) row.email = updates.email;
+    if (updates.phone !== undefined) row.phone = updates.phone;
+    if (updates.addresses !== undefined) row.addresses = updates.addresses;
+    row.updated_at = new Date().toISOString();
+
+    const { data, error } = await supabase.from('profiles').upsert([{ id: userId, ...row }]).select().maybeSingle();
+    if (error) return { success: false, message: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function fetchAllProfiles() {
+  if (!supabase) return { success: false, data: [] };
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+    if (error) return { success: false, data: [], message: error.message };
+    return {
+      success: true,
+      data: (data || []).map((p) => ({
+        id: p.id,
+        name: p.full_name || 'Customer',
+        email: p.email || '',
+        phone: p.phone || '',
+        addresses: Array.isArray(p.addresses) ? p.addresses : [],
+        createdAt: p.created_at,
+      })),
+    };
+  } catch (err) {
+    return { success: false, data: [], message: err.message };
+  }
+}
+
 export async function sendPasswordResetEmailToSupabase(email) {
   if (!supabase) return { success: false, message: 'Supabase client not initialized' };
   try {
@@ -313,6 +373,7 @@ function mapOrderFromDb(row) {
   if (!row) return row;
   return {
     id: row.id,
+    userId: row.user_id || null,
     customerName: row.customer_name,
     customerPhone: row.customer_phone,
     customerEmail: row.customer_email || '',
@@ -337,6 +398,7 @@ function mapOrderFromDb(row) {
 function mapOrderToDb(o) {
   return {
     id: o.id,
+    user_id: o.userId || null,
     customer_name: o.customerName,
     customer_phone: o.customerPhone,
     customer_email: o.customerEmail || null,
@@ -734,10 +796,36 @@ export async function saveOrderToSupabase(orderData) {
   }
 }
 
+export async function fetchCustomerOrders({ userId, email, phone }) {
+  if (!supabase) return { success: false, data: [] };
+  try {
+    let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
+    
+    if (userId) {
+      query = query.or(`user_id.eq.${userId}${email ? `,customer_email.eq.${email}` : ''}${phone ? `,customer_phone.eq.${phone}` : ''}`);
+    } else if (email) {
+      query = query.or(`customer_email.eq.${email}${phone ? `,customer_phone.eq.${phone}` : ''}`);
+    } else if (phone) {
+      query = query.eq('customer_phone', phone);
+    } else {
+      return { success: true, data: [] };
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.warn('Customer orders fetch notice:', error.message);
+      return { success: false, data: [], message: error.message };
+    }
+    return { success: true, data: (data || []).map(mapOrderFromDb) };
+  } catch (err) {
+    return { success: false, data: [], message: err.message };
+  }
+}
+
 export async function fetchOrdersByPhone(phone) {
   if (!supabase || !phone) return { success: false, data: [], message: 'Missing phone or Supabase not configured' };
   try {
-    const { data, error } = await supabase.rpc('get_orders_by_phone', { p_phone: phone });
+    const { data, error } = await supabase.from('orders').select('*').eq('customer_phone', phone).order('created_at', { ascending: false });
     if (error) return { success: false, data: [], message: error.message };
     return { success: true, data: (data || []).map(mapOrderFromDb) };
   } catch (err) {

@@ -22,7 +22,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
-import { fetchOrdersByPhone } from '../lib/supabase';
+import { fetchCustomerOrders } from '../lib/supabase';
 import { BRAND, waLink } from '../config/brand';
 
 export default function AccountPage() {
@@ -43,22 +43,25 @@ export default function AccountPage() {
     type: 'Home',
   });
 
-  // The order table is RLS-locked to admins (see supabase/schema.sql) since
-  // there's no real per-customer login here — a phone-scoped RPC is used
-  // instead of exposing every customer's orders through the shared anon key.
   const [userOrders, setUserOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
-    if (!user?.phone) {
+    if (!user) {
       setUserOrders([]);
+      setLoadingOrders(false);
       return;
     }
     let active = true;
-    fetchOrdersByPhone(user.phone).then((res) => {
-      if (active && res.success) setUserOrders(res.data);
+    setLoadingOrders(true);
+    fetchCustomerOrders({ userId: user.id, email: user.email, phone: user.phone }).then((res) => {
+      if (active) {
+        if (res.success) setUserOrders(res.data);
+        setLoadingOrders(false);
+      }
     });
     return () => { active = false; };
-  }, [user?.phone]);
+  }, [user?.id, user?.email, user?.phone]);
 
   const handleAddAddress = (e) => {
     e.preventDefault();

@@ -3,6 +3,8 @@ import {
   supabase,
   signUpCustomer,
   signInCustomer,
+  fetchUserProfile,
+  updateUserProfileInDb,
   sendPasswordResetEmailToSupabase,
   updateCustomerPasswordInSupabase,
 } from '../lib/supabase';
@@ -22,29 +24,7 @@ export function AuthProvider({ children }) {
   const [registeredUsers, setRegisteredUsers] = useState(() => {
     try {
       const saved = localStorage.getItem('srivaikunta_registered_users');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'usr_demo',
-          name: 'Store Customer',
-          email: 'customer@srivaikuntasarees.com',
-          phone: '9989999999',
-          password: 'password123',
-          addresses: [
-            {
-              id: 'addr_1',
-              type: 'Home',
-              name: 'Customer',
-              phone: '9989999999',
-              addressLine: '25-32/10/4/1, Mallikarjuna Nagar, Beeramguda',
-              city: 'Hyderabad',
-              state: 'Telangana',
-              pincode: '502032',
-              isDefault: true,
-            }
-          ],
-          createdAt: '2026-01-15T10:00:00.000Z',
-        }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -62,7 +42,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('srivaikunta_registered_users', JSON.stringify(registeredUsers));
   }, [registeredUsers]);
 
-  // Listen to Supabase Auth State Changes
+  // Listen to Supabase Auth State Changes & Hydrate from Cloud Profile
   useEffect(() => {
     if (!supabase) return;
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -70,22 +50,18 @@ export function AuthProvider({ children }) {
         console.log('Password recovery mode active via Supabase auth link.');
       } else if (event === 'SIGNED_IN' && session?.user) {
         try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
+          const profRes = await fetchUserProfile(session.user.id);
+          const profile = profRes.data;
           const hydrated = {
             id: session.user.id,
-            name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+            name: profile?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
             email: session.user.email,
             phone: profile?.phone || session.user.user_metadata?.phone || '',
-            addresses: [],
+            addresses: profile?.addresses || [],
           };
           setUser(hydrated);
         } catch (e) {
-          console.warn('Profile fetch error:', e);
+          console.warn('Profile fetch notice:', e);
         }
       }
     });
@@ -104,7 +80,6 @@ export function AuthProvider({ children }) {
       return { success: false, error: 'Name, Email, and Password are required.' };
     }
 
-    // Call real Supabase Auth Sign Up first
     let supabaseUserId = null;
     try {
       const supaRes = await signUpCustomer({
@@ -115,8 +90,7 @@ export function AuthProvider({ children }) {
       });
 
       if (!supaRes.success) {
-        // If error contains user already registered
-        if (supaRes.message && (supaRes.message.includes('already') || supaRes.message.includes('registered'))) {
+        if (supaRes.message && (supaRes.message.includes('already') || supaRes.message.includes('registered') || supaRes.message.includes('exists'))) {
           return { success: false, error: 'An account with this email address already exists. Please Log In.' };
         }
       } else if (supaRes.data?.user?.id) {
@@ -132,19 +106,7 @@ export function AuthProvider({ children }) {
       email: cleanEmail,
       phone: cleanPhone,
       password: password,
-      addresses: [
-        {
-          id: `addr_${Date.now()}`,
-          type: 'Home',
-          name: name.trim(),
-          phone: cleanPhone || '9989999999',
-          addressLine: 'Mallikarjuna Nagar',
-          city: 'Hyderabad',
-          state: 'Telangana',
-          pincode: '502032',
-          isDefault: true,
-        }
-      ],
+      addresses: [],
       createdAt: new Date().toISOString(),
     };
 
@@ -167,17 +129,18 @@ export function AuthProvider({ children }) {
       const supaRes = await signInCustomer({ email: cleanEmail, password });
       if (supaRes.success && supaRes.data?.user) {
         const u = supaRes.data.user;
+        const profRes = await fetchUserProfile(u.id);
+        const profile = profRes.data;
         const loggedUser = {
           id: u.id,
-          name: u.user_metadata?.full_name || cleanEmail.split('@')[0],
+          name: profile?.name || u.user_metadata?.full_name || cleanEmail.split('@')[0],
           email: u.email,
-          phone: u.user_metadata?.phone || '',
-          addresses: [],
+          phone: profile?.phone || u.user_metadata?.phone || '',
+          addresses: profile?.addresses || [],
         };
         setUser(loggedUser);
         return { success: true, user: loggedUser };
       } else if (supaRes.message && !supaRes.message.includes('fetch')) {
-        // Return clear Supabase message
         if (supaRes.message.includes('Invalid login credentials')) {
           return { success: false, error: 'Invalid email or password. Please check and try again.' };
         }
@@ -250,25 +213,29 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 5. Update Profile
-  const updateProfile = (updates) => {
+  // 5. Update Profile (Cloud Synced)
+  const updateProfile = async (updates) => {
     setUser((prev) => {
       if (!prev) return null;
       const updated = { ...prev, ...updates };
-      setRegisteredUsers((all) => all.map((u) => (u.id === prev.id ? updated : u)));
       return updated;
     });
+
+    if (user?.id) {
+      await updateUserProfileInDb(user.id, updates);
+    }
   };
 
-  // 6. Add Address
-  const addAddress = (address) => {
-    setUser((prev) => {
-      if (!prev) return null;
-      const newAddresses = [...(prev.addresses || []), { ...address, id: `addr_${Date.now()}` }];
-      const updated = { ...prev, addresses: newAddresses };
-      setRegisteredUsers((all) => all.map((u) => (u.id === prev.id ? updated : u)));
-      return updated;
-    });
+  // 6. Add Address (Cloud Synced)
+  const addAddress = async (address) => {
+    if (!user) return;
+    const newAddresses = [...(user.addresses || []), { ...address, id: `addr_${Date.now()}` }];
+    const updated = { ...user, addresses: newAddresses };
+    setUser(updated);
+
+    if (user.id) {
+      await updateUserProfileInDb(user.id, { addresses: newAddresses });
+    }
   };
 
   // 7. Logout

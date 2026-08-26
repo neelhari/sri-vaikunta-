@@ -95,6 +95,7 @@ export default function CheckoutPage() {
 
     const result = await addOrder({
       id: orderId,
+      userId: user?.id || null,
       customerName: formData.fullName,
       customerPhone: formData.phone,
       customerEmail: formData.email,
