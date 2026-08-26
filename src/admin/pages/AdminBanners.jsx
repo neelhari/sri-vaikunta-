@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Image as ImageIcon, Plus, Trash2, CheckCircle2, Upload, X, Flame, Megaphone, Sparkles, LayoutGrid, Layers, Edit2, ExternalLink } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
-import { uploadToCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary, compressImageToDataUrl } from '../../lib/cloudinary';
 
 export default function AdminBanners() {
   const { banners = [], addBanner, updateBanner, deleteBanner, categories = [], promotions = {}, updatePromotions } = useStoreData();
@@ -77,15 +77,6 @@ export default function AdminBanners() {
 
   const safeBanners = Array.isArray(banners) ? banners : [];
 
-  const readImageAsDataUrl = (file) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-  };
-
   const processBannerFile = async (file, setter) => {
     if (!file) return;
     setUploading(true);
@@ -94,12 +85,12 @@ export default function AdminBanners() {
       const res = await uploadToCloudinary(file);
       if (res.success && res.url) {
         url = res.url;
-        showToast('✓ Photo uploaded to Cloudinary successfully!');
+        showToast('✓ Photo uploaded to cloud successfully!');
       }
     } catch (err) {}
     if (!url) {
-      url = await readImageAsDataUrl(file);
-      if (url) showToast('✓ Photo attached from device!');
+      url = await compressImageToDataUrl(file, 1400, 0.80);
+      if (url) showToast('✓ Photo compressed & attached from device (<80KB)!');
     }
     if (url) setter(url);
     setUploading(false);

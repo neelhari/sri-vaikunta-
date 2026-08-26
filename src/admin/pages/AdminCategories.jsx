@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, CheckCircle2, Grid, Sparkles, Check, X, Search, ExternalLink, Upload } from 'lucide-react';
 import { useStoreData } from '../../context/StoreDataContext';
-import { uploadToCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary, compressImageToDataUrl } from '../../lib/cloudinary';
 import { BRAND } from '../../config/brand';
 
 export default function AdminCategories() {
@@ -25,9 +25,8 @@ export default function AdminCategories() {
       if (res.success && res.url) {
         setImage(res.url);
       } else {
-        const reader = new FileReader();
-        reader.onload = (ev) => setImage(ev.target.result);
-        reader.readAsDataURL(file);
+        const compressed = await compressImageToDataUrl(file, 800, 0.80);
+        if (compressed) setImage(compressed);
       }
     } catch (err) {
       console.warn('Category image upload error:', err);
