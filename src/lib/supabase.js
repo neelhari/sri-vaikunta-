@@ -483,13 +483,26 @@ export async function fetchPromotions() {
     const { data, error } = await supabase.from('promotions').select('*').eq('id', 'global').maybeSingle();
     if (error) return { success: false, data: null, message: error.message };
     if (!data) return { success: true, data: null };
+
+    let categoryBanners = [];
+    if (Array.isArray(data.category_hero)) {
+      categoryBanners = data.category_hero;
+    } else if (data.category_hero && typeof data.category_hero === 'object') {
+      if (Array.isArray(data.category_hero.banners)) {
+        categoryBanners = data.category_hero.banners;
+      } else if (data.category_hero.title || data.category_hero.image) {
+        categoryBanners = [data.category_hero];
+      }
+    }
+
     return {
       success: true,
       data: {
         marqueeText: data.marquee_text,
         marqueeActive: data.marquee_active !== false,
         savingsCards: data.savings_cards || [],
-        categoryHero: data.category_hero || null,
+        categoryBanners: categoryBanners,
+        categoryHero: categoryBanners[0] || data.category_hero || null,
       },
     };
   } catch (err) {
@@ -504,17 +517,35 @@ export async function updatePromotionsInDb(updates) {
     if (updates.marqueeText !== undefined) row.marquee_text = updates.marqueeText;
     if (updates.marqueeActive !== undefined) row.marquee_active = updates.marqueeActive;
     if (updates.savingsCards !== undefined) row.savings_cards = updates.savingsCards;
-    if (updates.categoryHero !== undefined) row.category_hero = updates.categoryHero;
+    
+    if (updates.categoryBanners !== undefined) {
+      row.category_hero = updates.categoryBanners;
+    } else if (updates.categoryHero !== undefined) {
+      row.category_hero = updates.categoryHero;
+    }
 
     const { data, error } = await supabase.from('promotions').upsert([row]).select().single();
     if (error) return { success: false, message: error.message };
+
+    let categoryBanners = [];
+    if (Array.isArray(data.category_hero)) {
+      categoryBanners = data.category_hero;
+    } else if (data.category_hero && typeof data.category_hero === 'object') {
+      if (Array.isArray(data.category_hero.banners)) {
+        categoryBanners = data.category_hero.banners;
+      } else if (data.category_hero.title || data.category_hero.image) {
+        categoryBanners = [data.category_hero];
+      }
+    }
+
     return {
       success: true,
       data: {
         marqueeText: data.marquee_text,
         marqueeActive: data.marquee_active !== false,
         savingsCards: data.savings_cards || [],
-        categoryHero: data.category_hero || null,
+        categoryBanners: categoryBanners,
+        categoryHero: categoryBanners[0] || data.category_hero || null,
       },
     };
   } catch (err) {

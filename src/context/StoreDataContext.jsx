@@ -164,6 +164,7 @@ export function StoreDataProvider({ children }) {
           setPromotions((prev) => ({
             ...prev,
             ...pr.data,
+            categoryBanners: pr.data.categoryBanners?.length > 0 ? pr.data.categoryBanners : prev.categoryBanners,
             savingsCards: pr.data.savingsCards?.length > 0 ? pr.data.savingsCards : prev.savingsCards,
             categoryHero: pr.data.categoryHero || prev.categoryHero,
           }));

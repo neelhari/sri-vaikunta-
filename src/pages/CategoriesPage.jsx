@@ -81,9 +81,10 @@ export default function CategoriesPage() {
       {/* 1. LUXURY MOBILE-FIRST BRIDAL HERO BANNER */}
       <div className="relative w-full h-44 sm:h-60 md:h-72 overflow-hidden bg-[#250208] text-white shadow-md">
         <img
+          key={matchedBanner.image}
           src={matchedBanner.image || '/slider/hero_saree_model.png'}
           alt={matchedBanner.title || 'Sri Vaikunta Bridal Saree Collections'}
-          className="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-700"
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-700 animate-fadeIn"
         />
 
         {/* Ambient Dark Gradient Vignette for Text Contrast */}
@@ -110,6 +111,29 @@ export default function CategoriesPage() {
             {matchedBanner.subtitle || '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu'}
           </p>
         </div>
+
+        {/* Multi-banner Navigation Dots */}
+        {allCatBanners.length > 1 && (
+          <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+            {allCatBanners.map((b, idx) => {
+              const isCurrent = (b.category === selectedCatId) || (b.category === 'all' && matchedBanner.id === b.id);
+              return (
+                <button
+                  key={b.id || idx}
+                  onClick={() => {
+                    if (b.category && b.category !== 'all') {
+                      handleCategorySelect(b.category);
+                    }
+                  }}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    isCurrent ? 'w-5 bg-[#D4AF37]' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                  }`}
+                  title={b.title}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 2. REAL-TIME SEARCH FIELD BELOW BANNER */}
