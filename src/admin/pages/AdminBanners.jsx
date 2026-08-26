@@ -457,7 +457,7 @@ export default function AdminBanners() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
