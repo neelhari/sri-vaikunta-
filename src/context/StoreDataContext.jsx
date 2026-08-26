@@ -234,22 +234,38 @@ export function StoreDataProvider({ children }) {
   // ---------------- Categories ----------------
   const addCategory = async (newCat) => {
     const res = await insertCategory(newCat);
-    if (res.success) setCategories((prev) => [...prev, res.data]);
-    else setCategories((prev) => [...prev, newCat]);
+    const item = res.success && res.data ? res.data : { ...newCat, id: newCat.id || `cat_${Date.now()}` };
+    setCategories((prev) => {
+      const updated = [...prev.filter((c) => c.id !== item.id), item];
+      try {
+        localStorage.setItem('sv_categories_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     return res;
   };
 
   const updateCategory = async (id, updatedData) => {
     const res = await updateCategoryInDb(id, updatedData);
-    if (res.success) setCategories((prev) => prev.map((c) => (c.id === id ? res.data : c)));
-    else setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updatedData } : c)));
+    setCategories((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updatedData, ...(res.data || {}) } : c));
+      try {
+        localStorage.setItem('sv_categories_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     return res;
   };
 
   const deleteCategory = async (id) => {
     const res = await deleteCategoryFromDb(id);
-    if (res.success) setCategories((prev) => prev.filter((c) => c.id !== id));
-    else setCategories((prev) => prev.filter((c) => c.id !== id));
+    setCategories((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      try {
+        localStorage.setItem('sv_categories_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     return res;
   };
 

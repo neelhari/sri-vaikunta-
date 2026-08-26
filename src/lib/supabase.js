@@ -233,7 +233,7 @@ function mapCategoryFromDb(row) {
 
 function mapCategoryToDb(c) {
   const row = {};
-  if (c.id !== undefined) row.id = c.id;
+  row.id = c.id || (c.name ? c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : `cat_${Date.now()}`);
   if (c.name !== undefined) row.name = c.name;
   if (c.tagline !== undefined) row.tagline = c.tagline;
   if (c.description !== undefined) row.description = c.description;
@@ -241,7 +241,7 @@ function mapCategoryToDb(c) {
   if (c.bannerImage !== undefined) row.banner_image = c.bannerImage;
   if (c.itemCount !== undefined) row.item_count = c.itemCount;
   if (c.featured !== undefined) row.featured = c.featured;
-  if (c.active !== undefined) row.active = c.active;
+  if (c.active !== undefined) row.active = c.active !== false;
   if (c.subcategories !== undefined) row.subcategories = c.subcategories;
   return row;
 }
@@ -485,8 +485,9 @@ export async function insertCategory(category) {
 export async function updateCategoryInDb(id, updates) {
   if (!supabase) return { success: true, data: { id, ...updates } };
   try {
-    const row = mapCategoryToDb({ ...updates, id });
-    const { data, error } = await supabase.from('categories').upsert([row]).select().maybeSingle();
+    const row = mapCategoryToDb(updates);
+    delete row.id;
+    const { data, error } = await supabase.from('categories').update(row).eq('id', id).select().maybeSingle();
     if (error) {
       console.warn('Category update warning:', error.message);
       return { success: true, data: { id, ...updates } };
