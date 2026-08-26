@@ -63,8 +63,20 @@ const defaultPromotions = {
 const StoreDataContext = createContext();
 
 export function StoreDataProvider({ children }) {
-  const [products, setProducts] = useState(defaultProducts);
-  const [categories, setCategories] = useState(defaultCategories);
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sv_products_cms');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return defaultProducts;
+  });
+  const [categories, setCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sv_categories_cms');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return defaultCategories;
+  });
   const [banners, setBanners] = useState(() => {
     try {
       const saved = localStorage.getItem('sv_banners_cms');
@@ -132,8 +144,18 @@ export function StoreDataProvider({ children }) {
           fetchProducts(), fetchCategories(), fetchBanners(), fetchPromotions(), fetchCoupons(), fetchSettings(),
         ]);
         if (!active) return;
-        if (p.success && p.data && p.data.length > 5) setProducts(p.data);
-        if (c.success && c.data && c.data.length > 5) setCategories(c.data);
+        if (p.success && Array.isArray(p.data) && p.data.length > 0) {
+          setProducts(p.data);
+          try {
+            localStorage.setItem('sv_products_cms', JSON.stringify(p.data));
+          } catch (e) {}
+        }
+        if (c.success && Array.isArray(c.data) && c.data.length > 0) {
+          setCategories(c.data);
+          try {
+            localStorage.setItem('sv_categories_cms', JSON.stringify(c.data));
+          } catch (e) {}
+        }
         if (b.success && Array.isArray(b.data)) {
           setBanners(b.data);
           try {
@@ -174,22 +196,38 @@ export function StoreDataProvider({ children }) {
   // ---------------- Products ----------------
   const addProduct = async (newProduct) => {
     const res = await insertProduct(newProduct);
-    if (res.success) setProducts((prev) => [res.data, ...prev]);
-    else setProducts((prev) => [{ ...newProduct, id: `sv_${Date.now()}` }, ...prev]);
+    const item = res.success && res.data ? res.data : { ...newProduct, id: `sv_${Date.now()}` };
+    setProducts((prev) => {
+      const updated = [item, ...prev.filter((p) => p.id !== item.id)];
+      try {
+        localStorage.setItem('sv_products_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     return res;
   };
 
   const updateProduct = async (id, updatedData) => {
     const res = await updateProductInDb(id, updatedData);
-    if (res.success) setProducts((prev) => prev.map((p) => (p.id === id ? res.data : p)));
-    else setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updatedData } : p)));
+    setProducts((prev) => {
+      const updated = prev.map((p) => (p.id === id ? { ...p, ...updatedData, ...(res.data || {}) } : p));
+      try {
+        localStorage.setItem('sv_products_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     return res;
   };
 
   const deleteProduct = async (id) => {
     const res = await deleteProductFromDb(id);
-    if (res.success) setProducts((prev) => prev.filter((p) => p.id !== id));
-    else setProducts((prev) => prev.filter((p) => p.id !== id));
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem('sv_products_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     return res;
   };
 
