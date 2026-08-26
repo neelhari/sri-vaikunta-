@@ -433,12 +433,15 @@ function mapOrderToDb(o) {
 
 function mapSettingsFromDb(row) {
   if (!row) return null;
-  const localWa = typeof window !== 'undefined' ? localStorage.getItem('sv_whatsapp_orders_enabled') : null;
+  const rawWa = row.whatsapp || '';
+  const isWaDisabled = rawWa.includes('|DISABLED') || rawWa.startsWith('DISABLED:');
+  const cleanWaNumber = rawWa.replace('|DISABLED', '').replace('|ENABLED', '').replace('DISABLED:', '').replace('ENABLED:', '');
+
   return {
     storeName: row.store_name || '',
     phone: row.phone || '',
     email: row.support_email || row.email || '',
-    whatsapp: row.whatsapp || '',
+    whatsapp: cleanWaNumber || '919876543210',
     ownerName: row.owner_name || '',
     address: row.address || '',
     city: row.city || '',
@@ -448,7 +451,7 @@ function mapSettingsFromDb(row) {
     deliveryCharge: row.shipping_fee !== undefined && row.shipping_fee !== null ? Number(row.shipping_fee) : 100,
     codEnabled: row.cod_enabled !== false,
     enableCod: row.cod_enabled !== false,
-    enableWhatsappOrders: localWa !== null ? localWa !== 'false' : true,
+    enableWhatsappOrders: !isWaDisabled,
     gstin: row.gstin || '',
     currency: row.currency || '₹',
   };
@@ -459,7 +462,13 @@ function mapSettingsToDb(s) {
   if (s.storeName !== undefined) row.store_name = s.storeName;
   if (s.phone !== undefined) row.phone = s.phone;
   if (s.email !== undefined) row.support_email = s.email;
-  if (s.whatsapp !== undefined) row.whatsapp = s.whatsapp;
+  
+  if (s.whatsapp !== undefined || s.enableWhatsappOrders !== undefined) {
+    const baseWa = (s.whatsapp || '919876543210').replace('|DISABLED', '').replace('|ENABLED', '').replace('DISABLED:', '').replace('ENABLED:', '');
+    const isEnabled = s.enableWhatsappOrders !== false;
+    row.whatsapp = isEnabled ? `${baseWa}|ENABLED` : `${baseWa}|DISABLED`;
+  }
+
   if (s.address !== undefined) row.address = s.address;
   if (s.city !== undefined) row.city = s.city;
   if (s.state !== undefined) row.state = s.state;
@@ -468,9 +477,6 @@ function mapSettingsToDb(s) {
   if (s.deliveryCharge !== undefined) row.shipping_fee = Number(s.deliveryCharge);
   if (s.codEnabled !== undefined) row.cod_enabled = Boolean(s.codEnabled);
   if (s.enableCod !== undefined) row.cod_enabled = Boolean(s.enableCod);
-  if (s.enableWhatsappOrders !== undefined && typeof window !== 'undefined') {
-    localStorage.setItem('sv_whatsapp_orders_enabled', String(s.enableWhatsappOrders));
-  }
   return row;
 }
 

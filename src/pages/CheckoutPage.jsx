@@ -57,6 +57,14 @@ export default function CheckoutPage() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState('');
 
+  React.useEffect(() => {
+    if (formData.paymentMethod === 'cod' && !isCodAllowed) {
+      setFormData((prev) => ({ ...prev, paymentMethod: 'upi' }));
+    } else if (formData.paymentMethod === 'whatsapp' && !isWhatsappAllowed) {
+      setFormData((prev) => ({ ...prev, paymentMethod: 'upi' }));
+    }
+  }, [isCodAllowed, isWhatsappAllowed, formData.paymentMethod]);
+
   if (cartItems.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
@@ -392,7 +400,8 @@ export default function CheckoutPage() {
               <h2 className="font-sans text-sm font-bold text-gray-900">Select Payment Method</h2>
             </div>
             <div className="space-y-2">
-              <label onClick={() => setFormData({ ...formData, paymentMethod: 'upi' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'upi' ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]' : 'border-gray-200'}`}>
+              {/* Option 1: Instant UPI / QR */}
+              <label onClick={() => setFormData({ ...formData, paymentMethod: 'upi' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all ${formData.paymentMethod === 'upi' ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]' : 'border-gray-200'}`}>
                 <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'upi'} onChange={() => setFormData({ ...formData, paymentMethod: 'upi' })} className="mt-1 text-[#6B1518]" />
                 <div className="flex-1">
                   <div className="flex items-center justify-between"><span className="font-bold text-xs text-gray-900">Instant UPI / QR</span><span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">Fast</span></div>
@@ -400,18 +409,54 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              {isCodAllowed && (
-                <label onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'cod' ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]' : 'border-gray-200'}`}>
+              {/* Option 2: Cash on Delivery (COD) */}
+              {isCodAllowed ? (
+                <label onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all ${formData.paymentMethod === 'cod' ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]' : 'border-gray-200'}`}>
                   <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'cod'} onChange={() => setFormData({ ...formData, paymentMethod: 'cod' })} className="mt-1 text-[#6B1518]" />
-                  <div className="flex-1"><span className="font-bold text-xs text-gray-900">Cash on Delivery (COD)</span><p className="text-[11px] text-gray-500">Pay on delivery.</p></div>
+                  <div className="flex-1">
+                    <span className="font-bold text-xs text-gray-900">Cash on Delivery (COD)</span>
+                    <p className="text-[11px] text-gray-500">Pay in cash on delivery.</p>
+                  </div>
                 </label>
+              ) : (
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl border border-gray-200 bg-gray-50/70 opacity-60 cursor-not-allowed">
+                  <input type="radio" name="paymentMethod" disabled checked={false} className="mt-1 text-gray-400 cursor-not-allowed" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-gray-500">Cash on Delivery (COD)</span>
+                      <span className="bg-gray-200 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded">Unavailable</span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">Temporarily disabled for new orders.</p>
+                  </div>
+                </div>
               )}
 
-              {isWhatsappAllowed && (
-                <label onClick={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'whatsapp' ? 'border-[#25D366] bg-emerald-50/50 ring-1 ring-[#25D366]' : 'border-gray-200'}`}>
+              {/* Option 3: WhatsApp Order */}
+              {isWhatsappAllowed ? (
+                <label onClick={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all ${formData.paymentMethod === 'whatsapp' ? 'border-[#25D366] bg-emerald-50/50 ring-1 ring-[#25D366]' : 'border-gray-200'}`}>
                   <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'whatsapp'} onChange={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className="mt-1 text-[#25D366]" />
-                  <div className="flex-1"><div className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-[#25D366]" /><span className="font-bold text-xs text-gray-900">WhatsApp Order</span></div><p className="text-[11px] text-gray-500">Chat for custom requests.</p></div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                      <span className="font-bold text-xs text-gray-900">WhatsApp Order</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500">Chat for custom requests.</p>
+                  </div>
                 </label>
+              ) : (
+                <div className="flex items-start gap-3 p-3.5 rounded-2xl border border-gray-200 bg-gray-50/70 opacity-60 cursor-not-allowed">
+                  <input type="radio" name="paymentMethod" disabled checked={false} className="mt-1 text-gray-400 cursor-not-allowed" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <MessageCircle className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="font-bold text-xs text-gray-500">WhatsApp Order</span>
+                      </div>
+                      <span className="bg-gray-200 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded">Unavailable</span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">Direct WhatsApp ordering is currently offline.</p>
+                  </div>
+                </div>
               )}
             </div>
             <div className="space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
