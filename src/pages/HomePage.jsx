@@ -163,7 +163,7 @@ export default function HomePage() {
       </svg>
 
       {/* 1. FULL-BLEED HERO BANNER WITH DYNAMIC BANNER SLIDES (NO HARDCODED FALLBACKS) */}
-      {heroSlides.length > 0 && activeSlide && (
+      {heroSlides.length > 0 && activeSlide ? (
         <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
           <div
             onTouchStart={handleTouchStart}
@@ -244,6 +244,13 @@ export default function HomePage() {
               )}
             </div>
           </div>
+        </section>
+      ) : (
+        <section className="relative w-full h-[82vh] sm:h-[580px] md:h-[640px] bg-gradient-to-b from-[#1F0207] via-[#2D040C] to-[#4A0513] animate-pulse flex flex-col justify-end pb-12 px-6 items-center">
+          <div className="w-32 h-4 bg-white/10 rounded-full mb-3" />
+          <div className="w-64 sm:w-96 h-10 bg-white/15 rounded-2xl mb-3" />
+          <div className="w-48 h-6 bg-white/10 rounded-full mb-4" />
+          <div className="w-36 h-11 bg-white/20 rounded-full" />
         </section>
       )}
 
