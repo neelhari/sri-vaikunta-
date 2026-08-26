@@ -348,6 +348,7 @@ export default function HomePage() {
                     <svg viewBox="0 0 100 100" className="w-full h-full">
                       <image
                         href={cat.image}
+                        xlinkHref={cat.image}
                         clipPath="url(#koskii-scallop-clip)"
                         width="100"
                         height="100"
