@@ -135,6 +135,18 @@ export async function updateCustomerPasswordInSupabase(newPassword) {
 // ============================================================================
 function mapProductFromDb(row) {
   if (!row) return row;
+  let images = [];
+  if (Array.isArray(row.images)) {
+    images = row.images;
+  } else if (typeof row.images === 'string') {
+    try {
+      images = JSON.parse(row.images);
+    } catch (e) {
+      images = [row.images];
+    }
+  }
+  if (!images.length && row.image) images = [row.image];
+
   return {
     id: row.id,
     name: row.name,
@@ -153,10 +165,10 @@ function mapProductFromDb(row) {
     careInstructions: row.care_instructions || '',
     sizes: row.sizes || [],
     description: row.description || '',
-    image: row.image || (row.images && row.images[0]) || '',
-    images: row.images || [],
-    video: row.video || null,
-    videoUrl: row.video_url || null,
+    image: images[0] || row.image || '',
+    images: images,
+    video: row.video_url || row.video || null,
+    videoUrl: row.video_url || row.video || null,
     rating: row.rating !== null && row.rating !== undefined ? Number(row.rating) : 4.5,
     reviewsCount: row.reviews_count ?? 0,
     isNew: !!row.is_new,

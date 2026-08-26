@@ -63,17 +63,33 @@ export default function ProductDetailPage() {
   const categoryMeta = categories.find((c) => c.id === product.category);
 
   // Build Media Items (Photos + Video)
-  const rawImages = product.images && product.images.length > 0 ? product.images : [product.image];
+  let rawImages = [];
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    rawImages = product.images;
+  } else if (typeof product.images === 'string') {
+    try {
+      rawImages = JSON.parse(product.images);
+    } catch (e) {
+      rawImages = [product.images];
+    }
+  }
+  if (!rawImages.length && product.image) {
+    rawImages = [product.image];
+  }
+
   const mediaItems = [];
 
   // Add photos
   rawImages.forEach((img) => {
-    if (img) mediaItems.push({ type: 'image', src: img });
+    if (img && typeof img === 'string' && img.trim()) {
+      mediaItems.push({ type: 'image', src: img });
+    }
   });
 
   // If video exists, add as media slide
-  if (product.video) {
-    mediaItems.push({ type: 'video', src: product.video });
+  const videoSrc = product.video || product.videoUrl;
+  if (videoSrc) {
+    mediaItems.push({ type: 'video', src: videoSrc });
   }
 
   const videoIndex = mediaItems.findIndex((m) => m.type === 'video');
@@ -219,21 +235,22 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Desktop Thumbnails */}
+            {/* Responsive Media Thumbnails (Mobile & Desktop) */}
             {mediaItems.length > 1 && (
-              <div className="hidden md:flex items-center gap-2 overflow-x-auto pb-1 mt-4">
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 mt-3 px-4 sm:px-0 scrollbar-none">
                 {mediaItems.map((item, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => scrollToMedia(idx)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 relative ${
-                      activeMediaIndex === idx ? 'border-[#6B1518]' : 'border-transparent opacity-70 hover:opacity-100'
+                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 relative cursor-pointer shadow-xs ${
+                      activeMediaIndex === idx ? 'border-[#6B1518] scale-105 shadow-md ring-2 ring-[#D4AF37]/50' : 'border-gray-200 opacity-70 hover:opacity-100'
                     }`}
                   >
                     {item.type === 'video' ? (
-                      <div className="w-full h-full bg-black flex flex-col items-center justify-center text-white">
-                        <Play className="w-5 h-5 text-[#D3923A] fill-current" />
-                        <span className="text-[8px] font-bold text-gray-200">Video</span>
+                      <div className="w-full h-full bg-[#1A0307] flex flex-col items-center justify-center text-white">
+                        <Play className="w-4 h-4 text-[#D4AF37] fill-current" />
+                        <span className="text-[7.5px] font-black uppercase text-[#F3E5AB]">Video</span>
                       </div>
                     ) : (
                       <img src={item.src} alt="" className="w-full h-full object-cover" />
