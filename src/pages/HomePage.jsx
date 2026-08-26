@@ -370,7 +370,10 @@ export default function HomePage() {
           {savingsEditTiles.map((tile, idx) => (
             <div
               key={idx}
-              onClick={() => navigate(`/categories?category=${tile.category}`)}
+              onClick={() => {
+                const dest = tile.link || (tile.category?.startsWith('/') ? tile.category : `/categories?category=${tile.category || 'dharmavaram-pure-pattu'}`);
+                navigate(dest);
+              }}
               className="relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               {/* Saree Image */}

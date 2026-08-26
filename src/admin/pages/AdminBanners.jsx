@@ -540,6 +540,31 @@ export default function AdminBanners() {
                 </div>
 
                 <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Redirects When Clicked *</label>
+                  <select
+                    value={card.category || (card.link?.includes('category=') ? card.link.split('category=')[1] : card.link) || 'dharmavaram-pure-pattu'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const next = [...savingsCards];
+                      next[idx] = {
+                        ...next[idx],
+                        category: val,
+                        link: val.startsWith('/') ? val : `/categories?category=${val}`,
+                      };
+                      setSavingsCards(next);
+                    }}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-semibold text-xs focus:border-[#68081C]"
+                  >
+                    <option value="/shop">🌟 All Sarees Catalog (/shop)</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1">Photo Upload</label>
                   <div className="flex items-center gap-3">
                     <div className="w-16 h-20 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-2xs">
