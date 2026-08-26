@@ -27,15 +27,23 @@ const policyLinks = [
 
 export default function Footer() {
   const navigate = useNavigate();
-  const { settings = {} } = useStoreData();
+  let settings = {};
+  try {
+    const storeData = useStoreData();
+    if (storeData && storeData.settings) {
+      settings = storeData.settings;
+    }
+  } catch (err) {
+    console.warn('Footer store data fallback:', err);
+  }
 
-  const storePhone = settings.phone || BRAND.phone;
-  const storeEmail = settings.supportEmail || BRAND.email;
-  const storeAddress = settings.address
+  const storePhone = settings?.phone || BRAND.phone;
+  const storeEmail = settings?.supportEmail || BRAND.email;
+  const storeAddress = settings?.address
     ? `${settings.address}, ${settings.city || ''}, ${settings.state || ''} ${settings.pincode || ''}`.replace(/,\s*,/g, ',').trim()
     : BRAND.address.full;
-  const storeName = settings.storeName || BRAND.fullName;
-  const cleanWhatsappDigits = settings.whatsapp ? settings.whatsapp.replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
+  const storeName = settings?.storeName || BRAND.fullName;
+  const cleanWhatsappDigits = settings?.whatsapp ? String(settings.whatsapp).replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
   const whatsappUrl = cleanWhatsappDigits
     ? `https://wa.me/${cleanWhatsappDigits}?text=${encodeURIComponent(`Hello ${storeName}, I have an inquiry.`)}`
     : waLink(`Hello ${storeName}, I have an inquiry.`);

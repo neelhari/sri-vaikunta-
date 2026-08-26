@@ -5,15 +5,23 @@ import { saveContactMessageToSupabase } from '../lib/supabase';
 import { useStoreData } from '../context/StoreDataContext';
 
 export default function ContactPage() {
-  const { settings = {} } = useStoreData();
+  let settings = {};
+  try {
+    const storeData = useStoreData();
+    if (storeData && storeData.settings) {
+      settings = storeData.settings;
+    }
+  } catch (err) {
+    console.warn('ContactPage store data fallback:', err);
+  }
 
-  const storePhone = settings.phone || BRAND.phone;
-  const storeEmail = settings.supportEmail || BRAND.email;
-  const storeAddress = settings.address
+  const storePhone = settings?.phone || BRAND.phone;
+  const storeEmail = settings?.supportEmail || BRAND.email;
+  const storeAddress = settings?.address
     ? `${settings.address}, ${settings.city || ''}, ${settings.state || ''} ${settings.pincode || ''}`.replace(/,\s*,/g, ',').trim()
     : BRAND.address.full;
-  const storeName = settings.storeName || BRAND.fullName;
-  const cleanWhatsappDigits = settings.whatsapp ? settings.whatsapp.replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
+  const storeName = settings?.storeName || BRAND.fullName;
+  const cleanWhatsappDigits = settings?.whatsapp ? String(settings.whatsapp).replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
   const whatsappUrl = cleanWhatsappDigits
     ? `https://wa.me/${cleanWhatsappDigits}?text=${encodeURIComponent(`Hello ${storeName}, I would like to see saree options on WhatsApp.`)}`
     : waLink(`Hello ${storeName}, I would like to see saree options on WhatsApp.`);
