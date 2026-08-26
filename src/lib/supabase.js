@@ -412,8 +412,8 @@ function mapOrderToDb(o) {
     total_amount: o.totalAmount || 0,
     payment_method: o.paymentMethod || null,
     payment_status: o.paymentStatus || 'Pending',
+    transaction_id: o.transactionId || null,
     status: o.status || 'Pending',
-    coupon_code: o.couponCode || null,
   };
 }
 
