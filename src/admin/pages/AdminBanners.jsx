@@ -451,11 +451,36 @@ export default function AdminBanners() {
       {/* TAB 2: PEACH ANNOUNCEMENT TICKER */}
       {activeTab === 'marquee' && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-2xs space-y-6 max-w-3xl text-xs">
-          <div>
-            <h3 className="font-serif text-lg font-bold text-gray-900">Announcement Marquee Ticker</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Top horizontal peach scrolling ribbon on the storefront.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-serif text-lg font-bold text-gray-900">Announcement Marquee Ticker</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Top horizontal peach scrolling ribbon on the storefront.
+              </p>
+            </div>
+
+            {/* Dynamic iOS Toggle Switch */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMarqueeActive(!marqueeActive)}
+                className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors duration-300 focus:outline-none cursor-pointer p-0.5 shadow-2xs ${
+                  marqueeActive ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+                title="Click to toggle Marquee on/off"
+              >
+                <span
+                  className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform duration-300 shadow-sm flex items-center justify-center text-[9px] font-black ${
+                    marqueeActive ? 'translate-x-6 text-emerald-600' : 'translate-x-0 text-gray-400'
+                  }`}
+                >
+                  {marqueeActive ? '✓' : ''}
+                </span>
+              </button>
+              <span className={`text-xs font-bold ${marqueeActive ? 'text-emerald-700 font-extrabold' : 'text-gray-400'}`}>
+                {marqueeActive ? 'Active on Storefront' : 'Ribbon Hidden'}
+              </span>
+            </div>
           </div>
 
           <form onSubmit={handleSaveMarquee} className="space-y-4">
@@ -466,16 +491,18 @@ export default function AdminBanners() {
                 required
                 value={marqueeText}
                 onChange={(e) => setMarqueeText(e.target.value)}
-                className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] text-xs leading-relaxed"
+                placeholder="Type your announcement (e.g. 299, 399 festive discounts)..."
+                className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] text-xs leading-relaxed font-semibold"
               />
             </div>
 
             <div className="flex items-center justify-between pt-2">
               <button
                 type="submit"
-                className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
+                className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
               >
-                Save Announcement
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Save Announcement</span>
               </button>
               {marqueeSaved && (
                 <span className="text-emerald-700 font-bold flex items-center gap-1">

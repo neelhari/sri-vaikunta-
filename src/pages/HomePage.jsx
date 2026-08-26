@@ -219,37 +219,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER */}
+      {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER (100% ADMIN CONTROLLED) */}
       {promotions?.marqueeActive !== false && (
         <div className="bg-[#FFE4DF] text-[#7E0C23] py-2 px-2 text-[11px] sm:text-xs font-medium tracking-wide border-y border-[#FBC8BE] overflow-hidden shadow-2xs">
           <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
             <div className="flex items-center gap-8 shrink-0">
               <span className="font-extrabold text-[#7E0C23] tracking-wide">
-                {promotions?.marqueeText || '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India'}
+                {promotions?.marqueeText || '✨ Sri Vaikunta Sarees • Pure Handloom Silk & Pattu Drapes'}
               </span>
               <span className="text-[#E01E5A] font-extrabold">✦</span>
               <span className="font-extrabold text-[#7E0C23] tracking-wide">
-                🚚 FREE EXPRESS SHIPPING on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}
+                {promotions?.marqueeText || '✨ Sri Vaikunta Sarees • Pure Handloom Silk & Pattu Drapes'}
               </span>
               <span className="text-[#E01E5A] font-extrabold">✦</span>
-              <span className="font-extrabold text-[#7E0C23] tracking-wide">
-                ✨ 100% PURE SILK Certified Dharmavaram & Pochampally Weaves
-              </span>
             </div>
 
             {/* Seamless loop duplication */}
             <div className="flex items-center gap-8 shrink-0" aria-hidden="true">
               <span className="font-extrabold text-[#7E0C23] tracking-wide">
-                {promotions?.marqueeText || '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India'}
+                {promotions?.marqueeText || '✨ Sri Vaikunta Sarees • Pure Handloom Silk & Pattu Drapes'}
               </span>
               <span className="text-[#E01E5A] font-extrabold">✦</span>
               <span className="font-extrabold text-[#7E0C23] tracking-wide">
-                🚚 FREE EXPRESS SHIPPING on orders above ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}
+                {promotions?.marqueeText || '✨ Sri Vaikunta Sarees • Pure Handloom Silk & Pattu Drapes'}
               </span>
               <span className="text-[#E01E5A] font-extrabold">✦</span>
-              <span className="font-extrabold text-[#7E0C23] tracking-wide">
-                ✨ 100% PURE SILK Certified Dharmavaram & Pochampally Weaves
-              </span>
             </div>
           </div>
         </div>
