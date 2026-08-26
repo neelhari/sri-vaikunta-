@@ -7,7 +7,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'srivaiku
  * Automatically compresses large high-res DSLR/iPhone photos client-side
  * before uploading to Cloudinary to ensure ultra-fast uploads and zero failures.
  */
-export function compressImage(file, maxDimension = 2400, quality = 0.90) {
+export function compressImage(file, maxDimension = 1400, quality = 0.80) {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
       resolve(file);
@@ -58,6 +58,43 @@ export function compressImage(file, maxDimension = 2400, quality = 0.90) {
       img.src = e.target.result;
     };
     reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
+export function compressImageToDataUrl(file, maxDimension = 1200, quality = 0.75) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      resolve(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(null);
     reader.readAsDataURL(file);
   });
 }

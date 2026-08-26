@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Trash2, Check, Video, AlertCircle, Film, Sparkles, ChevronDown, ChevronUp, Image as ImageIcon, Flame } from 'lucide-react';
-import { uploadToCloudinary } from '../../lib/cloudinary';
+import { uploadToCloudinary, compressImageToDataUrl } from '../../lib/cloudinary';
 import { BRAND } from '../../config/brand';
 
 export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct, categories = [], saving = false }) {
@@ -107,9 +107,9 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         console.warn('Upload error:', err);
       }
 
-      // High-quality fallback if cloud is temporarily unreachable
+      // Ultra-compact client-side compression fallback (< 70KB per photo)
       if (!url) {
-        url = await readImageAsDataUrl(file);
+        url = await compressImageToDataUrl(file, 1200, 0.75);
       }
 
       if (url) {
