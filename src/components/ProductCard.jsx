@@ -22,11 +22,7 @@ export default function ProductCard({ product }) {
   const handleBuyNow = (e) => {
     e.stopPropagation();
     addToCart(product);
-    if (!isAuthenticated) {
-      openLoginModal('/checkout');
-    } else {
-      navigate('/checkout');
-    }
+    navigate('/checkout');
   };
 
   return (

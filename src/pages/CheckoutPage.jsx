@@ -9,7 +9,7 @@ import { openRazorpayCheckout } from '../lib/razorpay';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { addOrder } = useStoreData();
   const { cartItems, subtotal, isFreeShipping, clearCart, appliedCoupon, discountAmount, deliveryCharge = 99 } = useCart();
 

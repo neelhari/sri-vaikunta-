@@ -121,11 +121,7 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     addToCart(product, quantity, selectedSize);
-    if (!isAuthenticated) {
-      navigate('/login?redirect=/checkout');
-    } else {
-      navigate('/checkout');
-    }
+    navigate('/checkout');
   };
 
   const handleCheckPincode = (e) => {
