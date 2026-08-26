@@ -207,6 +207,17 @@ function mapProductFromDb(row) {
   }
   if (!images.length && row.image) images = [row.image];
 
+  const cat = (row.category || '').toLowerCase();
+  const rawOcc = row.occasion || '';
+  const tagMatch = rawOcc.match(/#tags:\[(.*?)\]/);
+  const parsedTags = tagMatch ? tagMatch[1].split(',') : null;
+
+  const isRoyalBridal = parsedTags ? parsedTags.includes('royal_bridal') : (cat.includes('pattu') || cat.includes('banarasi') || cat.includes('pochampally'));
+  const isCottonKalamkari = parsedTags ? parsedTags.includes('cotton_kalamkari') : (cat.includes('kalamkari') || cat.includes('cotton') || cat.includes('mangalgiri'));
+  const isTrending = parsedTags ? parsedTags.includes('trending') : (!!row.is_new || Number(row.rating) >= 4.7);
+  const isFeatured = parsedTags ? parsedTags.includes('featured') : (row.is_featured !== false);
+  const cleanOccasion = rawOcc.replace(/#tags:\[.*?\]/g, '').trim();
+
   return {
     id: row.id,
     name: row.name,
@@ -221,7 +232,7 @@ function mapProductFromDb(row) {
     inStock: (row.stock ?? 0) > 0,
     fabric: row.fabric || '',
     material: row.material || '',
-    occasion: row.occasion || '',
+    occasion: cleanOccasion,
     careInstructions: row.care_instructions || '',
     sizes: row.sizes || [],
     description: row.description || '',
@@ -231,8 +242,11 @@ function mapProductFromDb(row) {
     videoUrl: row.video_url || row.video || null,
     rating: row.rating !== null && row.rating !== undefined ? Number(row.rating) : 4.5,
     reviewsCount: row.reviews_count ?? 0,
+    isRoyalBridal: Boolean(isRoyalBridal),
+    isCottonKalamkari: Boolean(isCottonKalamkari),
+    isTrending: Boolean(isTrending),
+    isFeatured: Boolean(isFeatured),
     isNew: !!row.is_new,
-    isFeatured: !!row.is_featured,
     createdDate: row.created_at ? row.created_at.split('T')[0] : undefined,
   };
 }
@@ -261,7 +275,16 @@ function mapProductToDb(p) {
     row.fabric = `${fab}${mat}${bls}${len}`.trim();
   }
 
-  if (p.occasion !== undefined) row.occasion = p.occasion || 'Festive & Wedding Wear';
+  // Serialize showcase display tags
+  const tags = [];
+  if (p.isRoyalBridal) tags.push('royal_bridal');
+  if (p.isCottonKalamkari) tags.push('cotton_kalamkari');
+  if (p.isTrending) tags.push('trending');
+  if (p.isFeatured) tags.push('featured');
+
+  const baseOccasion = (p.occasion || 'Festive & Wedding Wear').replace(/#tags:\[.*?\]/g, '').trim();
+  row.occasion = tags.length > 0 ? `${baseOccasion} #tags:[${tags.join(',')}]` : baseOccasion;
+
   if (p.careInstructions !== undefined) row.care_instructions = p.careInstructions || 'Dry Clean Only';
   if (p.description !== undefined) row.description = p.description || '';
   const primaryImg = p.image || (Array.isArray(p.images) && p.images[0]) || '/products/cat_pure_pattu.jpg';

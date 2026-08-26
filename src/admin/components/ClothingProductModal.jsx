@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Trash2, Check, Video, AlertCircle, Film, Sparkles, ChevronDown, ChevronUp, Image as ImageIcon, Flame } from 'lucide-react';
+import { X, Upload, Trash2, Check, Video, AlertCircle, Film, Sparkles, ChevronDown, ChevronUp, Image as ImageIcon, Flame, Crown, Feather } from 'lucide-react';
 import { uploadToCloudinary, compressImageToDataUrl } from '../../lib/cloudinary';
 import { BRAND } from '../../config/brand';
 
@@ -22,6 +22,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     video: '',
     videoUrl: '',
     images: [],
+    isRoyalBridal: false,
+    isCottonKalamkari: false,
+    isTrending: false,
+    isFeatured: true,
   });
 
   const [uploadError, setUploadError] = useState('');
@@ -51,10 +55,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         video: initialProduct.video || '',
         videoUrl: initialProduct.videoUrl || '',
         images: initialProduct.images || (initialProduct.image ? [initialProduct.image] : []),
+        isRoyalBridal: initialProduct.isRoyalBridal ?? (initialProduct.category === 'dharmavaram-pure-pattu' || initialProduct.category === 'banarasi-sarees' || initialProduct.category === 'pochampally-pattu'),
+        isCottonKalamkari: initialProduct.isCottonKalamkari ?? (initialProduct.category === 'kalamkari-cotton' || initialProduct.category === 'cotton-sarees' || initialProduct.category === 'mangalgiri-digital-print'),
         isTrending: initialProduct.isTrending ?? false,
         isFeatured: initialProduct.isFeatured ?? true,
-        isNew: initialProduct.isNew ?? false,
-        isBestseller: initialProduct.isBestseller ?? false,
       });
     } else {
       setFormData({
@@ -75,10 +79,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
         video: '',
         videoUrl: '',
         images: [],
+        isRoyalBridal: false,
+        isCottonKalamkari: false,
         isTrending: false,
         isFeatured: true,
-        isNew: true,
-        isBestseller: false,
       });
     }
     setUploadError('');
@@ -561,18 +565,46 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
             )}
           </div>
 
-          {/* 5. STOREFRONT BADGES & PROMOTIONAL FLAGS */}
+          {/* 5. HOMEPAGE SHOWCASE & DISPLAY SECTIONS */}
           <div className="bg-[#FAF5EE]/70 p-4 sm:p-5 rounded-2xl border border-[#D4AF37]/35 space-y-3">
             <div className="flex items-center justify-between">
               <label className="font-bold text-[#68081C] text-xs sm:text-sm flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                <span>Storefront Display Badges & Promotional Flags</span>
+                <span>Homepage Showcase & Display Sections</span>
               </label>
-              <span className="text-[10px] text-gray-500 font-medium">Select tags to display on website</span>
+              <span className="text-[10px] text-gray-500 font-medium">Select where to showcase on website homepage</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {/* Trending Now */}
+              {/* 1. Royal Bridal Edit */}
+              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                formData.isRoyalBridal ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={!!formData.isRoyalBridal}
+                  onChange={(e) => setFormData({ ...formData, isRoyalBridal: e.target.checked })}
+                  className="hidden"
+                />
+                <Crown className={`w-4 h-4 ${formData.isRoyalBridal ? 'text-[#F3E5AB]' : 'text-[#D4AF37]'}`} />
+                <span className="text-xs font-bold">Royal Bridal Edit</span>
+              </label>
+
+              {/* 2. Cotton & Kalamkari */}
+              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                formData.isCottonKalamkari ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={!!formData.isCottonKalamkari}
+                  onChange={(e) => setFormData({ ...formData, isCottonKalamkari: e.target.checked })}
+                  className="hidden"
+                />
+                <Feather className={`w-4 h-4 ${formData.isCottonKalamkari ? 'text-[#F3E5AB]' : 'text-emerald-600'}`} />
+                <span className="text-xs font-bold">Cotton & Kalamkari</span>
+              </label>
+
+              {/* 3. Trending Now */}
               <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
                 formData.isTrending ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
               }`}>
@@ -586,7 +618,7 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                 <span className="text-xs font-bold">Trending Now</span>
               </label>
 
-              {/* Featured on Homepage */}
+              {/* 4. Featured Home */}
               <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
                 formData.isFeatured ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
               }`}>
@@ -598,34 +630,6 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
                 />
                 <Sparkles className={`w-4 h-4 ${formData.isFeatured ? 'text-[#F3E5AB]' : 'text-[#D4AF37]'}`} />
                 <span className="text-xs font-bold">Featured Home</span>
-              </label>
-
-              {/* New Arrival */}
-              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
-                formData.isNew ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={!!formData.isNew}
-                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
-                  className="hidden"
-                />
-                <span className={`text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded ${formData.isNew ? 'bg-emerald-400 text-[#4A0513]' : 'bg-emerald-100 text-emerald-800'}`}>NEW</span>
-                <span className="text-xs font-bold">New Arrival</span>
-              </label>
-
-              {/* Best Seller */}
-              <label className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer select-none ${
-                formData.isBestseller ? 'bg-[#68081C] text-white border-[#68081C] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={!!formData.isBestseller}
-                  onChange={(e) => setFormData({ ...formData, isBestseller: e.target.checked })}
-                  className="hidden"
-                />
-                <span className={`text-[9.5px] font-black uppercase px-1.5 py-0.5 rounded ${formData.isBestseller ? 'bg-[#F3E5AB] text-[#68081C]' : 'bg-purple-100 text-purple-800'}`}>HOT</span>
-                <span className="text-xs font-bold">Best Seller</span>
               </label>
             </div>
           </div>

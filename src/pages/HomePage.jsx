@@ -144,10 +144,21 @@ export default function HomePage() {
     ? promotions.savingsCards
     : defaultSavingsTiles;
 
-  // Curated collections for mobile sections
-  const bridalPattu = products.filter(p => p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu').slice(0, 4);
-  const everydayCotton = products.filter(p => p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print').slice(0, 4);
-  const trendingSarees = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 8);
+  // Curated collections for mobile/desktop showcase sections
+  const bridalPattu = products
+    .filter((p) => p.isRoyalBridal || p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu')
+    .slice(0, 4);
+
+  const everydayCotton = products
+    .filter((p) => p.isCottonKalamkari || p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print')
+    .slice(0, 4);
+
+  const markedTrending = products.filter((p) => p.isTrending);
+  const trendingSarees = (markedTrending.length >= 4 ? markedTrending : [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0))).slice(0, 8);
+
+  const featuredSarees = products
+    .filter((p) => p.isFeatured !== false)
+    .slice(0, 4);
 
   const activeSlide = heroSlides.length > 0 ? heroSlides[currentSlide % heroSlides.length] : null;
 
@@ -483,7 +494,24 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. TRUST BADGES / USP CAPSULE */}
+      {/* 8. FEATURED COLLECTION (FEATURED HOME SHOWCASE) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-3">
+        <LuxurySectionHeading
+          subtitle="Handpicked Masterpieces"
+          title="FEATURED COLLECTION"
+          actionText="Explore All"
+          onAction={() => navigate('/shop')}
+        />
+
+        {/* 2-Column Mobile / 4-Column Desktop Product Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 pt-1">
+          {featuredSarees.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      {/* 9. TRUST BADGES / USP CAPSULE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 bg-white border border-[#F3E5AB]/70 rounded-3xl p-5 sm:p-7 shadow-xs">
           <div className="flex items-center gap-3">

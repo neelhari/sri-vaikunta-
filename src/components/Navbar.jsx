@@ -173,6 +173,37 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
+            {/* Account / Profile Icon */}
+            <button
+              onClick={() => goTo(user ? '/account' : '/account')}
+              className={`p-2 rounded-full transition-colors cursor-pointer ${
+                isTransparent
+                  ? 'text-white hover:bg-white/20'
+                  : 'text-gray-700 hover:text-[#68081C] hover:bg-gray-100'
+              }`}
+              title={user ? `Account (${user.name || user.email})` : 'Sign In / My Account'}
+            >
+              <User className="w-5 h-5 drop-shadow" />
+            </button>
+
+            {/* Shopping Cart Bag with Real-time Count */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className={`p-2 rounded-full transition-colors relative cursor-pointer ${
+                isTransparent
+                  ? 'text-white hover:bg-white/20'
+                  : 'text-gray-700 hover:text-[#68081C] hover:bg-gray-100'
+              }`}
+              title="Shopping Bag"
+            >
+              <ShoppingBag className="w-5 h-5 drop-shadow" />
+              {totalItemsCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-[#68081C] text-white text-[10px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                  {totalItemsCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
