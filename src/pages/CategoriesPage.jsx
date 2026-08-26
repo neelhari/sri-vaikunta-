@@ -33,12 +33,20 @@ export default function CategoriesPage() {
   );
   const [searchQuery, setSearchQuery] = useState('');
 
-  const catHero = promotions?.categoryHero || {
-    image: '/slider/hero_saree_model.png',
-    badge: 'THE HERITAGE EDIT',
-    title: 'Royal Saree Collections',
-    subtitle: '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu',
-  };
+  const allCatBanners = Array.isArray(promotions.categoryBanners) && promotions.categoryBanners.length > 0
+    ? promotions.categoryBanners.filter((b) => b.active !== false)
+    : [];
+
+  const matchedBanner =
+    allCatBanners.find((b) => b.category === selectedCatId) ||
+    allCatBanners.find((b) => b.category === 'all') ||
+    allCatBanners[0] ||
+    promotions?.categoryHero || {
+      image: '/slider/hero_saree_model.png',
+      badge: 'THE HERITAGE EDIT',
+      title: 'Royal Saree Collections',
+      subtitle: '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu',
+    };
 
   // Sync state if URL changes (e.g. from homepage navigation)
   useEffect(() => {
@@ -73,9 +81,9 @@ export default function CategoriesPage() {
       {/* 1. LUXURY MOBILE-FIRST BRIDAL HERO BANNER */}
       <div className="relative w-full h-44 sm:h-60 md:h-72 overflow-hidden bg-[#250208] text-white shadow-md">
         <img
-          src={catHero.image || '/slider/hero_saree_model.png'}
-          alt={catHero.title || 'Sri Vaikunta Bridal Saree Collections'}
-          className="absolute inset-0 w-full h-full object-cover object-top opacity-90"
+          src={matchedBanner.image || '/slider/hero_saree_model.png'}
+          alt={matchedBanner.title || 'Sri Vaikunta Bridal Saree Collections'}
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-700"
         />
 
         {/* Ambient Dark Gradient Vignette for Text Contrast */}
@@ -87,19 +95,19 @@ export default function CategoriesPage() {
 
         {/* Text Overlay Content */}
         <div className="relative z-10 h-full max-w-7xl mx-auto px-6 sm:px-10 flex flex-col justify-center items-start space-y-1 sm:space-y-2">
-          {catHero.badge && (
+          {matchedBanner.badge && (
             <div className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] text-[9px] sm:text-[11px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full shadow-md">
               <Flame className="w-3 h-3 fill-current" />
-              <span>{catHero.badge}</span>
+              <span>{matchedBanner.badge}</span>
             </div>
           )}
 
           <h1 className="font-serif text-2xl sm:text-4xl font-extrabold text-white tracking-wide leading-tight drop-shadow-xl whitespace-pre-line">
-            {catHero.title || 'Royal Saree Collections'}
+            {matchedBanner.title || 'Royal Saree Collections'}
           </h1>
 
           <p className="text-[11px] sm:text-xs text-[#F3E5AB] max-w-xs sm:max-w-md line-clamp-1 font-medium drop-shadow">
-            {catHero.subtitle || '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu'}
+            {matchedBanner.subtitle || '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu'}
           </p>
         </div>
       </div>

@@ -36,14 +36,32 @@ export default function AdminBanners() {
   const [savingsCards, setSavingsCards] = useState(promotions.savingsCards || []);
   const [savingsSaved, setSavingsSaved] = useState(false);
 
-  // Category hero state
-  const [catHero, setCatHero] = useState(promotions.categoryHero || {
-    image: '/slider/hero_saree_model.png',
+  // Category Banners Array state
+  const initialCatBanners = Array.isArray(promotions.categoryBanners) && promotions.categoryBanners.length > 0
+    ? promotions.categoryBanners
+    : [
+        {
+          id: 'cat-ban-1',
+          badge: promotions.categoryHero?.badge || 'THE HERITAGE EDIT',
+          title: promotions.categoryHero?.title || 'Royal Saree Collections',
+          subtitle: promotions.categoryHero?.subtitle || '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu',
+          image: promotions.categoryHero?.image || '/slider/hero_saree_model.png',
+          category: 'all',
+          active: true,
+        },
+      ];
+
+  const [categoryBanners, setCategoryBanners] = useState(initialCatBanners);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [editingCatBanner, setEditingCatBanner] = useState(null);
+  const [catBannerForm, setCatBannerForm] = useState({
     badge: 'THE HERITAGE EDIT',
-    title: 'Royal Saree Collections',
-    subtitle: '14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu',
+    title: '',
+    subtitle: '',
+    image: '/slider/hero_saree_model.png',
+    category: 'all',
+    active: true,
   });
-  const [catHeroSaved, setCatHeroSaved] = useState(false);
 
   const safeBanners = Array.isArray(banners) ? banners : [];
 
@@ -69,6 +87,7 @@ export default function AdminBanners() {
     setUploading(false);
   };
 
+  // --- Hero Slider Handlers ---
   const handleOpenAddHero = () => {
     setEditingBanner(null);
     setTitle('');
@@ -132,21 +151,15 @@ export default function AdminBanners() {
     }
   };
 
+  // --- Marquee Handlers ---
   const handleSaveMarquee = (e) => {
     e.preventDefault();
-    updatePromotions({ marqueeText });
+    updatePromotions({ marqueeText, marqueeActive });
     setMarqueeSaved(true);
     setTimeout(() => setMarqueeSaved(false), 3000);
   };
 
-  const handleUpdateSavingsCard = (idx, field, value) => {
-    setSavingsCards((prev) => {
-      const copy = [...prev];
-      copy[idx] = { ...copy[idx], [field]: value };
-      return copy;
-    });
-  };
-
+  // --- Savings Cards Handlers ---
   const handleSaveSavingsCards = (e) => {
     e.preventDefault();
     updatePromotions({ savingsCards });
@@ -154,11 +167,63 @@ export default function AdminBanners() {
     setTimeout(() => setSavingsSaved(false), 3000);
   };
 
-  const handleSaveCatHero = (e) => {
+  // --- Category Banners Handlers ---
+  const handleOpenAddCatBanner = () => {
+    setEditingCatBanner(null);
+    setCatBannerForm({
+      badge: 'THE HERITAGE EDIT',
+      title: '',
+      subtitle: 'Pure Handwoven Silk & Zari Weaves direct from Master Weavers.',
+      image: '/slider/hero_saree_model.png',
+      category: 'all',
+      active: true,
+    });
+    setIsCatModalOpen(true);
+  };
+
+  const handleOpenEditCatBanner = (ban) => {
+    setEditingCatBanner(ban);
+    setCatBannerForm({ ...ban });
+    setIsCatModalOpen(true);
+  };
+
+  const handleSaveCatBanner = async (e) => {
     e.preventDefault();
-    updatePromotions({ categoryHero: catHero });
-    setCatHeroSaved(true);
-    setTimeout(() => setCatHeroSaved(false), 3000);
+    if (!catBannerForm.title || !catBannerForm.image) return;
+
+    let updatedList;
+    if (editingCatBanner) {
+      updatedList = categoryBanners.map((b) => (b.id === editingCatBanner.id ? { ...catBannerForm, id: editingCatBanner.id } : b));
+    } else {
+      const newBanner = { ...catBannerForm, id: `cat-ban-${Date.now()}` };
+      updatedList = [...categoryBanners, newBanner];
+    }
+
+    setCategoryBanners(updatedList);
+    await updatePromotions({
+      categoryBanners: updatedList,
+      categoryHero: updatedList[0] || null,
+    });
+    setIsCatModalOpen(false);
+  };
+
+  const handleToggleCatBannerActive = async (ban) => {
+    const updatedList = categoryBanners.map((b) => (b.id === ban.id ? { ...b, active: !b.active } : b));
+    setCategoryBanners(updatedList);
+    await updatePromotions({
+      categoryBanners: updatedList,
+      categoryHero: updatedList[0] || null,
+    });
+  };
+
+  const handleDeleteCatBanner = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this Category Banner?')) return;
+    const updatedList = categoryBanners.filter((b) => b.id !== id);
+    setCategoryBanners(updatedList);
+    await updatePromotions({
+      categoryBanners: updatedList,
+      categoryHero: updatedList[0] || null,
+    });
   };
 
   return (
@@ -181,6 +246,16 @@ export default function AdminBanners() {
           >
             <Plus className="w-4 h-4" />
             <span>Add New Hero Slide</span>
+          </button>
+        )}
+
+        {activeTab === 'category' && (
+          <button
+            onClick={handleOpenAddCatBanner}
+            className="bg-[#68081C] hover:bg-[#4A0513] text-white text-xs font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all self-start sm:self-auto cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Add New Category Banner</span>
           </button>
         )}
       </div>
@@ -232,11 +307,11 @@ export default function AdminBanners() {
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>4. Categories Page Bridal Banner</span>
+          <span>4. Category Banners ({categoryBanners.length})</span>
         </button>
       </div>
 
-      {/* TAB 1: HERO SLIDER (PROMINENT LARGE PREVIEW IMAGE + COMPACT METADATA) */}
+      {/* TAB 1: HERO SLIDER */}
       {activeTab === 'hero' && (
         <div className="bg-white rounded-3xl border border-gray-100 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
@@ -251,230 +326,123 @@ export default function AdminBanners() {
                   <th className="p-4 sm:p-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 font-medium">
-                {safeBanners.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="p-8 text-center text-gray-400">
-                      No hero banner slides found. Click "+ Add New Hero Slide" to create one.
+              <tbody className="divide-y divide-gray-100">
+                {safeBanners.map((b) => (
+                  <tr key={b.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="p-4 sm:p-5">
+                      <div className="relative w-32 sm:w-36 h-40 sm:h-44 rounded-2xl overflow-hidden bg-gray-900 border-2 border-[#D4AF37]/30 shadow-md group">
+                        <img
+                          src={b.image}
+                          alt={b.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <span className="absolute bottom-2 left-2 bg-[#D4AF37] text-[#4A0513] text-[9px] font-black uppercase px-2 py-0.5 rounded shadow">
+                          ★ Live Hero Slide
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="p-4 sm:p-5 align-top">
+                      <div className="font-serif font-bold text-gray-900 text-sm sm:text-base leading-snug whitespace-pre-line">
+                        {b.title}
+                      </div>
+                      <div className="text-gray-500 text-xs mt-1.5 font-medium line-clamp-2">
+                        {b.subtitle}
+                      </div>
+                    </td>
+
+                    <td className="p-4 sm:p-5 align-top">
+                      <div className="space-y-1.5">
+                        <span className="inline-block bg-[#FAF5EE] text-[#68081C] border border-[#D4AF37]/40 text-[10.5px] font-extrabold px-2.5 py-1 rounded-lg">
+                          {b.badge || 'Featured Offer'}
+                        </span>
+                        <div className="text-xs font-black text-emerald-800">
+                          {b.offer}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="p-4 sm:p-5 align-top font-mono text-[11px] text-gray-500">
+                      <span className="bg-gray-100 px-2.5 py-1 rounded-lg block max-w-xs truncate">
+                        {b.link}
+                      </span>
+                    </td>
+
+                    <td className="p-4 sm:p-5 align-top">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const res = await updateBanner(b.id, { active: !b.active });
+                          if (!res.success) window.alert(res.message);
+                        }}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                          b.active
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                            : 'bg-gray-100 text-gray-500 border border-gray-300 hover:bg-gray-200'
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${b.active ? 'bg-emerald-600 animate-pulse' : 'bg-gray-400'}`} />
+                        <span>{b.active ? '● Active on Homepage' : '○ Slide Hidden'}</span>
+                      </button>
+                    </td>
+
+                    <td className="p-4 sm:p-5 align-top text-right space-x-1.5">
+                      <button
+                        onClick={() => handleOpenEditHero(b)}
+                        className="p-2 rounded-xl text-blue-600 hover:bg-blue-50 font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteHero(b.id)}
+                        className="p-2 rounded-xl text-red-600 hover:bg-red-50 font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  safeBanners.map((b) => (
-                    <tr key={b.id} className="hover:bg-[#FFFDF9] transition-colors">
-                      {/* Prominent Large Photo Preview (Clearly visible silk & drape texture) */}
-                      <td className="p-4 sm:p-5">
-                        <div className="w-28 sm:w-36 h-36 sm:h-44 rounded-2xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-md relative group">
-                          <img
-                            src={b.image}
-                            alt={b.title}
-                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
-                          <span className="absolute bottom-2 left-2 right-2 text-[9px] text-[#F3E5AB] font-serif font-bold text-center truncate drop-shadow">
-                            {b.badge || 'Hero Slide'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Main Title & Subtitle */}
-                      <td className="p-4 sm:p-5 max-w-xs">
-                        <span className="font-serif font-bold text-gray-900 block text-sm sm:text-base whitespace-pre-line leading-snug">
-                          {b.title}
-                        </span>
-                        {b.subtitle && (
-                          <span className="text-xs text-gray-500 block mt-1.5 leading-relaxed">
-                            {b.subtitle}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Badge & Offer Pill */}
-                      <td className="p-4 sm:p-5 space-y-2">
-                        {b.badge && (
-                          <span className="text-[10px] font-serif italic text-amber-800 font-bold block uppercase tracking-wider">
-                            {b.badge}
-                          </span>
-                        )}
-                        {b.offer && (
-                          <span className="inline-flex items-center gap-1.5 bg-[#D4AF37] text-[#4A0513] text-[10.5px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-2xs">
-                            <Flame className="w-3.5 h-3.5 fill-current" />
-                            <span>{b.offer}</span>
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Target Link */}
-                      <td className="p-4 sm:p-5">
-                        <a
-                          href={b.link || '/categories'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-xs text-[#68081C] hover:underline flex items-center gap-1 truncate max-w-[200px]"
-                        >
-                          <span className="truncate">{b.link || '/categories'}</span>
-                          <ExternalLink className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                        </a>
-                      </td>
-
-                      {/* Status Toggle */}
-                      <td className="p-4 sm:p-5">
-                        <button
-                          onClick={async () => {
-                            const result = await updateBanner(b.id, { active: !b.active });
-                            if (!result.success) window.alert(`Could not update banner: ${result.message || 'Unknown error'}`);
-                          }}
-                          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
-                            b.active
-                              ? 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
-                              : 'text-gray-600 bg-gray-100 border-gray-200 hover:bg-gray-200'
-                          }`}
-                        >
-                          <span className={`w-2 h-2 rounded-full ${b.active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
-                          <span>{b.active ? 'Live on Storefront' : 'Hidden Draft'}</span>
-                        </button>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="p-4 sm:p-5 text-right space-x-1.5 whitespace-nowrap">
-                        <button
-                          onClick={() => handleOpenEditHero(b)}
-                          className="p-2.5 rounded-xl text-gray-600 hover:text-[#68081C] hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer"
-                          title="Edit Slide Details"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteHero(b.id)}
-                          className="p-2.5 rounded-xl text-red-600 hover:bg-red-50 border border-red-100 transition-colors cursor-pointer"
-                          title="Delete Banner"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* TAB 2: PEACH ANNOUNCEMENT TICKER (SUPER USER-FRIENDLY WITH PRESETS & ANIMATED PREVIEW) */}
+      {/* TAB 2: PEACH ANNOUNCEMENT TICKER */}
       {activeTab === 'marquee' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-2xs space-y-7 max-w-3xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 bg-[#FFE4DF] text-[#68081C] rounded-lg">
-                  <Megaphone className="w-4 h-4" />
-                </span>
-                <h3 className="font-serif text-lg font-bold text-gray-900">
-                  Homepage Announcement Ticker (Marquee)
-                </h3>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                The continuous ribbon that runs across the homepage below the hero slider.
-              </p>
-            </div>
-
-            {/* Enable / Disable Storefront Toggle */}
-            <button
-              type="button"
-              onClick={() => {
-                const newActive = !marqueeActive;
-                setMarqueeActive(newActive);
-                updatePromotions({ marqueeActive: newActive });
-              }}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                marqueeActive
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-2xs'
-                  : 'bg-gray-100 text-gray-600 border-gray-200'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${marqueeActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
-              <span>{marqueeActive ? '● Active on Homepage' : '○ Ticker Hidden'}</span>
-            </button>
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-2xs space-y-6 max-w-3xl text-xs">
+          <div>
+            <h3 className="font-serif text-lg font-bold text-gray-900">Announcement Marquee Ticker</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Top horizontal peach scrolling ribbon on the storefront.
+            </p>
           </div>
 
-          {/* Quick 1-Click Preset Templates */}
-          <div className="space-y-2">
-            <label className="block font-bold text-gray-700 text-xs">
-              ⚡ 1-Click Ready Templates (Click to fill instantly):
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {MARQUEE_PRESETS.map((preset, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setMarqueeText(preset.text)}
-                  className={`text-left p-3 rounded-2xl border text-xs transition-all cursor-pointer ${
-                    marqueeText === preset.text
-                      ? 'bg-[#FAF5EE] border-[#D4AF37] text-[#68081C] font-bold shadow-2xs'
-                      : 'bg-gray-50/70 border-gray-200 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="font-bold block text-[#68081C] text-[11.5px]">{preset.label}</span>
-                  <span className="text-[10.5px] text-gray-500 line-clamp-1 mt-0.5">{preset.text}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <form onSubmit={handleSaveMarquee} className="space-y-5 text-xs">
+          <form onSubmit={handleSaveMarquee} className="space-y-4">
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-gray-800">
-                  Custom Announcement Text *
-                </label>
-                <span className="text-[11px] text-gray-400 font-mono">
-                  {marqueeText.length} characters
-                </span>
-              </div>
+              <label className="block font-bold text-gray-800 mb-1">Scrolling Announcement Text</label>
               <textarea
                 rows={3}
                 required
                 value={marqueeText}
                 onChange={(e) => setMarqueeText(e.target.value)}
-                placeholder="Type announcements, coupon codes (e.g. SV10), or festive shipping notices..."
-                className="w-full p-3.5 rounded-2xl border border-gray-200 focus:border-[#68081C] text-xs font-semibold leading-relaxed shadow-2xs"
+                className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#68081C] text-xs leading-relaxed"
               />
             </div>
 
-            {/* Real Smooth Animated Infinite Scrolling Preview */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="font-bold text-gray-800 flex items-center gap-1.5">
-                  <span>Live Storefront Animated Preview:</span>
-                  <span className="text-[10px] font-normal text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    Live Animation
-                  </span>
-                </label>
-                <span className="text-[10px] text-gray-400">Hover to pause</span>
-              </div>
-
-              <div className="relative overflow-hidden rounded-2xl bg-[#FFE4DF] text-[#68081C] border border-[#F5C7C0] py-3 shadow-xs group">
-                <div className="flex w-max animate-[marquee_18s_linear_infinite] group-hover:[animation-play-state:paused] whitespace-nowrap text-xs font-extrabold uppercase tracking-wider">
-                  <span className="mx-6">{marqueeText}</span>
-                  <span className="mx-6 text-rose-400">✦</span>
-                  <span className="mx-6">{marqueeText}</span>
-                  <span className="mx-6 text-rose-400">✦</span>
-                  <span className="mx-6">{marqueeText}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center justify-between pt-2">
               <button
                 type="submit"
-                className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-7 py-3 rounded-2xl shadow-md transition-all cursor-pointer text-xs flex items-center gap-2"
+                className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Save & Publish Ticker</span>
+                Save Announcement
               </button>
               {marqueeSaved && (
-                <span className="text-emerald-700 font-bold text-xs flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-                  <CheckCircle2 className="w-4 h-4" /> Published Live to Homepage!
+                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4" /> Saved & Synced to Cloud!
                 </span>
               )}
             </div>
@@ -484,236 +452,221 @@ export default function AdminBanners() {
 
       {/* TAB 3: THE SAVINGS EDIT (4 PROMO TILES) */}
       {activeTab === 'savings' && (
-        <form onSubmit={handleSaveSavingsCards} className="space-y-6">
-          <div className="bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-2xs space-y-6 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="font-serif text-lg font-bold text-gray-900">"The Savings Edit" 4-Card Promo Grid</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Edit the 4 featured curated offer cards on the homepage</p>
+              <h3 className="font-serif text-lg font-bold text-gray-900">"The Savings Edit" (4 Promo Tiles)</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Controls the 4 featured deal cards below the category carousel on the homepage.
+              </p>
             </div>
             <button
-              type="submit"
-              className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer text-xs shrink-0 self-start sm:self-auto"
+              type="button"
+              onClick={handleSaveSavingsCards}
+              className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer self-start sm:self-auto"
             >
-              Save All 4 Promo Cards
+              Save All 4 Promo Tiles
             </button>
           </div>
 
-          {savingsSaved && (
-            <div className="bg-emerald-50 text-emerald-800 p-3 rounded-2xl border border-emerald-200 text-xs font-bold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" /> All 4 Promo Tiles updated live on Homepage!
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {savingsCards.map((card, idx) => (
-              <div key={card.id || idx} className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-2xs space-y-3.5">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                  <span className="font-bold text-[#68081C] uppercase text-xs">Promo Tile #{idx + 1}</span>
-                  <span className="text-[10px] font-mono text-gray-400">ID: {card.id}</span>
+              <div key={idx} className="p-4 rounded-2xl border border-gray-200 bg-gray-50 space-y-3">
+                <div className="flex items-center justify-between font-bold text-gray-800">
+                  <span>Promo Tile {idx + 1}</span>
+                  <span className="text-[10px] text-[#68081C] bg-[#FAF5EE] px-2 py-0.5 rounded border border-[#D4AF37]/30">
+                    Card #{idx + 1}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-bold text-gray-800 mb-1">Title</label>
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Badge</label>
                     <input
                       type="text"
-                      value={card.title}
-                      onChange={(e) => handleUpdateSavingsCard(idx, 'title', e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                      value={card.badge || ''}
+                      onChange={(e) => {
+                        const next = [...savingsCards];
+                        next[idx] = { ...next[idx], badge: e.target.value };
+                        setSavingsCards(next);
+                      }}
+                      className="w-full p-2 rounded-lg border border-gray-200 bg-white"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-gray-800 mb-1">Discount Text</label>
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Discount Tag</label>
                     <input
                       type="text"
-                      value={card.discount}
-                      onChange={(e) => handleUpdateSavingsCard(idx, 'discount', e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] font-bold text-[#68081C]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-gray-800 mb-1">Subtitle / Tagline</label>
-                    <input
-                      type="text"
-                      value={card.subtitle}
-                      onChange={(e) => handleUpdateSavingsCard(idx, 'subtitle', e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-gray-800 mb-1">Target Link</label>
-                    <input
-                      type="text"
-                      value={card.link}
-                      onChange={(e) => handleUpdateSavingsCard(idx, 'link', e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] font-mono text-[11px]"
+                      value={card.discount || ''}
+                      onChange={(e) => {
+                        const next = [...savingsCards];
+                        next[idx] = { ...next[idx], discount: e.target.value };
+                        setSavingsCards(next);
+                      }}
+                      className="w-full p-2 rounded-lg border border-gray-200 bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Promo Photo (Drag/Select or URL)</label>
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-20 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-xs relative group">
-                      <img
-                        src={card.image || '/products/cat_pure_pattu.jpg'}
-                        alt=""
-                        onError={(e) => { e.target.src = '/products/cat_pure_pattu.jpg'; }}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    <div className="flex-1 space-y-1.5">
-                      <input
-                        type="text"
-                        value={card.image}
-                        onChange={(e) => handleUpdateSavingsCard(idx, 'image', e.target.value)}
-                        placeholder="/products/cat_pure_pattu.jpg"
-                        className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] font-mono text-[11px]"
-                      />
-                      <div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          id={`savings-file-${idx}`}
-                          onChange={async (e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              const url = await readImageAsDataUrl(file);
-                              if (url) handleUpdateSavingsCard(idx, 'image', url);
-                            }
-                          }}
-                          className="hidden"
-                        />
-                        <label
-                          htmlFor={`savings-file-${idx}`}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#68081C] bg-[#FAF5EE] hover:bg-[#F3EAE0] px-3 py-1 rounded-lg border border-[#D4AF37]/50 cursor-pointer transition-colors"
-                        >
-                          <Upload className="w-3 h-3" />
-                          <span>Choose Photo from Device</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={card.title || ''}
+                    onChange={(e) => {
+                      const next = [...savingsCards];
+                      next[idx] = { ...next[idx], title: e.target.value };
+                      setSavingsCards(next);
+                    }}
+                    className="w-full p-2 rounded-lg border border-gray-200 bg-white font-bold"
+                  />
                 </div>
-              </div>
-            ))}
-          </div>
-        </form>
-      )}
 
-      {/* TAB 4: CATEGORIES HERO BANNER */}
-      {activeTab === 'category' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-2xs space-y-6 max-w-2xl text-xs">
-          <div>
-            <h3 className="font-serif text-lg font-bold text-gray-900">Categories Page Bridal Hero Banner</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Controls the top wide banner image and gold typography on the Categories Hub (`/categories`).
-            </p>
-          </div>
-
-          <form onSubmit={handleSaveCatHero} className="space-y-4">
-            <div>
-              <label className="block font-bold text-gray-800 mb-1">Badge Text</label>
-              <input
-                type="text"
-                value={catHero.badge}
-                onChange={(e) => setCatHero({ ...catHero, badge: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-gray-800 mb-1">Main Headline</label>
-              <input
-                type="text"
-                value={catHero.title}
-                onChange={(e) => setCatHero({ ...catHero, title: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] font-bold text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-gray-800 mb-1">Subtitle</label>
-              <input
-                type="text"
-                value={catHero.subtitle}
-                onChange={(e) => setCatHero({ ...catHero, subtitle: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-gray-800 mb-1">
-                Banner Photo (Bridal / Saree Model Photo) *
-              </label>
-              <div className="border-2 border-dashed border-gray-300 hover:border-[#68081C] rounded-2xl p-4 bg-gray-50 text-center transition-all">
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative">
-                    <img src={catHero.image || '/slider/hero_saree_model.png'} alt="Bridal Banner" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="text-center sm:text-left space-y-1.5">
-                    <p className="font-bold text-gray-800 text-xs">
-                      {uploading ? '⏳ Uploading to Cloudinary...' : 'Upload Saree Photo from Device'}
-                    </p>
-                    <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Photo Upload</label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0">
+                      <img src={card.image} alt="" className="w-full h-full object-cover" />
+                    </div>
                     <div>
                       <input
                         type="file"
                         accept="image/*"
                         onChange={(e) => {
                           if (e.target.files[0]) {
-                            processBannerFile(e.target.files[0], (newUrl) => setCatHero((prev) => ({ ...prev, image: newUrl })));
+                            processBannerFile(e.target.files[0], (newUrl) => {
+                              const next = [...savingsCards];
+                              next[idx] = { ...next[idx], image: newUrl };
+                              setSavingsCards(next);
+                            });
                           }
                         }}
                         className="hidden"
-                        id="cat-hero-file-input"
+                        id={`savings-file-${idx}`}
                       />
                       <label
-                        htmlFor="cat-hero-file-input"
-                        className="inline-flex items-center gap-1.5 bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-all"
+                        htmlFor={`savings-file-${idx}`}
+                        className="inline-flex items-center gap-1 bg-white hover:bg-gray-100 text-gray-700 font-bold text-[11px] px-3 py-1.5 rounded-lg border border-gray-300 cursor-pointer"
                       >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{uploading ? 'Uploading...' : 'Choose Photo from Device'}</span>
+                        <Upload className="w-3 h-3 text-[#68081C]" />
+                        <span>Choose Photo</span>
                       </label>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Optional Manual URL */}
-              <div className="mt-2">
-                <input
-                  type="text"
-                  value={catHero.image}
-                  onChange={(e) => setCatHero({ ...catHero, image: e.target.value })}
-                  placeholder="Or paste image URL (e.g. /slider/hero_saree_model.png)..."
-                  className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] focus:outline-none font-mono text-[11px]"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="submit"
-                className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                Save Category Hero Banner
-              </button>
-              {catHeroSaved && (
-                <span className="text-emerald-700 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Updated Live on Categories Page!
-                </span>
-              )}
-            </div>
-          </form>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Add / Edit Hero Banner Modal */}
+      {/* TAB 4: CATEGORY BANNERS MANAGER (FULL TABLE + ADD/EDIT/DELETE) */}
+      {activeTab === 'category' && (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-2xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider text-[10px] font-extrabold border-b border-gray-100">
+                <tr>
+                  <th className="p-4 sm:p-5 w-36 sm:w-44">Banner Photo</th>
+                  <th className="p-4 sm:p-5">Headline & Subtitle</th>
+                  <th className="p-4 sm:p-5">Badge</th>
+                  <th className="p-4 sm:p-5">Assigned Category</th>
+                  <th className="p-4 sm:p-5 text-center">Status</th>
+                  <th className="p-4 sm:p-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {categoryBanners.map((b) => (
+                  <tr key={b.id} className="hover:bg-gray-50/80 transition-colors">
+                    {/* Photo */}
+                    <td className="p-4 sm:p-5">
+                      <div className="relative w-32 sm:w-36 h-24 sm:h-28 rounded-2xl overflow-hidden bg-gray-900 border-2 border-[#D4AF37]/30 shadow-md group">
+                        <img
+                          src={b.image}
+                          alt={b.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      </div>
+                    </td>
+
+                    {/* Headline */}
+                    <td className="p-4 sm:p-5 align-top">
+                      <div className="font-serif font-bold text-gray-900 text-sm sm:text-base leading-snug">
+                        {b.title}
+                      </div>
+                      <div className="text-gray-500 text-xs mt-1 font-medium line-clamp-2">
+                        {b.subtitle}
+                      </div>
+                    </td>
+
+                    {/* Badge */}
+                    <td className="p-4 sm:p-5 align-top">
+                      <span className="inline-block bg-[#FAF5EE] text-[#68081C] border border-[#D4AF37]/40 text-[10.5px] font-extrabold px-2.5 py-1 rounded-lg">
+                        {b.badge || 'THE HERITAGE EDIT'}
+                      </span>
+                    </td>
+
+                    {/* Category */}
+                    <td className="p-4 sm:p-5 align-top">
+                      <span className="bg-gray-100 text-gray-800 text-[11px] font-bold px-2.5 py-1 rounded-full">
+                        {b.category === 'all'
+                          ? '🌟 All Collections (Global)'
+                          : categories.find((c) => c.id === b.category)?.name || b.category}
+                      </span>
+                    </td>
+
+                    {/* Dynamic iOS Toggle */}
+                    <td className="p-4 sm:p-5 align-top text-center">
+                      <div className="inline-flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCatBannerActive(b)}
+                          className={`relative inline-flex items-center h-6 w-12 rounded-full transition-colors duration-300 focus:outline-none cursor-pointer p-0.5 shadow-2xs ${
+                            b.active !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                          }`}
+                          title="Click to toggle status"
+                        >
+                          <span
+                            className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform duration-300 shadow-sm flex items-center justify-center text-[9px] font-black ${
+                              b.active !== false ? 'translate-x-6 text-emerald-600' : 'translate-x-0 text-gray-400'
+                            }`}
+                          >
+                            {b.active !== false ? '✓' : ''}
+                          </span>
+                        </button>
+                        <span className={`text-xs font-bold ${b.active !== false ? 'text-emerald-700' : 'text-gray-400'}`}>
+                          {b.active !== false ? 'Active' : 'Off'}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="p-4 sm:p-5 align-top text-right space-x-1.5">
+                      <button
+                        onClick={() => handleOpenEditCatBanner(b)}
+                        className="p-2 rounded-xl text-blue-600 hover:bg-blue-50 font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCatBanner(b.id)}
+                        className="p-2 rounded-xl text-red-600 hover:bg-red-50 font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Banner Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-7 space-y-4 text-xs max-h-[92vh] overflow-y-auto">
@@ -726,7 +679,7 @@ export default function AdminBanners() {
                   {editingBanner ? 'Update slide photography, offers, and linked category' : 'Create a vertical mobile hero slide for the homepage'}
                 </p>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+              <button onClick={() => setIsModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -781,7 +734,6 @@ export default function AdminBanners() {
                   </div>
                 </div>
 
-                {/* Optional Manual URL */}
                 <div className="mt-2">
                   <input
                     type="text"
@@ -807,68 +759,213 @@ export default function AdminBanners() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Top Badge Text</label>
+                  <label className="block font-bold text-gray-800 mb-1">Badge Text</label>
                   <input
                     type="text"
-                    placeholder="The Grand Festive Sale"
                     value={badge}
                     onChange={(e) => setBadge(e.target.value)}
+                    placeholder="e.g. Festive Heritage Sale"
                     className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-gray-800 mb-1">Offer Pill Text</label>
+                  <label className="block font-bold text-gray-800 mb-1">Offer Tagline</label>
                   <input
                     type="text"
-                    placeholder="FLAT 25% OFF WEAVER PRICES"
                     value={offer}
                     onChange={(e) => setOffer(e.target.value)}
+                    placeholder="e.g. FLAT 25% OFF"
                     className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Subtitle / Tagline</label>
+                <label className="block font-bold text-gray-800 mb-1">Subtitle / Weave Details</label>
                 <input
                   type="text"
-                  placeholder="Heavy Gold Zari Bridal & Festive Heritage Weaves."
                   value={subtitle}
                   onChange={(e) => setSubtitle(e.target.value)}
+                  placeholder="e.g. Pure Handwoven Silk & Zari Weaves"
                   className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-gray-800 mb-1">Target Category / Link</label>
+                <label className="block font-bold text-gray-800 mb-1">Linked Destination</label>
                 <select
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] bg-white font-semibold"
+                  className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-semibold"
                 >
-                  <option value="/categories">All Categories Hub (/categories)</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={`/categories?category=${cat.id}`}>
-                      {cat.name} (/categories?category={cat.id})
+                  <option value="/shop">All Sarees Catalog (/shop)</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={`/categories?category=${c.id}`}>
+                      {c.name} (/categories?category={c.id})
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={saving || !image || !title}
-                  className="px-6 py-2 text-xs font-bold text-white bg-[#68081C] hover:bg-[#4A0513] rounded-xl shadow-md cursor-pointer disabled:opacity-50"
+                  disabled={saving || uploading}
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-[#68081C] hover:bg-[#4A0513] rounded-xl shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : editingBanner ? 'Update Slide' : 'Publish to Homepage'}
+                  {saving ? 'Saving...' : editingBanner ? 'Update Slide' : 'Add Hero Slide'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Banner Add/Edit Modal */}
+      {isCatModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-7 space-y-4 text-xs max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="font-serif text-lg font-bold text-[#68081C]">
+                  {editingCatBanner ? 'Edit Category Banner' : 'Add New Category Banner'}
+                </h3>
+                <p className="text-[10.5px] text-gray-400">
+                  Controls the wide top header banner on `/categories`
+                </p>
+              </div>
+              <button onClick={() => setIsCatModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCatBanner} className="space-y-3.5">
+              {/* Photo Upload Zone */}
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">
+                  Banner Photo (Bridal / Saree Model Landscape Photo) *
+                </label>
+                <div className="border-2 border-dashed border-gray-300 hover:border-[#68081C] rounded-2xl p-4 bg-gray-50 text-center transition-all">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="w-28 h-20 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-sm relative group">
+                      <img src={catBannerForm.image || '/slider/hero_saree_model.png'} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-center sm:text-left space-y-1.5">
+                      <p className="font-bold text-gray-800 text-xs">
+                        {uploading ? '⏳ Compressing & Uploading...' : 'Upload Saree Photo from Device'}
+                      </p>
+                      <p className="text-gray-400 text-[10.5px]">JPG, PNG or WEBP (Cloudinary Cloud Storage Active)</p>
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files[0]) {
+                              processBannerFile(e.target.files[0], (newUrl) =>
+                                setCatBannerForm((prev) => ({ ...prev, image: newUrl }))
+                              );
+                            }
+                          }}
+                          className="hidden"
+                          id="cat-banner-modal-input"
+                        />
+                        <label
+                          htmlFor="cat-banner-modal-input"
+                          className="inline-flex items-center gap-1.5 bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-[11px] px-4 py-2 rounded-xl cursor-pointer shadow-xs transition-all"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploading ? 'Uploading...' : 'Choose Photo from Device'}</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={catBannerForm.image}
+                    onChange={(e) => setCatBannerForm({ ...catBannerForm, image: e.target.value })}
+                    placeholder="Or paste image URL (e.g. /slider/hero_saree_model.png)..."
+                    className="w-full p-2 rounded-xl border border-gray-200 focus:border-[#68081C] font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+
+              {/* Main Headline */}
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">Main Headline *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Royal Dharmavaram Pure Pattu"
+                  value={catBannerForm.title}
+                  onChange={(e) => setCatBannerForm({ ...catBannerForm, title: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C] font-bold text-sm"
+                />
+              </div>
+
+              {/* Badge & Subtitle */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Badge Text</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. THE HERITAGE EDIT"
+                    value={catBannerForm.badge}
+                    onChange={(e) => setCatBannerForm({ ...catBannerForm, badge: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-800 mb-1">Assign to Category</label>
+                  <select
+                    value={catBannerForm.category}
+                    onChange={(e) => setCatBannerForm({ ...catBannerForm, category: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-semibold"
+                  >
+                    <option value="all">🌟 All Collections (Global)</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-800 mb-1">Subtitle</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. 14 Handcrafted Master-Weaver Traditions • Pure Silk & Pattu"
+                  value={catBannerForm.subtitle}
+                  onChange={(e) => setCatBannerForm({ ...catBannerForm, subtitle: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-gray-200 focus:border-[#68081C]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsCatModalOpen(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-[#68081C] hover:bg-[#4A0513] rounded-xl shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  {editingCatBanner ? 'Update Category Banner' : 'Add Category Banner'}
                 </button>
               </div>
             </form>
