@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Lock, Mail, Loader2, ShieldCheck, Sparkles } from 'lucide-react';
+import { Lock, Mail, Loader2, ShieldCheck } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { BRAND } from '../config/brand';
 
@@ -41,21 +41,6 @@ export default function AdminLogin() {
     navigate(location.state?.from?.pathname || '/admin', { replace: true });
   };
 
-  const handleQuickFill = async () => {
-    setEmail('admin@srivaikuntasarees.com');
-    setPassword('admin123');
-    setError('');
-    setSubmitting(true);
-    const result = await signIn('admin@srivaikuntasarees.com', 'admin123');
-    setSubmitting(false);
-
-    if (result.success) {
-      navigate('/admin', { replace: true });
-    } else {
-      setError(result.message || 'Sign in failed.');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-7 sm:p-8 space-y-6">
@@ -66,16 +51,6 @@ export default function AdminLogin() {
           <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#68081C]">Admin Sign In</h1>
           <p className="text-[11px] text-gray-500">{BRAND.name} Store CMS — Authorized access only</p>
         </div>
-
-        {/* 1-Click Quick Fill Button */}
-        <button
-          type="button"
-          onClick={handleQuickFill}
-          className="w-full bg-[#FAF5EE] hover:bg-[#F3EAE0] border border-[#D4AF37]/50 text-[#68081C] py-2.5 px-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
-        >
-          <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-          <span>1-Click Master Admin Login</span>
-        </button>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
@@ -126,10 +101,6 @@ export default function AdminLogin() {
             <span>{submitting ? 'Signing In...' : 'Sign In as Admin'}</span>
           </button>
         </form>
-
-        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-          Master login: <code className="bg-gray-100 px-1 py-0.5 rounded font-mono font-bold text-gray-700">admin@srivaikuntasarees.com</code> / <code className="bg-gray-100 px-1 py-0.5 rounded font-mono font-bold text-gray-700">admin123</code>
-        </p>
       </div>
     </div>
   );
