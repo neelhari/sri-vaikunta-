@@ -13,7 +13,38 @@ import { categories as defaultCategories } from '../data/categories';
 import { products as defaultProducts } from '../data/products';
 import { BRAND } from '../config/brand';
 
-const defaultHeroBanners = [];
+const defaultHeroBanners = [
+  {
+    id: 'sv-ban-1',
+    image: '/slider/hero_slide_1.png',
+    badge: 'The Grand Festive Heritage Sale',
+    title: 'ROYAL DHARMAVARAM\nPURE PATTU SAREES',
+    offer: 'FLAT 20% - 30% OFF WEAVER PRICES',
+    subtitle: 'Heavy Gold Zari Bridal & Festive Heritage Weaves.',
+    link: '/categories?category=dharmavaram-pure-pattu',
+    active: true,
+  },
+  {
+    id: 'sv-ban-2',
+    image: '/slider/hero_slide_2.png',
+    badge: 'Festive Fashion Collection',
+    title: 'POCHAMPALLY & BRIDAL\nSILK ENSEMBLES',
+    offer: 'UP TO 30% OFF MASTER WEAVES',
+    subtitle: 'Artisan Double Ikkat Silk & Handwoven Drapes.',
+    link: '/categories?category=pochampally-pattu',
+    active: true,
+  },
+  {
+    id: 'sv-ban-3',
+    image: '/slider/hero_slide_3.png',
+    badge: 'Royal Brocade Edition',
+    title: 'BANARASI & GADWAL\nHANDLOOM SAREES',
+    offer: 'DIRECT FROM MASTER WEAVERS',
+    subtitle: 'Kashi Antique Zari & Traditional Temple Borders.',
+    link: '/categories?category=banarasi-sarees',
+    active: true,
+  },
+];
 
 const defaultPromotions = {
   marqueeText: '✨ FESTIVE WEAVER PRICES: Flat 20% - 30% Off on Pure Dharmavaram & Pochampally Pattu | Use Code: SV10 | Free Shipping Across India',
@@ -70,7 +101,7 @@ export function StoreDataProvider({ children }) {
       const saved = localStorage.getItem('sv_banners_cms');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return [];
+    return defaultHeroBanners;
   });
   const [promotions, setPromotions] = useState(() => {
     try {
