@@ -21,7 +21,9 @@ import { openRazorpayCheckout } from '../lib/razorpay';
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { addOrder, coupons = [] } = useStoreData();
+  const { addOrder, coupons = [], settings } = useStoreData();
+  const isCodAllowed = settings?.codEnabled !== false && settings?.enableCod !== false;
+  const isWhatsappAllowed = settings?.enableWhatsappOrders !== false;
   const {
     cartItems,
     subtotal,
@@ -397,14 +399,20 @@ export default function CheckoutPage() {
                   <p className="text-[11px] text-gray-500">Zero extra fees. Instant confirmation.</p>
                 </div>
               </label>
-              <label onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'cod' ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]' : 'border-gray-200'}`}>
-                <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'cod'} onChange={() => setFormData({ ...formData, paymentMethod: 'cod' })} className="mt-1 text-[#6B1518]" />
-                <div className="flex-1"><span className="font-bold text-xs text-gray-900">Cash on Delivery (COD)</span><p className="text-[11px] text-gray-500">Pay on delivery.</p></div>
-              </label>
-              <label onClick={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'whatsapp' ? 'border-[#25D366] bg-emerald-50/50 ring-1 ring-[#25D366]' : 'border-gray-200'}`}>
-                <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'whatsapp'} onChange={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className="mt-1 text-[#25D366]" />
-                <div className="flex-1"><div className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-[#25D366]" /><span className="font-bold text-xs text-gray-900">WhatsApp Order</span></div><p className="text-[11px] text-gray-500">Chat for custom requests.</p></div>
-              </label>
+
+              {isCodAllowed && (
+                <label onClick={() => setFormData({ ...formData, paymentMethod: 'cod' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'cod' ? 'border-[#6B1518] bg-[#F8F0F0]/50 ring-1 ring-[#6B1518]' : 'border-gray-200'}`}>
+                  <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'cod'} onChange={() => setFormData({ ...formData, paymentMethod: 'cod' })} className="mt-1 text-[#6B1518]" />
+                  <div className="flex-1"><span className="font-bold text-xs text-gray-900">Cash on Delivery (COD)</span><p className="text-[11px] text-gray-500">Pay on delivery.</p></div>
+                </label>
+              )}
+
+              {isWhatsappAllowed && (
+                <label onClick={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer ${formData.paymentMethod === 'whatsapp' ? 'border-[#25D366] bg-emerald-50/50 ring-1 ring-[#25D366]' : 'border-gray-200'}`}>
+                  <input type="radio" name="paymentMethod" checked={formData.paymentMethod === 'whatsapp'} onChange={() => setFormData({ ...formData, paymentMethod: 'whatsapp' })} className="mt-1 text-[#25D366]" />
+                  <div className="flex-1"><div className="flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5 text-[#25D366]" /><span className="font-bold text-xs text-gray-900">WhatsApp Order</span></div><p className="text-[11px] text-gray-500">Chat for custom requests.</p></div>
+                </label>
+              )}
             </div>
             <div className="space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
               <div className="flex justify-between"><span>Subtotal:</span><span className="font-semibold text-gray-900">₹{subtotal.toLocaleString('en-IN')}</span></div>

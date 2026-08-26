@@ -6,6 +6,7 @@ import {
   ShoppingBag,
   Grid,
   ShoppingCart,
+  Tag,
   Truck,
   ExternalLink,
   LogOut,
@@ -22,7 +23,8 @@ export default function AdminSidebar({ onClose }) {
     { label: 'Products & Catalogue', icon: ShoppingBag, path: '/admin/products' },
     { label: 'Categories & Weaves', icon: Grid, path: '/admin/categories' },
     { label: 'Customer Orders', icon: ShoppingCart, path: '/admin/orders' },
-    { label: 'Shipping & Delivery Rates', icon: Truck, path: '/admin/settings' },
+    { label: 'Coupons & Discounts', icon: Tag, path: '/admin/coupons' },
+    { label: 'Shipping & Store Settings', icon: Truck, path: '/admin/settings' },
   ];
 
   const handleLogout = () => {

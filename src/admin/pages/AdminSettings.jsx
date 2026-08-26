@@ -158,11 +158,85 @@ export default function AdminSettings() {
           </div>
         </div>
 
+        {/* 3. Checkout Payment Methods (ON/OFF Switches) */}
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          <div className="border-b border-gray-100 pb-2">
+            <h3 className="font-serif text-lg font-bold text-[#6B1518]">
+              3. Checkout Payment Options (Enable / Disable)
+            </h3>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Control which payment options are shown to customers on the checkout page. Turn off when not required.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Toggle 1: Cash on Delivery (COD) */}
+            <div className="bg-gray-50/70 border border-gray-200/80 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-900 text-xs">Cash on Delivery (COD)</span>
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${formData.codEnabled !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
+                    {formData.codEnabled !== false ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Allow patrons to pay in cash upon doorstep delivery.
+                </p>
+              </div>
+
+              {/* iOS Style Switch */}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, codEnabled: !(formData.codEnabled !== false) })}
+                className={`w-12 h-6.5 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer shrink-0 ${
+                  formData.codEnabled !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
+                    formData.codEnabled !== false ? 'translate-x-5.5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Toggle 2: WhatsApp Direct Order */}
+            <div className="bg-gray-50/70 border border-gray-200/80 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-900 text-xs">WhatsApp Direct Order</span>
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${formData.enableWhatsappOrders !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'}`}>
+                    {formData.enableWhatsappOrders !== false ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Allow customers to place custom orders via WhatsApp chat.
+                </p>
+              </div>
+
+              {/* iOS Style Switch */}
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, enableWhatsappOrders: !(formData.enableWhatsappOrders !== false) })}
+                className={`w-12 h-6.5 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer shrink-0 ${
+                  formData.enableWhatsappOrders !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
+                    formData.enableWhatsappOrders !== false ? 'translate-x-5.5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="pt-4 flex justify-end">
           <button
             type="submit"
             disabled={saving}
-            className="bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white px-8 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition-all"
+            className="bg-[#6B1518] hover:bg-[#4B0F11] disabled:opacity-60 text-white px-8 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving...' : 'Save Store Configuration'}</span>

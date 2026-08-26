@@ -433,6 +433,7 @@ function mapOrderToDb(o) {
 
 function mapSettingsFromDb(row) {
   if (!row) return null;
+  const localWa = typeof window !== 'undefined' ? localStorage.getItem('sv_whatsapp_orders_enabled') : null;
   return {
     storeName: row.store_name || '',
     phone: row.phone || '',
@@ -445,6 +446,9 @@ function mapSettingsFromDb(row) {
     pincode: row.pincode || '',
     freeShippingThreshold: row.free_shipping_threshold !== undefined && row.free_shipping_threshold !== null ? Number(row.free_shipping_threshold) : 2000,
     deliveryCharge: row.shipping_fee !== undefined && row.shipping_fee !== null ? Number(row.shipping_fee) : 100,
+    codEnabled: row.cod_enabled !== false,
+    enableCod: row.cod_enabled !== false,
+    enableWhatsappOrders: localWa !== null ? localWa !== 'false' : true,
     gstin: row.gstin || '',
     currency: row.currency || '₹',
   };
@@ -462,6 +466,11 @@ function mapSettingsToDb(s) {
   if (s.pincode !== undefined) row.pincode = s.pincode;
   if (s.freeShippingThreshold !== undefined) row.free_shipping_threshold = Number(s.freeShippingThreshold);
   if (s.deliveryCharge !== undefined) row.shipping_fee = Number(s.deliveryCharge);
+  if (s.codEnabled !== undefined) row.cod_enabled = Boolean(s.codEnabled);
+  if (s.enableCod !== undefined) row.cod_enabled = Boolean(s.enableCod);
+  if (s.enableWhatsappOrders !== undefined && typeof window !== 'undefined') {
+    localStorage.setItem('sv_whatsapp_orders_enabled', String(s.enableWhatsappOrders));
+  }
   return row;
 }
 
@@ -958,3 +967,4 @@ export async function updateSettingsInDb(updates) {
     return { success: true, data: updates };
   }
 }
+
