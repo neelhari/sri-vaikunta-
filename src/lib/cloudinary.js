@@ -107,7 +107,13 @@ export async function uploadToCloudinary(rawFile, bucket = 'banners') {
     .toLowerCase()
     .replace(/[^a-z0-9_.-]/g, '_')
     .replace(/\.[^/.]+$/, '');
-  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+  const ext = file.type === 'image/png'
+    ? 'png'
+    : file.type === 'image/webp'
+    ? 'webp'
+    : file.type && file.type.startsWith('video/')
+    ? (file.name.split('.').pop() || 'mp4')
+    : 'jpg';
   const filename = `${cleanName}_${Date.now()}.${ext}`;
 
   // 1. Direct High-Speed Cloud Storage

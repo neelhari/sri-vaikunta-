@@ -166,16 +166,14 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     setUploadError('');
 
     try {
-      const res = await uploadToCloudinary(file);
+      const res = await uploadToCloudinary(file, 'banners');
       if (res.success && res.url) {
-        setFormData((prev) => ({ ...prev, video: res.url }));
+        setFormData((prev) => ({ ...prev, video: res.url, videoUrl: res.url }));
       } else {
-        const localUrl = await readImageAsDataUrl(file);
-        if (localUrl) setFormData((prev) => ({ ...prev, video: localUrl }));
+        setUploadError(res.message || 'Could not upload video to cloud storage.');
       }
     } catch (err) {
-      const localUrl = await readImageAsDataUrl(file);
-      if (localUrl) setFormData((prev) => ({ ...prev, video: localUrl }));
+      setUploadError('Video upload failed. Please ensure file is under 20MB.');
     }
     setUploadingVideo(false);
     e.target.value = '';
