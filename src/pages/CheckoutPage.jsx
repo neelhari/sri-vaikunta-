@@ -197,17 +197,6 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#F8FAFC] pb-24 pt-3 px-3 sm:px-4 overflow-x-hidden">
       <div className="w-full max-w-lg mx-auto space-y-4">
         <div className="flex items-center justify-between py-1">
-          <button
-            onClick={() => {
-              if (window.history.length > 1) navigate(-1);
-              else navigate('/shop');
-            }}
-            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-800 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-2xs inline-flex items-center gap-1 transition-all cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back</span>
-          </button>
-          
           <h1 className="font-sans text-base font-bold text-gray-900 tracking-tight flex items-center gap-1.5">
             <Lock className="w-4 h-4 text-[#D3923A]" />
             <span>Secure Checkout</span>
@@ -315,28 +304,6 @@ export default function CheckoutPage() {
                 <p className={`text-[11px] font-medium ${couponFeedback.type === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
                   {couponFeedback.message}
                 </p>
-              )}
-
-              {!appliedCoupon && activeCoupons.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {activeCoupons.slice(0, 3).map((c) => (
-                    <button
-                      key={c.id || c.code}
-                      type="button"
-                      onClick={() => {
-                        const res = applyCoupon(c.code);
-                        if (res.success) {
-                          setCouponFeedback({ type: 'success', message: `Code ${c.code} applied!` });
-                        } else {
-                          setCouponFeedback({ type: 'error', message: res.message });
-                        }
-                      }}
-                      className="bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-900 text-[10px] font-bold px-2 py-1 rounded-lg cursor-pointer transition-colors"
-                    >
-                      Use <strong>{c.code}</strong>
-                    </button>
-                  ))}
-                </div>
               )}
             </div>
           </div>
