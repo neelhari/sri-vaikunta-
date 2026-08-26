@@ -145,19 +145,20 @@ export default function HomePage() {
     : defaultSavingsTiles;
 
   // Curated collections for mobile/desktop showcase sections
-  const bridalPattu = products
-    .filter((p) => p.isRoyalBridal || p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu')
+  const allProducts = Array.isArray(products) ? products : [];
+  const bridalPattu = allProducts
+    .filter((p) => p && (p.isRoyalBridal || p.category === 'dharmavaram-pure-pattu' || p.category === 'banarasi-sarees' || p.category === 'pochampally-pattu'))
     .slice(0, 4);
 
-  const everydayCotton = products
-    .filter((p) => p.isCottonKalamkari || p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print')
+  const everydayCotton = allProducts
+    .filter((p) => p && (p.isCottonKalamkari || p.category === 'kalamkari-cotton' || p.category === 'cotton-sarees' || p.category === 'mangalgiri-digital-print'))
     .slice(0, 4);
 
-  const markedTrending = products.filter((p) => p.isTrending);
-  const trendingSarees = (markedTrending.length >= 4 ? markedTrending : [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0))).slice(0, 8);
+  const markedTrending = allProducts.filter((p) => p && p.isTrending);
+  const trendingSarees = (markedTrending.length >= 4 ? markedTrending : [...allProducts].sort((a, b) => ((b && b.rating) || 0) - ((a && a.rating) || 0))).slice(0, 8);
 
-  const featuredSarees = products
-    .filter((p) => p.isFeatured !== false)
+  const featuredSarees = allProducts
+    .filter((p) => p && p.isFeatured !== false)
     .slice(0, 4);
 
   const activeSlide = heroSlides.length > 0 ? heroSlides[currentSlide % heroSlides.length] : null;
