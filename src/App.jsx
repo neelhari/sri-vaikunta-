@@ -67,31 +67,17 @@ function ScrollAndAosReset() {
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
   componentDidCatch(error, info) {
-    console.error('App ErrorBoundary caught an error:', error, info);
+    console.warn('Recovered component error:', error, info);
   }
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#FAF5EE]">
-          <h2 className="text-xl font-bold font-serif text-[#68081C] mb-2">Sri Vaikunta Premium Sarees</h2>
-          <p className="text-sm text-gray-600 mb-4">Something encountered a hiccup. Click below to refresh.</p>
-          <button
-            onClick={() => {
-              this.setState({ hasError: false });
-              window.location.reload();
-            }}
-            className="px-5 py-2.5 bg-[#68081C] text-white font-bold rounded-xl shadow-md text-xs cursor-pointer"
-          >
-            Reload Store
-          </button>
-        </div>
-      );
+      return this.props.fallback || null;
     }
     return this.props.children;
   }
@@ -111,81 +97,85 @@ function AppContent() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white">
-        <ScrollAndAosReset />
+    <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white">
+      <ScrollAndAosReset />
 
       {/* Toast Feedback */}
       <Toast />
 
       {/* Show Navbar & Footer only for Storefront routes */}
-      {!isAdminRoute && <Navbar />}
+      {!isAdminRoute && (
+        <ErrorBoundary>
+          <Navbar />
+        </ErrorBoundary>
+      )}
 
       {/* Main Dynamic View */}
       <main className={`flex-1 ${!isAdminRoute && location.pathname !== '/' ? 'pt-16 sm:pt-20' : ''}`}>
-        <Routes>
-          {/* Storefront Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/shop" element={<ProductsPage />} />
-          <Route path="/product/:id" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/order-success" element={<OrderSuccessPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/register" element={<SignupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/faqs" element={<FaqPage />} />
-          <Route path="/privacy-policy" element={<PolicyPage />} />
-          <Route path="/return-policy" element={<PolicyPage />} />
-          <Route path="/shipping-policy" element={<PolicyPage />} />
-          <Route path="/terms" element={<PolicyPage />} />
-          <Route path="/our-story" element={<OurStoryPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/account" element={<AccountPage />} />
+        <ErrorBoundary>
+          <Routes>
+            {/* Storefront Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/shop" element={<ProductsPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/register" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/faqs" element={<FaqPage />} />
+            <Route path="/privacy-policy" element={<PolicyPage />} />
+            <Route path="/return-policy" element={<PolicyPage />} />
+            <Route path="/shipping-policy" element={<PolicyPage />} />
+            <Route path="/terms" element={<PolicyPage />} />
+            <Route path="/our-story" element={<OurStoryPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/account" element={<AccountPage />} />
 
-          {/* Admin Panel CMS Shell Routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedAdminRoute>
-                <AdminLayout />
-              </ProtectedAdminRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="categories" element={<AdminCategories />} />
-            <Route path="inventory" element={<AdminInventory />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="customers" element={<AdminCustomers />} />
-            <Route path="coupons" element={<AdminCoupons />} />
-            <Route path="banners" element={<AdminBanners />} />
-            <Route path="messages" element={<AdminMessages />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="*" element={<AdminDashboard />} />
-          </Route>
+            {/* Admin Panel CMS Shell Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout />
+                </ProtectedAdminRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="inventory" element={<AdminInventory />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="coupons" element={<AdminCoupons />} />
+              <Route path="banners" element={<AdminBanners />} />
+              <Route path="messages" element={<AdminMessages />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="*" element={<AdminDashboard />} />
+            </Route>
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
 
       {/* Global Interactive Modals & Drawers for Storefront */}
       {!isAdminRoute && (
         <>
-          <CartDrawer />
-          <WishlistDrawer />
-          <SearchModal />
-          <Footer />
-          <MobileBottomNav />
+          <ErrorBoundary><CartDrawer /></ErrorBoundary>
+          <ErrorBoundary><WishlistDrawer /></ErrorBoundary>
+          <ErrorBoundary><SearchModal /></ErrorBoundary>
+          <ErrorBoundary><Footer /></ErrorBoundary>
+          <ErrorBoundary><MobileBottomNav /></ErrorBoundary>
         </>
       )}
     </div>
-    </ErrorBoundary>
   );
 }
 
