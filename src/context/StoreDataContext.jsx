@@ -178,7 +178,7 @@ export function StoreDataProvider({ children }) {
             categoryHero: pr.data.categoryHero || prev.categoryHero,
           }));
         }
-        if (cp.success && cp.data && cp.data.length > 0) setCoupons(cp.data);
+        if (cp.success && Array.isArray(cp.data)) setCoupons(cp.data);
         if (s.success && s.data && s.data.storeName) setSettings(s.data);
       } catch (err) {
         console.warn('Store data fetch fallback:', err);

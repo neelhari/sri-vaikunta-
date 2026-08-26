@@ -767,14 +767,15 @@ export async function updateCouponInDb(id, updates) {
   if (!supabase) return { success: true, data: { id, ...updates } };
   try {
     const row = mapCouponToDb({ ...updates, id });
-    const { data, error } = await supabase.from('coupons').upsert([row]).select().maybeSingle();
+    delete row.id;
+    const { data, error } = await supabase.from('coupons').update(row).eq('id', id).select().maybeSingle();
     if (error) {
       console.warn('Coupon update warning:', error.message);
-      return { success: true, data: { id, ...updates } };
+      return { success: false, message: error.message, data: { id, ...updates } };
     }
-    return { success: true, data: { id, ...updates, ...(data ? mapCouponFromDb(data) : {}) } };
+    return { success: true, data: mapCouponFromDb(data) };
   } catch (err) {
-    return { success: true, data: { id, ...updates } };
+    return { success: false, message: err.message, data: { id, ...updates } };
   }
 }
 
@@ -967,4 +968,5 @@ export async function updateSettingsInDb(updates) {
     return { success: true, data: updates };
   }
 }
+
 
