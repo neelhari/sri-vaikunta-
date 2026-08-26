@@ -64,8 +64,47 @@ function ScrollAndAosReset() {
   return null;
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error('App ErrorBoundary caught an error:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#FAF5EE]">
+          <h2 className="text-xl font-bold font-serif text-[#68081C] mb-2">Sri Vaikunta Premium Sarees</h2>
+          <p className="text-sm text-gray-600 mb-4">Something encountered a hiccup. Click below to refresh.</p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false });
+              window.location.reload();
+            }}
+            className="px-5 py-2.5 bg-[#68081C] text-white font-bold rounded-xl shadow-md text-xs cursor-pointer"
+          >
+            Reload Store
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function AppContent() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      return !sessionStorage.getItem('sv_splash_shown');
+    } catch {
+      return false;
+    }
+  });
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -78,10 +117,18 @@ function AppContent() {
     });
   }, []);
 
+  const handleSplashDone = () => {
+    setShowSplash(false);
+    try {
+      sessionStorage.setItem('sv_splash_shown', 'true');
+    } catch {}
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white">
-      {/* Splash Screen Animation */}
-      {showSplash && !isAdminRoute && <SplashScreen onComplete={() => setShowSplash(false)} />}
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white">
+        {/* Splash Screen Animation (shown only on first landing) */}
+        {showSplash && !isAdminRoute && <SplashScreen onComplete={handleSplashDone} />}
 
       <ScrollAndAosReset />
 
@@ -155,6 +202,7 @@ function AppContent() {
         </>
       )}
     </div>
+    </ErrorBoundary>
   );
 }
 
