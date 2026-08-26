@@ -459,7 +459,7 @@ export async function deleteProductFromDb(id) {
 export async function fetchCategories() {
   if (!supabase) return { success: false, data: [], message: 'Supabase not configured' };
   try {
-    const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
+    const { data, error } = await supabase.from('categories').select('*');
     if (error) return { success: false, data: [], message: error.message };
     return { success: true, data: data.map(mapCategoryFromDb) };
   } catch (err) {
