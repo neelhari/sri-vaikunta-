@@ -355,15 +355,25 @@ export default function AdminBanners() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {safeBanners.map((b) => (
-                  <tr key={b.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="p-4 sm:p-5">
-                      <div className="relative w-32 sm:w-36 h-40 sm:h-44 rounded-2xl overflow-hidden bg-gray-900 border-2 border-[#D4AF37]/30 shadow-md group">
-                        <img
-                          src={b.image}
-                          alt={b.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                {safeBanners.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-12 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="w-8 h-8 border-3 border-[#68081C] border-t-transparent rounded-full animate-spin" />
+                        <p className="text-xs font-bold text-gray-500">Syncing hero slides with cloud database...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  safeBanners.map((b) => (
+                    <tr key={b.id} className="hover:bg-gray-50/80 transition-colors">
+                      <td className="p-4 sm:p-5">
+                        <div className="relative w-32 sm:w-36 h-40 sm:h-44 rounded-2xl overflow-hidden bg-gray-900 border-2 border-[#D4AF37]/30 shadow-md group">
+                          <img
+                            src={b.image}
+                            alt={b.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                         <span className="absolute bottom-2 left-2 bg-[#D4AF37] text-[#4A0513] text-[9px] font-black uppercase px-2 py-0.5 rounded shadow">
                           ★ Live Hero Slide
