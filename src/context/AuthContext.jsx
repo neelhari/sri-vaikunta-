@@ -182,12 +182,64 @@ export function AuthProvider({ children }) {
     return { success: true, user: found };
   };
 
-  // 3. Send Password Reset Email
+  // 3. Send Password Reset Email (Registered accounts only)
   const sendPasswordResetEmail = async (email) => {
     const cleanEmail = email.trim().toLowerCase();
 
     if (!cleanEmail || !cleanEmail.includes('@')) {
       return { success: false, error: 'Please provide a valid email address.' };
+    }
+
+    // Verify account existence in Supabase profiles, orders or local registered accounts
+    let accountFound = false;
+    try {
+      if (supabase) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .ilike('email', cleanEmail)
+          .maybeSingle();
+        if (profile) accountFound = true;
+
+        if (!accountFound) {
+          const { data: order } = await supabase
+            .from('orders')
+            .select('id')
+            .ilike('customer_email', cleanEmail)
+            .limit(1);
+          if (order && order.length > 0) accountFound = true;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!accountFound) {
+      try {
+        const registered = JSON.parse(localStorage.getItem('srivaikunta_registered_users') || '[]');
+        if (registered.some((u) => u.email?.toLowerCase() === cleanEmail)) {
+          accountFound = true;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // Special allowance for admin email
+    if (
+      cleanEmail === 'admin@srivaikuntasarees.com' ||
+      cleanEmail === 'admin@srivaikunta.com' ||
+      cleanEmail.includes('admin') ||
+      cleanEmail.includes('aishushiva')
+    ) {
+      accountFound = true;
+    }
+
+    if (!accountFound) {
+      return {
+        success: false,
+        error: 'No registered account found with this email address. Please check the spelling or sign up for a new account.',
+      };
     }
 
     try {
