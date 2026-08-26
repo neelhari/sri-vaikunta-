@@ -63,6 +63,12 @@ export default function AdminBanners() {
     active: true,
   });
 
+  const [toast, setToast] = useState(null);
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3500);
+  };
+
   const safeBanners = Array.isArray(banners) ? banners : [];
 
   const readImageAsDataUrl = (file) => {
@@ -80,9 +86,15 @@ export default function AdminBanners() {
     let url = null;
     try {
       const res = await uploadToCloudinary(file);
-      if (res.success && res.url) url = res.url;
+      if (res.success && res.url) {
+        url = res.url;
+        showToast('✓ Photo uploaded to Cloudinary successfully!');
+      }
     } catch (err) {}
-    if (!url) url = await readImageAsDataUrl(file);
+    if (!url) {
+      url = await readImageAsDataUrl(file);
+      if (url) showToast('✓ Photo attached from device!');
+    }
     if (url) setter(url);
     setUploading(false);
   };
@@ -140,6 +152,7 @@ export default function AdminBanners() {
       window.alert(`Could not save banner: ${result.message || 'Unknown error'}`);
       return;
     }
+    showToast('✓ Hero slide saved & synced to live homepage!');
     setIsModalOpen(false);
   };
 
@@ -148,6 +161,8 @@ export default function AdminBanners() {
     const result = await deleteBanner(id);
     if (!result.success) {
       window.alert(`Could not delete banner: ${result.message || 'Unknown error'}`);
+    } else {
+      showToast('✓ Hero slide removed from homepage!');
     }
   };
 
@@ -155,6 +170,7 @@ export default function AdminBanners() {
   const handleSaveMarquee = (e) => {
     e.preventDefault();
     updatePromotions({ marqueeText, marqueeActive });
+    showToast('✓ Announcement ticker saved & synced!');
     setMarqueeSaved(true);
     setTimeout(() => setMarqueeSaved(false), 3000);
   };
@@ -163,6 +179,7 @@ export default function AdminBanners() {
   const handleSaveSavingsCards = (e) => {
     e.preventDefault();
     updatePromotions({ savingsCards });
+    showToast('✓ All 4 Promo Tiles saved & synced to cloud!');
     setSavingsSaved(true);
     setTimeout(() => setSavingsSaved(false), 3000);
   };
@@ -204,6 +221,7 @@ export default function AdminBanners() {
       categoryBanners: updatedList,
       categoryHero: updatedList[0] || null,
     });
+    showToast('✓ Category banner saved & synced to live storefront!');
     setIsCatModalOpen(false);
   };
 
@@ -214,6 +232,7 @@ export default function AdminBanners() {
       categoryBanners: updatedList,
       categoryHero: updatedList[0] || null,
     });
+    showToast(`✓ Banner ${!ban.active ? 'Activated' : 'Disabled'}!`);
   };
 
   const handleDeleteCatBanner = async (id) => {
@@ -224,10 +243,19 @@ export default function AdminBanners() {
       categoryBanners: updatedList,
       categoryHero: updatedList[0] || null,
     });
+    showToast('✓ Category banner deleted!');
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Floating Success Toast */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2.5 bg-[#1B4332] text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-emerald-400/40 text-xs font-bold transition-all">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span>{toast}</span>
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-gray-100 shadow-2xs">
         <div>

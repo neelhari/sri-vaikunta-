@@ -37,8 +37,22 @@ export default function CategoriesPage() {
     ? promotions.categoryBanners.filter((b) => b.active !== false)
     : [];
 
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  // Auto-advance banner every 3.5s across all active banners
+  useEffect(() => {
+    if (allCatBanners.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % allCatBanners.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [allCatBanners.length]);
+
+  // If a specific category is clicked, lock to that category's banner if matched; otherwise rotate through all active banners!
+  const matchedCategoryBanner = allCatBanners.find((b) => b.category === selectedCatId && b.category !== 'all');
   const matchedBanner =
-    allCatBanners.find((b) => b.category === selectedCatId) ||
+    matchedCategoryBanner ||
+    allCatBanners[currentSlideIndex % (allCatBanners.length || 1)] ||
     allCatBanners.find((b) => b.category === 'all') ||
     allCatBanners[0] ||
     promotions?.categoryHero || {
@@ -78,13 +92,13 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-[#FFFDF9] min-h-screen font-sans pb-16">
-      {/* 1. LUXURY MOBILE-FIRST BRIDAL HERO BANNER */}
-      <div className="relative w-full h-44 sm:h-60 md:h-72 overflow-hidden bg-[#250208] text-white shadow-md">
+      {/* 1. LUXURY MOBILE-FIRST BRIDAL HERO BANNER (AUTO-ADVANCING 3.5s SLIDESHOW) */}
+      <div className="relative w-full h-44 sm:h-60 md:h-72 overflow-hidden bg-[#250208] text-white shadow-md group">
         <img
-          key={matchedBanner.image}
+          key={matchedBanner.image || matchedBanner.id}
           src={matchedBanner.image || '/slider/hero_saree_model.png'}
           alt={matchedBanner.title || 'Sri Vaikunta Bridal Saree Collections'}
-          className="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-700 animate-fadeIn"
+          className="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-1000 ease-in-out animate-fadeIn"
         />
 
         {/* Ambient Dark Gradient Vignette for Text Contrast */}
@@ -116,11 +130,12 @@ export default function CategoriesPage() {
         {allCatBanners.length > 1 && (
           <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
             {allCatBanners.map((b, idx) => {
-              const isCurrent = (b.category === selectedCatId) || (b.category === 'all' && matchedBanner.id === b.id);
+              const isCurrent = matchedBanner.id === b.id || currentSlideIndex === idx;
               return (
                 <button
                   key={b.id || idx}
                   onClick={() => {
+                    setCurrentSlideIndex(idx);
                     if (b.category && b.category !== 'all') {
                       handleCategorySelect(b.category);
                     }
