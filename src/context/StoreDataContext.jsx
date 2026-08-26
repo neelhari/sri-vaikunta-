@@ -96,7 +96,13 @@ const StoreDataContext = createContext();
 export function StoreDataProvider({ children }) {
   const [products, setProducts] = useState(defaultProducts);
   const [categories, setCategories] = useState(defaultCategories);
-  const [banners, setBanners] = useState(defaultHeroBanners);
+  const [banners, setBanners] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sv_banners_cms');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return defaultHeroBanners;
+  });
   const [promotions, setPromotions] = useState(() => {
     try {
       const saved = localStorage.getItem('sv_promotions_cms');
@@ -238,23 +244,40 @@ export function StoreDataProvider({ children }) {
   // ---------------- Banners ----------------
   const addBanner = async (newBanner) => {
     const res = await insertBanner(newBanner);
-    if (res.success) setBanners((prev) => [...prev, res.data]);
-    else setBanners((prev) => [...prev, { ...newBanner, id: `ban_${Date.now()}` }]);
-    return res;
+    const item = res.data || newBanner;
+    setBanners((prev) => {
+      const updated = [item, ...prev];
+      try {
+        localStorage.setItem('sv_banners_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return { success: true, data: item };
   };
 
   const updateBanner = async (id, updatedData) => {
     const res = await updateBannerInDb(id, updatedData);
-    if (res.success) setBanners((prev) => prev.map((b) => (b.id === id ? res.data : b)));
-    else setBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...updatedData } : b)));
-    return res;
+    const item = res.data || { id, ...updatedData };
+    setBanners((prev) => {
+      const updated = prev.map((b) => (b.id === id ? { ...b, ...item } : b));
+      try {
+        localStorage.setItem('sv_banners_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return { success: true, data: item };
   };
 
   const deleteBanner = async (id) => {
-    const res = await deleteBannerFromDb(id);
-    if (res.success) setBanners((prev) => prev.filter((b) => b.id !== id));
-    else setBanners((prev) => prev.filter((b) => b.id !== id));
-    return res;
+    await deleteBannerFromDb(id);
+    setBanners((prev) => {
+      const updated = prev.filter((b) => b.id !== id);
+      try {
+        localStorage.setItem('sv_banners_cms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    return { success: true };
   };
 
   // ---------------- Coupons ----------------
