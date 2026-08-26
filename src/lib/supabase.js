@@ -238,6 +238,9 @@ function mapBannerFromDb(row) {
   return {
     id: row.id,
     title: row.title,
+    badge: row.badge || '',
+    offer: row.offer || '',
+    subtitle: row.subtitle || '',
     image: row.image,
     link: row.link || '/shop',
     active: row.active !== false,
@@ -253,6 +256,9 @@ function mapBannerToDb(b) {
     row.id = `sv-ban-${Date.now()}`;
   }
   if (b.title !== undefined) row.title = b.title;
+  if (b.badge !== undefined) row.badge = b.badge;
+  if (b.offer !== undefined) row.offer = b.offer;
+  if (b.subtitle !== undefined) row.subtitle = b.subtitle;
   if (b.image !== undefined) row.image = b.image;
   if (b.link !== undefined) row.link = b.link;
   if (b.active !== undefined) row.active = b.active !== false;

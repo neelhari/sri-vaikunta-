@@ -158,7 +158,7 @@ export default function HomePage() {
         >
           {heroSlides.map((slide, index) => (
             <img
-              key={index}
+              key={slide.image || slide.id || index}
               src={slide.image}
               alt={`Sri Vaikunta Festive Saree Slide ${index + 1}`}
               className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-1000 ${
