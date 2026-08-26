@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, ShieldCheck, Truck, Tag, Heart, Award, CheckCircle2, ShoppingBag, Star, TrendingUp, ChevronRight, Phone, MessageCircle, Flame } from 'lucide-react';
-import { useStoreData, defaultHeroBanners } from '../context/StoreDataContext';
+import { useStoreData } from '../context/StoreDataContext';
 import ProductCard from '../components/ProductCard';
 import { BRAND, waLink } from '../config/brand';
 
@@ -60,8 +60,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { products, categories, banners = [], promotions = {} } = useStoreData();
 
-  const activeDbBanners = Array.isArray(banners) ? banners.filter((b) => b.active !== false) : [];
-  const heroSlides = activeDbBanners.length > 0 ? activeDbBanners : defaultHeroBanners;
+  const heroSlides = Array.isArray(banners) ? banners.filter((b) => b && b.active !== false) : [];
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });

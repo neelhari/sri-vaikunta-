@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, MessageCircle, Heart, ArrowUp, MapPin } from 'lucide-react';
 import { InstagramIcon, FacebookIcon } from './BrandIcons';
 import { BRAND, waLink } from '../config/brand';
-import { useStoreData } from '../context/StoreDataContext';
 
 const quickLinks = [
   { label: 'Home', path: '/' },
@@ -27,33 +26,6 @@ const policyLinks = [
 
 export default function Footer() {
   const navigate = useNavigate();
-  let settings = {};
-  try {
-    const storeData = useStoreData();
-    if (storeData && storeData.settings) {
-      settings = storeData.settings;
-    }
-  } catch (err) {
-    console.warn('Footer store data fallback:', err);
-  }
-
-  const storePhone = settings?.phone || BRAND.phone;
-  const storeEmail = settings?.supportEmail || BRAND.email;
-  let storeAddress = BRAND.address.full;
-  if (settings?.address) {
-    storeAddress = settings.address;
-    if (settings.city && !storeAddress.includes(settings.city)) {
-      storeAddress += `, ${settings.city}`;
-    }
-    if (settings.pincode && !storeAddress.includes(settings.pincode)) {
-      storeAddress += ` - ${settings.pincode}`;
-    }
-  }
-  const storeName = settings?.storeName || BRAND.fullName;
-  const cleanWhatsappDigits = settings?.whatsapp ? String(settings.whatsapp).replace(/[^0-9]/g, '') : BRAND.whatsappNumber;
-  const whatsappUrl = cleanWhatsappDigits
-    ? `https://wa.me/${cleanWhatsappDigits}?text=${encodeURIComponent(`Hello ${storeName}, I have an inquiry.`)}`
-    : waLink(`Hello ${storeName}, I have an inquiry.`);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -75,11 +47,11 @@ export default function Footer() {
               className="flex items-center gap-3 cursor-pointer group"
             >
               <div className="h-12 w-12 rounded-full bg-[#FAF5EE] ring-2 ring-[#D4AF37]/60 shadow-md flex items-center justify-center shrink-0 overflow-hidden group-hover:scale-105 transition-transform p-1">
-                <img src="/logo-icon.png" alt={storeName} className="h-full w-full object-contain" />
+                <img src="/logo-icon.png" alt={BRAND.fullName} className="h-full w-full object-contain" />
               </div>
               <div>
                 <span className="font-serif text-lg font-bold text-[#F3E5AB] tracking-wide block">
-                  {storeName}
+                  {BRAND.fullName}
                 </span>
                 <span className="text-[10px] tracking-widest text-[#D4AF37] uppercase block font-semibold">
                   {BRAND.tagline}
@@ -109,7 +81,7 @@ export default function Footer() {
                 <FacebookIcon className="w-4 h-4" />
               </a>
               <a
-                href={whatsappUrl}
+                href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-full bg-[#4A0513] hover:bg-[#25D366] hover:text-white text-gray-200 flex items-center justify-center transition-all duration-300 shadow-xs"
@@ -174,24 +146,24 @@ export default function Footer() {
             <div className="space-y-3 text-xs sm:text-sm text-gray-300">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{storeAddress}</span>
+                <span className="leading-relaxed">{BRAND.address.full}</span>
               </div>
               <p className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                <a href={`tel:${storePhone}`} className="hover:text-white transition-colors">
-                  {storePhone}
+                <a href={`tel:${BRAND.phone}`} className="hover:text-white transition-colors">
+                  {BRAND.phone}
                 </a>
               </p>
               <p className="flex items-start gap-2.5">
                 <MessageCircle className="w-4 h-4 text-[#25D366] shrink-0 mt-0.5" />
-                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+                <a href={waLink(`Hello ${BRAND.fullName}, I have an inquiry.`)} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
                   WhatsApp Support
                 </a>
               </p>
               <p className="flex items-start gap-2.5">
                 <Mail className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                <a href={`mailto:${storeEmail}`} className="hover:text-white transition-colors break-all">
-                  {storeEmail}
+                <a href={`mailto:${BRAND.email}`} className="hover:text-white transition-colors break-all">
+                  {BRAND.email}
                 </a>
               </p>
             </div>
@@ -200,7 +172,7 @@ export default function Footer() {
 
         {/* Bottom copyright & scroll to top */}
         <div className="pt-6 border-t border-[#4A0513] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
-          <p>© 2026 {storeName}. All Rights Reserved.</p>
+          <p>© 2026 {BRAND.fullName}. All Rights Reserved.</p>
           <div className="flex items-center gap-1 text-gray-400">
             <span>Crafted with</span>
             <Heart className="w-3.5 h-3.5 text-[#D4AF37] fill-[#D4AF37]" />

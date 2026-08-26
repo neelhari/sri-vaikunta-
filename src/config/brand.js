@@ -8,10 +8,10 @@ export const BRAND = {
   subTagline: "Authentic Handloom & Heritage Pattu Sarees",
   motto: "Wear the legacy of timeless Indian craftsmanship.",
 
-  phone: "+91 99899 99999",
+  phone: "+91 86394 68911",
   // wa.me requires country code, no + or spaces
-  whatsappNumber: "919989999999",
-  email: "srivaikuntasarees@gmail.com",
+  whatsappNumber: "918639468911",
+  email: "srivaikunta07@gmail.com",
 
   address: {
     line1: "25-32/10/4/1, Mallikarjuna Nagar",

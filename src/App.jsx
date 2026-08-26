@@ -165,14 +165,16 @@ function AppContent() {
         </ErrorBoundary>
       </main>
 
+      {/* Show Footer for Storefront */}
+      {!isAdminRoute && <Footer />}
+
       {/* Global Interactive Modals & Drawers for Storefront */}
       {!isAdminRoute && (
         <>
-          <ErrorBoundary><CartDrawer /></ErrorBoundary>
-          <ErrorBoundary><WishlistDrawer /></ErrorBoundary>
-          <ErrorBoundary><SearchModal /></ErrorBoundary>
-          <ErrorBoundary><Footer /></ErrorBoundary>
-          <ErrorBoundary><MobileBottomNav /></ErrorBoundary>
+          <CartDrawer />
+          <WishlistDrawer />
+          <SearchModal />
+          <MobileBottomNav />
         </>
       )}
     </div>
