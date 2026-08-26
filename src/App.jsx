@@ -98,13 +98,6 @@ class ErrorBoundary extends React.Component {
 }
 
 function AppContent() {
-  const [showSplash, setShowSplash] = useState(() => {
-    try {
-      return !sessionStorage.getItem('sv_splash_shown');
-    } catch {
-      return false;
-    }
-  });
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -117,20 +110,10 @@ function AppContent() {
     });
   }, []);
 
-  const handleSplashDone = () => {
-    setShowSplash(false);
-    try {
-      sessionStorage.setItem('sv_splash_shown', 'true');
-    } catch {}
-  };
-
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-[#6B1518] selection:text-white">
-        {/* Splash Screen Animation (shown only on first landing) */}
-        {showSplash && !isAdminRoute && <SplashScreen onComplete={handleSplashDone} />}
-
-      <ScrollAndAosReset />
+        <ScrollAndAosReset />
 
       {/* Toast Feedback */}
       <Toast />
