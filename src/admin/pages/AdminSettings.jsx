@@ -138,11 +138,12 @@ export default function AdminSettings() {
             </div>
 
             <div>
-              <label className="block font-bold text-gray-800 mb-1">Currency Symbol</label>
+              <label className="block font-bold text-gray-800 mb-1">Standard Delivery Charge (₹)</label>
               <input
-                type="text"
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                type="number"
+                value={formData.deliveryCharge !== undefined ? formData.deliveryCharge : 100}
+                onChange={(e) => setFormData({ ...formData, deliveryCharge: Number(e.target.value) })}
+                placeholder="e.g. 100"
                 className="w-full p-3 rounded-xl border border-gray-200 focus:border-[#6B1518] font-bold"
               />
             </div>

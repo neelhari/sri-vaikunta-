@@ -4,7 +4,7 @@ import { useStoreData } from './StoreDataContext';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const { coupons } = useStoreData();
+  const { coupons = [], settings = {} } = useStoreData();
 
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -95,9 +95,17 @@ export const CartProvider = ({ children }) => {
 
   const totalItemsCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const freeShippingThreshold = 2000;
+  
+  const freeShippingThreshold = Number(settings?.freeShippingThreshold) > 0
+    ? Number(settings.freeShippingThreshold)
+    : 1999;
+  const standardDeliveryCharge = settings?.deliveryCharge !== undefined && settings?.deliveryCharge !== null
+    ? Number(settings.deliveryCharge)
+    : 99;
+
   const isFreeShipping = subtotal >= freeShippingThreshold;
   const amountNeededForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const deliveryCharge = isFreeShipping ? 0 : standardDeliveryCharge;
 
   // Coupons come from the admin-managed list (Supabase-backed via StoreDataContext)
   // instead of hardcoded strings, so codes created in /admin/coupons actually work at checkout.
@@ -145,6 +153,8 @@ export const CartProvider = ({ children }) => {
       freeShippingThreshold,
       isFreeShipping,
       amountNeededForFreeShipping,
+      deliveryCharge,
+      standardDeliveryCharge,
       toastMessage,
       showToast,
       appliedCoupon: appliedCoupon && couponMinOrderMet ? appliedCoupon : null,

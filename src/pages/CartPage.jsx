@@ -15,6 +15,8 @@ export default function CartPage() {
     subtotal,
     isFreeShipping,
     amountNeededForFreeShipping,
+    freeShippingThreshold = 2000,
+    deliveryCharge = 99,
     clearCart,
     appliedCoupon,
     discountAmount,
@@ -36,7 +38,6 @@ export default function CartPage() {
     }
   };
 
-  const deliveryCharge = isFreeShipping ? 0 : 99;
   const finalTotal = subtotal - discountAmount + deliveryCharge;
 
   const handleWhatsAppCheckout = () => {
@@ -123,12 +124,12 @@ export default function CartPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between font-medium">
                     <span>Add <strong className="font-bold">₹{amountNeededForFreeShipping.toLocaleString('en-IN')}</strong> more for FREE Shipping</span>
-                    <span>₹{subtotal.toLocaleString('en-IN')} / ₹{BRAND.freeShippingThreshold.toLocaleString('en-IN')}</span>
+                    <span>₹{subtotal.toLocaleString('en-IN')} / ₹{freeShippingThreshold.toLocaleString('en-IN')}</span>
                   </div>
                   <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
                     <div
                       className="bg-[#6B1518] h-full rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, (subtotal / BRAND.freeShippingThreshold) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (subtotal / freeShippingThreshold) * 100)}%` }}
                     />
                   </div>
                 </div>
@@ -146,59 +147,51 @@ export default function CartPage() {
                     onClick={() => navigate(`/product/${item.id}`)}
                   />
 
-                  <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-2">
                       <div>
-                        <span className="text-[10px] font-bold text-[#D3923A] uppercase tracking-wider block">
-                          {item.subcategory || item.category}
-                        </span>
-                        <h3
+                        <h4
                           onClick={() => navigate(`/product/${item.id}`)}
-                          className="font-serif font-bold text-sm sm:text-base text-gray-900 hover:text-[#6B1518] cursor-pointer line-clamp-2"
+                          className="font-serif font-bold text-sm sm:text-base text-gray-900 line-clamp-1 hover:text-[#6B1518] cursor-pointer"
                         >
                           {item.name}
-                        </h3>
-                        {item.selectedSize && (
-                          <span className="inline-block text-[11px] text-gray-500 font-medium mt-0.5">
-                            Size: <strong>{item.selectedSize}</strong>
-                          </span>
-                        )}
+                        </h4>
+                        <span className="text-[11px] text-[#D3923A] font-bold uppercase tracking-wider block mt-0.5">
+                          {item.fabric || item.category}
+                        </span>
+                        <span className="text-xs text-gray-500 block mt-0.5 font-medium">
+                          {item.selectedSize}
+                        </span>
                       </div>
-
                       <button
                         onClick={() => removeFromCart(item.itemKey)}
-                        className="text-gray-400 hover:text-red-500 p-1.5 transition-colors"
+                        className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
                         title="Remove item"
                       >
-                        <Trash2 className="w-4.5 h-4.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
-                      {/* Quantity Controller */}
+                    <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden">
                         <button
                           onClick={() => updateQuantity(item.itemKey, item.quantity - 1)}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-200 text-xs font-bold"
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-200 text-xs font-bold transition-colors"
                         >
                           -
                         </button>
                         <span className="px-3 text-xs font-bold text-gray-800">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.itemKey, item.quantity + 1)}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-200 text-xs font-bold"
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-200 text-xs font-bold transition-colors"
                         >
                           +
                         </button>
                       </div>
 
-                      {/* Price */}
-                      <div className="text-right">
-                        <span className="text-xs text-gray-400 block sm:hidden">Total:</span>
-                        <span className="font-extrabold text-sm sm:text-base text-[#6B1518]">
-                          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                        </span>
-                      </div>
+                      <span className="text-sm sm:text-base font-extrabold text-[#6B1518]">
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -284,7 +277,7 @@ export default function CartPage() {
                 <div className="flex justify-between">
                   <span>Shipping & Delivery:</span>
                   <span className="font-semibold text-gray-900">
-                    {isFreeShipping ? <strong className="text-emerald-600 font-bold">FREE</strong> : '₹99'}
+                    {isFreeShipping ? <strong className="text-emerald-600 font-bold">FREE</strong> : `₹${deliveryCharge}`}
                   </span>
                 </div>
 

@@ -110,16 +110,23 @@ export function StoreDataProvider({ children }) {
   ]);
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [settings, setSettings] = useState({
-    storeName: BRAND.fullName,
-    phone: BRAND.phone,
-    email: BRAND.email,
-    whatsapp: BRAND.whatsappNumber,
-    ownerName: 'Sri Vaikunta Sarees',
-    address: BRAND.address.full,
-    freeShippingThreshold: BRAND.freeShippingThreshold,
-    gstin: '',
-    currency: '₹',
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sv_settings_cms');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      storeName: BRAND.fullName,
+      phone: BRAND.phone,
+      email: BRAND.email,
+      whatsapp: BRAND.whatsappNumber,
+      ownerName: 'Sri Vaikunta Sarees',
+      address: BRAND.address.full,
+      freeShippingThreshold: 1999,
+      deliveryCharge: 99,
+      gstin: '',
+      currency: '₹',
+    };
   });
   const [loading, setLoading] = useState(false);
 
@@ -364,8 +371,11 @@ export function StoreDataProvider({ children }) {
   // ---------------- Settings ----------------
   const updateSettings = async (newSettings) => {
     const res = await updateSettingsInDb(newSettings);
-    if (res.success && res.data) setSettings(res.data);
-    else setSettings((prev) => ({ ...prev, ...newSettings }));
+    const updated = res.success && res.data ? res.data : { ...settings, ...newSettings };
+    setSettings(updated);
+    try {
+      localStorage.setItem('sv_settings_cms', JSON.stringify(updated));
+    } catch (e) {}
     return res;
   };
 

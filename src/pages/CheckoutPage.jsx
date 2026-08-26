@@ -11,7 +11,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addOrder } = useStoreData();
-  const { cartItems, subtotal, isFreeShipping, clearCart, appliedCoupon, discountAmount } = useCart();
+  const { cartItems, subtotal, isFreeShipping, clearCart, appliedCoupon, discountAmount, deliveryCharge = 99 } = useCart();
 
   const defaultAddr = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
 
@@ -48,8 +48,8 @@ export default function CheckoutPage() {
     );
   }
 
-  const deliveryCharge = isFreeShipping ? 0 : 99;
-  const totalAmount = subtotal - discountAmount + deliveryCharge;
+  const finalDeliveryCharge = isFreeShipping ? 0 : deliveryCharge;
+  const totalAmount = subtotal - discountAmount + finalDeliveryCharge;
 
   const validate = () => {
     const errs = {};
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
               )}
               <div className="flex justify-between">
                 <span>Shipping Charge:</span>
-                <span>{isFreeShipping ? <strong className="text-emerald-600">FREE</strong> : '₹99'}</span>
+                <span>{isFreeShipping ? <strong className="text-emerald-600">FREE</strong> : `₹${finalDeliveryCharge}`}</span>
               </div>
               <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t border-gray-200">
                 <span>Total Amount:</span>

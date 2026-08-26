@@ -360,11 +360,15 @@ function mapSettingsFromDb(row) {
   return {
     storeName: row.store_name || '',
     phone: row.phone || '',
-    email: row.email || '',
+    email: row.support_email || row.email || '',
     whatsapp: row.whatsapp || '',
     ownerName: row.owner_name || '',
     address: row.address || '',
-    freeShippingThreshold: Number(row.free_shipping_threshold) || 0,
+    city: row.city || '',
+    state: row.state || '',
+    pincode: row.pincode || '',
+    freeShippingThreshold: row.free_shipping_threshold !== undefined && row.free_shipping_threshold !== null ? Number(row.free_shipping_threshold) : 2000,
+    deliveryCharge: row.shipping_fee !== undefined && row.shipping_fee !== null ? Number(row.shipping_fee) : 100,
     gstin: row.gstin || '',
     currency: row.currency || '₹',
   };
@@ -374,13 +378,14 @@ function mapSettingsToDb(s) {
   const row = {};
   if (s.storeName !== undefined) row.store_name = s.storeName;
   if (s.phone !== undefined) row.phone = s.phone;
-  if (s.email !== undefined) row.email = s.email;
+  if (s.email !== undefined) row.support_email = s.email;
   if (s.whatsapp !== undefined) row.whatsapp = s.whatsapp;
-  if (s.ownerName !== undefined) row.owner_name = s.ownerName;
   if (s.address !== undefined) row.address = s.address;
-  if (s.freeShippingThreshold !== undefined) row.free_shipping_threshold = s.freeShippingThreshold;
-  if (s.gstin !== undefined) row.gstin = s.gstin;
-  if (s.currency !== undefined) row.currency = s.currency;
+  if (s.city !== undefined) row.city = s.city;
+  if (s.state !== undefined) row.state = s.state;
+  if (s.pincode !== undefined) row.pincode = s.pincode;
+  if (s.freeShippingThreshold !== undefined) row.free_shipping_threshold = Number(s.freeShippingThreshold);
+  if (s.deliveryCharge !== undefined) row.shipping_fee = Number(s.deliveryCharge);
   return row;
 }
 
