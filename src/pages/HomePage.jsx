@@ -162,9 +162,9 @@ export default function HomePage() {
         </defs>
       </svg>
 
-      {/* 1. FULL-BLEED HERO BANNER WITH DYNAMIC BANNER SLIDES */}
-      {heroSlides.length > 0 && activeSlide && (
-        <section className="relative w-full h-[82vh] sm:h-[580px] md:h-[640px] overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
+      {/* 1. FULL-BLEED HERO BANNER WITH CONSTANT FIXED LAYOUT (NO COLLAPSE, NO SPINNER) */}
+      <section className="relative w-full h-[82vh] sm:h-[580px] md:h-[640px] overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
+        {heroSlides.length > 0 && activeSlide && (
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -244,8 +244,8 @@ export default function HomePage() {
               )}
             </div>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER (100% ADMIN CONTROLLED) */}
       {promotions?.marqueeActive !== false && (
