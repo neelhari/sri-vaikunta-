@@ -487,85 +487,65 @@ export default function AdminBanners() {
         </div>
       )}
 
-      {/* TAB 3: THE SAVINGS EDIT (4 PROMO TILES) */}
+      {/* TAB 3: THE SAVINGS EDIT (4 PROMO TILES WITH INDIVIDUAL SAVE BUTTONS) */}
       {activeTab === 'savings' && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-2xs space-y-6 text-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="font-serif text-lg font-bold text-gray-900">"The Savings Edit" (4 Promo Tiles)</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Controls the 4 featured deal cards below the category carousel on the homepage.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleSaveSavingsCards}
-              className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer self-start sm:self-auto"
-            >
-              Save All 4 Promo Tiles
-            </button>
+          <div>
+            <h3 className="font-serif text-lg font-bold text-gray-900">"The Savings Edit" (4 Featured Promo Tiles)</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Controls the 4 featured deal cards below the category carousel on the homepage. Save any card individually.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {savingsCards.map((card, idx) => (
-              <div key={idx} className="p-4 rounded-2xl border border-gray-200 bg-gray-50 space-y-3">
+              <div key={idx} className="p-5 rounded-2xl border border-gray-200 bg-gray-50/80 space-y-3.5 shadow-2xs">
                 <div className="flex items-center justify-between font-bold text-gray-800">
-                  <span>Promo Tile {idx + 1}</span>
-                  <span className="text-[10px] text-[#68081C] bg-[#FAF5EE] px-2 py-0.5 rounded border border-[#D4AF37]/30">
+                  <span className="text-sm font-bold text-gray-900">Promo Tile #{idx + 1}</span>
+                  <span className="text-[10px] text-[#68081C] bg-[#FAF5EE] font-extrabold px-2.5 py-0.5 rounded-full border border-[#D4AF37]/30">
                     Card #{idx + 1}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Badge</label>
-                    <input
-                      type="text"
-                      value={card.badge || ''}
-                      onChange={(e) => {
-                        const next = [...savingsCards];
-                        next[idx] = { ...next[idx], badge: e.target.value };
-                        setSavingsCards(next);
-                      }}
-                      className="w-full p-2 rounded-lg border border-gray-200 bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Discount Tag</label>
-                    <input
-                      type="text"
-                      value={card.discount || ''}
-                      onChange={(e) => {
-                        const next = [...savingsCards];
-                        next[idx] = { ...next[idx], discount: e.target.value };
-                        setSavingsCards(next);
-                      }}
-                      className="w-full p-2 rounded-lg border border-gray-200 bg-white"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Discount Tag (e.g. UP TO 25% OFF) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. UP TO 25% OFF or FLAT 30% OFF"
+                    value={card.discount || ''}
+                    onChange={(e) => {
+                      const next = [...savingsCards];
+                      next[idx] = { ...next[idx], discount: e.target.value };
+                      setSavingsCards(next);
+                    }}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-extrabold text-emerald-800 text-xs focus:border-[#68081C]"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Title</label>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Collection Title *</label>
                   <input
                     type="text"
+                    required
+                    placeholder="e.g. Dharmavaram Pure Pattu"
                     value={card.title || ''}
                     onChange={(e) => {
                       const next = [...savingsCards];
                       next[idx] = { ...next[idx], title: e.target.value };
                       setSavingsCards(next);
                     }}
-                    className="w-full p-2 rounded-lg border border-gray-200 bg-white font-bold"
+                    className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs focus:border-[#68081C]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-gray-700 mb-1">Photo Upload</label>
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0">
+                    <div className="w-16 h-20 rounded-xl overflow-hidden bg-gray-900 border border-gray-200 shrink-0 shadow-2xs">
                       <img src={card.image} alt="" className="w-full h-full object-cover" />
                     </div>
-                    <div>
+                    <div className="space-y-1">
                       <input
                         type="file"
                         accept="image/*"
@@ -583,13 +563,30 @@ export default function AdminBanners() {
                       />
                       <label
                         htmlFor={`savings-file-${idx}`}
-                        className="inline-flex items-center gap-1 bg-white hover:bg-gray-100 text-gray-700 font-bold text-[11px] px-3 py-1.5 rounded-lg border border-gray-300 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 bg-white hover:bg-gray-100 text-gray-800 font-bold text-[11px] px-3.5 py-2 rounded-xl border border-gray-300 cursor-pointer shadow-2xs transition-all"
                       >
-                        <Upload className="w-3 h-3 text-[#68081C]" />
-                        <span>Choose Photo</span>
+                        <Upload className="w-3.5 h-3.5 text-[#68081C]" />
+                        <span>Choose Photo from Device</span>
                       </label>
+                      <p className="text-[10px] text-gray-400">Cloudinary direct compression</p>
                     </div>
                   </div>
+                </div>
+
+                {/* Individual Save Button for each card */}
+                <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between">
+                  <span className="text-[10.5px] text-gray-400 font-medium">Live on Homepage Carousel</span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await updatePromotions({ savingsCards });
+                      showToast(`✓ Card #${idx + 1} (${card.title || 'Promo Tile'}) saved & synced!`);
+                    }}
+                    className="bg-[#68081C] hover:bg-[#4A0513] text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Save Card #{idx + 1}</span>
+                  </button>
                 </div>
               </div>
             ))}
