@@ -163,8 +163,8 @@ export default function HomePage() {
       </svg>
 
       {/* 1. FULL-BLEED HERO BANNER WITH DYNAMIC BANNER SLIDES */}
-      <section className="relative w-full h-[82vh] sm:h-[580px] md:h-[640px] overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
-        {heroSlides.length > 0 && activeSlide ? (
+      {heroSlides.length > 0 && activeSlide && (
+        <section className="relative w-full h-[82vh] sm:h-[580px] md:h-[640px] overflow-hidden bg-gradient-to-b from-[#1F0207] to-[#4A0513] text-white select-none">
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -244,17 +244,8 @@ export default function HomePage() {
               )}
             </div>
           </div>
-        ) : (
-          <div className="h-full w-full flex items-center justify-center bg-gradient-to-b from-[#1F0207] to-[#4A0513]">
-            <div className="flex flex-col items-center space-y-3">
-              <span className="text-[10px] sm:text-xs font-serif tracking-[0.25em] text-[#D4AF37] uppercase animate-pulse">
-                Sri Vaikunta Sarees
-              </span>
-              <div className="w-7 h-7 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin" />
-            </div>
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* 2. KOSKII PEACH/CORAL BLUSH INFINITE SCROLLING TICKER (100% ADMIN CONTROLLED) */}
       {promotions?.marqueeActive !== false && (
