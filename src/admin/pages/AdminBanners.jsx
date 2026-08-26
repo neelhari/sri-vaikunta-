@@ -884,10 +884,10 @@ export default function AdminBanners() {
                   onChange={(e) => setLink(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-gray-200 bg-white font-semibold"
                 >
-                  <option value="/shop">All Sarees Catalog (/shop)</option>
+                  <option value="/shop">🌟 All Sarees Catalog</option>
                   {categories.map((c) => (
                     <option key={c.id} value={`/categories?category=${c.id}`}>
-                      {c.name} (/categories?category={c.id})
+                      {c.name}
                     </option>
                   ))}
                 </select>

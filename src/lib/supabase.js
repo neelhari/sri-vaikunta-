@@ -247,11 +247,16 @@ function mapBannerFromDb(row) {
 
 function mapBannerToDb(b) {
   const row = {};
+  if (b.id) {
+    row.id = b.id;
+  } else {
+    row.id = `sv-ban-${Date.now()}`;
+  }
   if (b.title !== undefined) row.title = b.title;
   if (b.image !== undefined) row.image = b.image;
   if (b.link !== undefined) row.link = b.link;
-  if (b.active !== undefined) row.active = b.active;
-  if (b.sortOrder !== undefined) row.sort_order = b.sortOrder;
+  if (b.active !== undefined) row.active = b.active !== false;
+  if (b.sortOrder !== undefined) row.sort_order = b.sortOrder ?? 0;
   return row;
 }
 
