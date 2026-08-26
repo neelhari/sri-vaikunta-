@@ -100,8 +100,24 @@ export function AuthProvider({ children }) {
       console.warn('Supabase signup notice:', e);
     }
 
+    const generatedUuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : '00000000-0000-4000-8000-' + Math.random().toString(16).substring(2, 14).padStart(12, '0');
+
+    const finalUserId = supabaseUserId || generatedUuid;
+
+    // Sync profile to Supabase profiles table
+    try {
+      await updateUserProfileInDb(finalUserId, {
+        fullName: name.trim(),
+        email: cleanEmail,
+        phone: cleanPhone,
+        addresses: [],
+      });
+    } catch (e) {}
+
     const newUser = {
-      id: supabaseUserId || `usr_${Date.now()}`,
+      id: finalUserId,
       name: name.trim(),
       email: cleanEmail,
       phone: cleanPhone,

@@ -406,10 +406,13 @@ function mapOrderFromDb(row) {
   };
 }
 
+const isValidUUID = (id) =>
+  typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
 function mapOrderToDb(o) {
   return {
     id: o.id,
-    user_id: o.userId || null,
+    user_id: (o.userId && isValidUUID(o.userId)) ? o.userId : null,
     customer_name: o.customerName,
     customer_phone: o.customerPhone,
     customer_email: o.customerEmail || null,
