@@ -61,8 +61,11 @@ export default function AdminLogin() {
 
     try {
       if (supabase) {
+        const origin = window.location.origin && !window.location.origin.includes('localhost') 
+          ? window.location.origin 
+          : 'https://srivaikunta.com';
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(clean, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: `${origin}/reset-password`,
         });
         if (resetError) {
           console.warn('Supabase reset error:', resetError);

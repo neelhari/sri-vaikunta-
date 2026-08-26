@@ -152,8 +152,11 @@ export async function fetchAllProfiles() {
 export async function sendPasswordResetEmailToSupabase(email) {
   if (!supabase) return { success: false, message: 'Supabase client not initialized' };
   try {
+    const origin = window.location.origin && !window.location.origin.includes('localhost') 
+      ? window.location.origin 
+      : 'https://srivaikunta.com';
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${origin}/reset-password`,
     });
     if (error) return { success: false, message: error.message };
     return { success: true, data };
