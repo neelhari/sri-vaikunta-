@@ -205,3 +205,44 @@ export async function uploadToCloudinary(rawFile, bucket = 'banners') {
 
   return { success: false, message: 'Cloud media upload could not be completed.' };
 }
+
+/**
+ * Uploads a Data URL (base64) directly to Supabase Storage and returns the public URL.
+ */
+export async function uploadDataUrlToStorage(dataUrl, bucket = 'products', filenameBase = 'saree_img') {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl;
+  try {
+    const matches = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (!matches) return dataUrl;
+    const mime = matches[1];
+    const b64Data = matches[2];
+    const byteCharacters = atob(b64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mime });
+    const filename = `${filenameBase}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.jpg`;
+
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://swzqlrgruidxgmilthig.supabase.co';
+    const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${filename}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': mime,
+      },
+      body: blob,
+    });
+    if (res.ok) {
+      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filename}`;
+    }
+  } catch (e) {
+    console.warn('Failed to upload dataUrl to storage:', e);
+  }
+  return dataUrl;
+}
+

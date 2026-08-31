@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Trash2, Check, Video, AlertCircle, Film, Sparkles, ChevronDown, ChevronUp, Image as ImageIcon, Flame, Crown, Feather } from 'lucide-react';
-import { uploadToCloudinary, compressImageToDataUrl } from '../../lib/cloudinary';
+import { uploadToCloudinary, compressImageToDataUrl, uploadDataUrlToStorage } from '../../lib/cloudinary';
 import { BRAND } from '../../config/brand';
 
 export default function ClothingProductModal({ isOpen, onClose, onSave, initialProduct, categories = [], saving = false }) {
@@ -109,11 +109,11 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
     for (const file of files) {
       let url = null;
       try {
-        const res = await uploadToCloudinary(file);
+        const res = await uploadToCloudinary(file, 'products');
         if (res.success && res.url) {
           url = res.url;
         } else if (res.message) {
-          console.warn('Cloudinary upload warning:', res.message);
+          console.warn('Cloud storage upload warning:', res.message);
         }
       } catch (err) {
         console.warn('Upload error:', err);
@@ -121,7 +121,10 @@ export default function ClothingProductModal({ isOpen, onClose, onSave, initialP
 
       // Ultra-compact client-side compression fallback (< 70KB per photo)
       if (!url) {
-        url = await compressImageToDataUrl(file, 1200, 0.75);
+        const compressedB64 = await compressImageToDataUrl(file, 1200, 0.75);
+        if (compressedB64) {
+          url = await uploadDataUrlToStorage(compressedB64, 'products');
+        }
       }
 
       if (url) {

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { uploadDataUrlToStorage } from './cloudinary';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -526,7 +527,7 @@ function mapMessageFromDb(row) {
 export async function fetchProducts() {
   if (!supabase) return { success: false, data: [], message: 'Supabase not configured' };
   try {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false }).limit(250);
     if (error) return { success: false, data: [], message: error.message };
     return { success: true, data: data.map(mapProductFromDb) };
   } catch (err) {
@@ -537,13 +538,27 @@ export async function fetchProducts() {
 export async function insertProduct(product) {
   if (!supabase) return { success: true, data: product };
   try {
-    const row = mapProductToDb(product);
+    let cleanProduct = { ...product };
+    if (cleanProduct.image && cleanProduct.image.startsWith('data:')) {
+      cleanProduct.image = await uploadDataUrlToStorage(cleanProduct.image, 'products');
+    }
+    if (Array.isArray(cleanProduct.images)) {
+      cleanProduct.images = await Promise.all(
+        cleanProduct.images.map(async (img) => {
+          if (img && img.startsWith('data:')) {
+            return await uploadDataUrlToStorage(img, 'products');
+          }
+          return img;
+        })
+      );
+    }
+    const row = mapProductToDb(cleanProduct);
     const { data, error } = await supabase.from('products').upsert([row]).select().maybeSingle();
     if (error) {
       console.warn('Product upsert warning:', error.message);
-      return { success: false, message: error.message, data: product };
+      return { success: false, message: error.message, data: cleanProduct };
     }
-    return { success: true, data: { ...product, ...(data ? mapProductFromDb(data) : {}) } };
+    return { success: true, data: { ...cleanProduct, ...(data ? mapProductFromDb(data) : {}) } };
   } catch (err) {
     return { success: false, message: err.message, data: product };
   }
@@ -552,14 +567,28 @@ export async function insertProduct(product) {
 export async function updateProductInDb(id, updates) {
   if (!supabase) return { success: true, data: { id, ...updates } };
   try {
-    const row = mapProductToDb({ ...updates, id });
+    let cleanUpdates = { ...updates };
+    if (cleanUpdates.image && cleanUpdates.image.startsWith('data:')) {
+      cleanUpdates.image = await uploadDataUrlToStorage(cleanUpdates.image, 'products');
+    }
+    if (Array.isArray(cleanUpdates.images)) {
+      cleanUpdates.images = await Promise.all(
+        cleanUpdates.images.map(async (img) => {
+          if (img && img.startsWith('data:')) {
+            return await uploadDataUrlToStorage(img, 'products');
+          }
+          return img;
+        })
+      );
+    }
+    const row = mapProductToDb({ ...cleanUpdates, id });
     delete row.id;
     const { data, error } = await supabase.from('products').update(row).eq('id', id).select().maybeSingle();
     if (error) {
       console.warn('Product update warning:', error.message);
-      return { success: false, message: error.message, data: { id, ...updates } };
+      return { success: false, message: error.message, data: { id, ...cleanUpdates } };
     }
-    return { success: true, data: { id, ...updates, ...(data ? mapProductFromDb(data) : {}) } };
+    return { success: true, data: { id, ...cleanUpdates, ...(data ? mapProductFromDb(data) : {}) } };
   } catch (err) {
     return { success: false, message: err.message, data: { id, ...updates } };
   }
